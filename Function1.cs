@@ -13,23 +13,28 @@ namespace TinderCloneV1
 {
     public static class Function1
     {
-        [FunctionName("Function1")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
-            ILogger log)
-        {
-           
-            log.LogInformation("C# HTTP trigger function processed a request.");
+       [FunctionName("DatabaseCleanup")]
+        public static async Task Run([TimerTrigger("*/15 * * * * *")]TimerInfo myTimer, ILogger log) {
+            // Get the connection string from app settings and use it to create a connection.
+            var str = Environment.GetEnvironmentVariable("Server=tcp:tinderclone.database.windows.net,1433;Initial Catalog=TinderCloneDB;" +
+                                                         "Persist Security Info=False;User ID={moschbarend};Password={Bel32mac};" +
+                                                         "MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection" +
+                                                         "Timeout=30;");
 
-            string name = req.Query["name"];
+            using (SqlConnection conn = new SqlConnection(str)) {
+                conn.Open();
+                /*  var text = "UPDATE SalesLT.SalesOrderHeader SET [Status] = 5  WHERE ShipDate < GetDate();";
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+                // Try to add a CREATE TABLE Statement to try to connection to the database
+                var text = "UPDATE SalesLT.SalesOrderHeader SET [Status] = 5  WHERE ShipDate < GetDate();";
 
-            return name != null
-                ? (ActionResult)new OkObjectResult($"Hello, {name}")
-                : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
+                using (SqlCommand cmd = new SqlCommand(text, conn)){
+                    // Execute the command and log the # rows affected.
+                    var rows = await cmd.ExecuteNonQueryAsync();
+                    log.LogInformation($"{rows} rows were created");
+                }
+                */
+            }
         }
     }
 }
