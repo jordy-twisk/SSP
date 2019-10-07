@@ -1,15 +1,11 @@
-openapi: 3.0.0
+openapi: 3.0.2
 # Added by API Auto Mocking Plugin
 # Coach == Tutor
 # Tutorant == student of the Tutor
 
 #to be done
-#parameters (query) -> body
 #authentication
-#put / post / delete
 
-#tabel: coachID, workload
-#tabel: coachID, id, tutorantID, status(pending / approved)
 servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/barendmosch/TinderClone/1.0.0
@@ -34,7 +30,7 @@ paths:
       description: Returns the student data based on the student number.
       parameters: 
         - in: path
-          name: studentNumber
+          name: studentID
           description: The student's personal id.
           required: true
           schema:
@@ -61,8 +57,8 @@ paths:
       operationId: dataUpdate
       description: Update a student data based on filters.
       parameters:
-        - in: query
-          name: studentNumber
+        - in: path
+          name: studentID
           description: The student's personal id.
           required: true
           schema:
@@ -195,7 +191,7 @@ paths:
           description: Student number already exists.
         '429':
           description: Too many request on the database
-  /api/profile/coach/{ID}:
+  /api/profile/coach/{studentID}:
     get:
       tags:
       - Coach profile
@@ -205,7 +201,7 @@ paths:
       # No parameters returns back every profile.
       parameters:
         - in: path
-          name: studentNumber
+          name: studentID
           description: The student number is the students personal id.
           required: true
           schema:
@@ -235,7 +231,7 @@ paths:
       description: Delete a coach profile.
       parameters:
         - in: path
-          name: studentNumber
+          name: studentID
           description: The student's personal id.
           required: true
           schema:
@@ -299,17 +295,17 @@ paths:
           description: Student number already exists.
         '429':
           description: Too many request on the database
-  /api/profile/tutorant/{ID}:
+  /api/profile/tutorant/{studentID}:
     get:
       tags:
       - Tutorant profile
       summary: get tutorant and his profile.
-      operationId: coachProfileCall
+      operationId: tutorantProfileCall
       description: Returns requested coach.
       # No parameters returns back every profile.
       parameters:
         - in: path
-          name: studentNumber
+          name: studentID
           description: The student number is the students personal id.
           required: true
           schema:
@@ -339,7 +335,7 @@ paths:
       description: Delete a tutorant profile.
       parameters:
         - in: path
-          name: studentNumber
+          name: studentID
           description: The student's personal id.
           required: true
           schema:
@@ -365,7 +361,7 @@ paths:
       # No parameters returns back every profile.
       parameters:
         - in: path
-          name: studentNumber
+          name: studentID
           description: The student number is the students personal id.
           required: true
           schema:
@@ -396,7 +392,7 @@ paths:
       # No parameters returns back every profile.
       parameters:
         - in: path
-          name: studentNumber
+          name: studentID
           description: The student number is the students personal id.
           required: true
           schema:
@@ -452,7 +448,7 @@ paths:
       description: get all coach connections with their tutorants.
       parameters:        
         - in: path
-          name: studentNumber
+          name: ID
           description: The student number is the students personal id.
           required: true
           schema:
@@ -481,7 +477,7 @@ paths:
       description: Delete all connections to coach.
       parameters: 
         - in: path
-          name: studentNumber
+          name: ID
           schema:
             type: integer
           description: ID of the student.
@@ -504,7 +500,7 @@ paths:
       description: Get the connection the tutorant has with his coach, to find out who his coach is.
       parameters:        
         - in: path
-          name: studentNumber
+          name: ID
           description: The student number is the students personal id.
           required: true
           schema:
@@ -534,7 +530,7 @@ paths:
       description: Modify the info in the coachTutorant connection, used to change the status.
       parameters:
         - in: path
-          name: studentNumber
+          name: ID
           description: The student number is the students personal id.
           required: true
           schema:
@@ -564,7 +560,7 @@ paths:
       description: Delete tutorant connection to coach.
       parameters: 
         - in: path
-          name: studentNumber
+          name: ID
           schema:
             type: integer
           description: ID of the student.
@@ -576,37 +572,32 @@ paths:
           description: Student password is not accepted.
         '429':
           description: Too many request on the database.                
-  /api/messages/{amount}:
+  /api/messages/{coachID}/{tutorantID}:
     get:
       tags: 
       - Messages
       summary: get messages
       operationId: messagesCall
       description: Returns some messages, default number of last messages is 20 that will be returned.
-      requestBody:
-        description: Optional description in *Markdown*
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - coachStudentNumber
-                - tutorantStudentNumber
-                - numberOfMessages
-              properties:
-                coachStudentNumber:
-                  description: The coach his student number.
-                  type: integer
-                  example: 520438
-                tutorantStudentNumber:
-                  description: The tutorant his student number.
-                  type: integer
-                  example: 520438
-                numberOfMessages:
-                  description: Specify how much messages should be returned.
-                  type: integer
-                  example: 50
+      parameters: 
+        - in: path
+          name: coachID
+          schema:
+            type: integer
+          description: The coach his student number.
+          required: true
+        - in: path
+          name: tutorantID
+          schema:
+            type: integer
+          description: The tutorant his student number.
+          required: true
+        - in: query
+          name: amountOfMessages
+          schema:
+            type: integer
+          description: The number of messages that will be returned.
+          required: true
       responses:
         '200':
           description: Return an array of "message".
@@ -622,7 +613,7 @@ paths:
           description: Coach and tutorant number don't match any messages.
         '429':
           description: Too many request on the database.
-  /api/message/{ID}:
+  /api/message/{messageID}:
     #think about if we need this one, or remove, because why would we only get one message?
     get:
       tags:
@@ -636,18 +627,6 @@ paths:
           schema:
             type: integer
           description: Specific message ID.
-          required: true
-        - in: query
-          name: coachStudentNumber
-          schema:
-            type: integer
-          description: The coach his student number.
-          required: true
-        - in: query
-          name: tutorantStudentNumber
-          schema:
-            type: integer
-          description: The tutorant his student number.
           required: true
       responses:
         '200':
