@@ -50,28 +50,10 @@ paths:
                   $ref: '#/components/schemas/User'
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: Student number not in database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
           description: Too many request on the database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
     put:
       tags:
       - Userdata
@@ -144,36 +126,12 @@ paths:
               description: modified.
           '400':
               description: Undocumented filter parameter.
-              content:
-                application/json:
-                  schema:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/Fail'
           '401':
             description: Student password is not accepted.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '404':
             description: Student number not in database.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '429':
             description: Too many request on the database.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
   /api/users/search:
     get:
         tags:
@@ -236,44 +194,14 @@ paths:
         responses:
           '200':
                 description: Return list of student profiles.
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/User'
           '400':
                 description: Undocumented filter parameter.
-                content:
-                    application/json:
-                        schema:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Fail'
           '401':
             description: Student password is not accepted.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '404':
             description: Student number not in database.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '429':
                 description: Too many requests
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/Fail'
   /api/profile/coach:
     get:
       tags:
@@ -308,12 +236,6 @@ paths:
           description: Has been created.
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: Student number not in database.
           content:
@@ -324,20 +246,8 @@ paths:
                   $ref: '#/components/schemas/Fail'
         '409':
           description: Student number already exists.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
           description: Too many request on the database
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
   /api/profile/coach/{ID}:
     get:
       tags:
@@ -355,45 +265,21 @@ paths:
             type: integer
       responses:
           '200':
-                description: Return coach + his student profile.
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/CoachProfile'
+            description: Return coach + his student profile.
+            content:
+                application/json:
+                    schema:
+                        type: array
+                        items:
+                            $ref: '#/components/schemas/CoachProfile'
           '400':
-                description: Undocumented filter parameter.
-                content:
-                    application/json:
-                        schema:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Fail'
+            description: Undocumented filter parameter.
           '401':
             description: Student password is not accepted.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '404':
             description: Student number not in database.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '429':
-                description: Too many requests
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/Fail'
+            description: Too many requests
     delete:
       tags:
       - Coach profile
@@ -409,39 +295,15 @@ paths:
             type: integer
       responses:
             '204':
-                description: Delete was successful.
+              description: Delete was successful.
             '400':
-                description: Delete has failed.
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/Fail'
+               description: Delete has failed.
             '401':
               description: Student password is not accepted.
-              content:
-                application/json:
-                  schema:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Fail'
             '404':
                 description: Delete has failed, no studentnumber exists.
-                content:
-                  application/json:
-                    schema:
-                      type: array
-                      items:
-                          $ref: '#/components/schemas/Fail'
             '429':
               description: Too many request on the database.
-              content:
-                application/json:
-                  schema:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Fail'
   /api/profile/tutorant:
     get:
       tags:
@@ -460,36 +322,12 @@ paths:
                   $ref: '#/components/schemas/TutorantProfile'
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: Student number not in database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '409':
           description: Student number already exists.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
           description: Too many request on the database
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
     post:
       tags:
         - Tutorant profile
@@ -508,36 +346,12 @@ paths:
           description: Has been created.
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: Student number not in database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '409':
           description: Student number already exists.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
           description: Too many request on the database
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
   /api/profile/tutorant/{ID}:
     get:
       tags:
@@ -563,37 +377,13 @@ paths:
                             items:
                                 $ref: '#/components/schemas/TutorantProfile'
           '400':
-                description: Undocumented filter parameter.
-                content:
-                    application/json:
-                        schema:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Fail'
+            description: Undocumented filter parameter.
           '401':
             description: Student password is not accepted.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '404':
             description: Student number not in database.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '429':
-                description: Too many requests
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/Fail'
+            description: Too many requests
     delete:
       tags:
       - Tutorant profile
@@ -609,39 +399,15 @@ paths:
             type: integer
       responses:
             '204':
-                description: Delete was successful.
+              description: Delete was successful.
             '400':
-                description: Delete has failed.
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/Fail'
+              description: Delete has failed.
             '401':
               description: Student password is not accepted.
-              content:
-                application/json:
-                  schema:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Fail'
             '404':
-                description: Delete has failed, no studentnumber exists.
-                content:
-                  application/json:
-                    schema:
-                      type: array
-                      items:
-                          $ref: '#/components/schemas/Fail'
+              description: Delete has failed, no studentnumber exists.
             '429':
               description: Too many request on the database.
-              content:
-                application/json:
-                  schema:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Fail'
   /api/coach/{studentID}:
     get:
       tags:
@@ -667,37 +433,13 @@ paths:
                             items:
                                 $ref: '#/components/schemas/Coach'
           '400':
-                description: Undocumented filter parameter.
-                content:
-                    application/json:
-                        schema:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Fail'
+            description: Undocumented filter parameter.
           '401':
             description: Student password is not accepted.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '404':
             description: Student number not in database.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '429':
-                description: Too many requests
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/Fail'
+            description: Too many requests
     put:
       tags:
       - Coach profile
@@ -714,45 +456,21 @@ paths:
             type: integer
       responses:
           '200':
-                description: Return coach profile.
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/Coach'
+            description: Return coach profile.
+            content:
+                application/json:
+                    schema:
+                        type: array
+                        items:
+                            $ref: '#/components/schemas/Coach'
           '400':
-                description: Undocumented filter parameter.
-                content:
-                    application/json:
-                        schema:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Fail'
+            description: Undocumented filter parameter.
           '401':
             description: Student password is not accepted.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '404':
             description: Student number not in database.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '429':
-                description: Too many requests
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/Fail'
+            description: Too many requests
   /api/coachTutorant:
     post:
       tags:
@@ -772,36 +490,12 @@ paths:
           description: Has been created.
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: Student number not in database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '409':
           description: Student number already exists.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
           description: Too many request on the database
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
   /api/coachTutorant/coach/{ID}:
     get:
       tags:
@@ -826,37 +520,13 @@ paths:
                 items:
                   $ref: '#/components/schemas/CoachTutorantConnection'
         '400':
-              description: Undocumented filter parameter.
-              content:
-                  application/json:
-                      schema:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Fail'
+          description: Undocumented filter parameter.
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: Student number not in database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
-              description: Too many requests
-              content:
-                  application/json:
-                      schema:
-                          type: array
-                          items:
-                              $ref: '#/components/schemas/Fail'
+          description: Too many requests
     delete:
       tags:
         - CoachTutorant
@@ -874,28 +544,10 @@ paths:
           description: Deleted connections
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: messageID, Coach and tutorant number don't match any message.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
           description: Too many request on the database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
   /api/coachTutorant/tutorant/{ID}:
     get:
       tags:
@@ -920,37 +572,13 @@ paths:
                 items:
                   $ref: '#/components/schemas/CoachTutorantConnection'
         '400':
-              description: Undocumented filter parameter.
-              content:
-                  application/json:
-                      schema:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Fail'
+          description: Undocumented filter parameter.
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: Student number not in database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
-              description: Too many requests
-              content:
-                  application/json:
-                      schema:
-                          type: array
-                          items:
-                              $ref: '#/components/schemas/Fail'
+          description: Too many requests
     put:
       tags:
         - CoachTutorant
@@ -973,39 +601,15 @@ paths:
               $ref: '#/components/schemas/CoachTutorantConnection'
       responses:
           '200':
-              description: modified.
+            description: modified.
           '400':
-              description: Undocumented filter parameter.
-              content:
-                application/json:
-                  schema:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/Fail'
+            description: Undocumented filter parameter.
           '401':
             description: Student password is not accepted.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '404':
             description: Student number not in database.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
           '429':
             description: Too many request on the database.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Fail'
     delete:
       tags:
         - CoachTutorant
@@ -1023,20 +627,8 @@ paths:
           description: Delete connection
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
-          description: Too many request on the database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'                      
+          description: Too many request on the database.                
   /api/messages/{amount}:
     get:
       tags: 
@@ -1074,28 +666,10 @@ paths:
                   $ref: '#/components/schemas/Messages'
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: Coach and tutorant number don't match any messages.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
           description: Too many request on the database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
   /api/message/{ID}:
     get:
       tags:
@@ -1133,28 +707,10 @@ paths:
                   $ref: '#/components/schemas/Message'
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: messageID, Coach and tutorant number don't match any message.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
           description: Too many request on the database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
     put:
       tags:
         - Message
@@ -1197,28 +753,10 @@ paths:
                   $ref: '#/components/schemas/Message'
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: messageID, Coach and tutorant number don't match any message.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
           description: Too many request on the database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
     delete:
       tags:
         - Message
@@ -1237,28 +775,10 @@ paths:
           description: Deleted the requested message.
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: messageID, Coach and tutorant number don't match any message.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
           description: Too many request on the database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
   /api/message:  
     post:
       tags:
