@@ -90,7 +90,7 @@ paths:
       # No parameters returns back every profile.
       parameters:
           - in: query
-            name: studentNumber
+            name: studentID
             description: The student number is the students personal id.
             required: false
             schema:
@@ -243,7 +243,7 @@ paths:
             '401':
               description: Student password is not accepted.
             '404':
-              description: Delete has failed, no studentnumber exists.
+              description: Delete has failed no studentnumber exists.
             '429':
               description: Too many request on the database.
   /api/profile/tutorant:
@@ -656,13 +656,13 @@ paths:
           description: Specific message ID.
           required: true
         - in: query
-          name: coachStudentNumber
+          name: coachStudentID
           schema:
             type: integer
           description: The coach his student number.
           required: true
         - in: query
-          name: tutorantStudentNumber
+          name: tutorantStudentID
           schema:
             type: integer
           description: The tutorant his student number.
@@ -740,9 +740,9 @@ components:
         User:
             type: object
             required: 
-                - studentNumber
+                - studentID
             properties:
-                studentNumber:
+                studentID:
                     type: integer
                     example: 578123
                 firstName:
@@ -786,9 +786,9 @@ components:
         Tutorant:
           type: object
           required:
-           - studentNumber
+           - studentID
           properties:
-            studentNumber:
+            studentID:
               type: integer
               example: 520438
         # User profile of the coach and coach object.
@@ -801,14 +801,14 @@ components:
             coach:
               type: object
               $ref: '#/components/schemas/Coach'
-        # Coach studentNumber and workload.
+        # Coach studentID and workload.
         Coach:
           type: object
           required:
-            - studentNumber
+            - studentID
             - workload
           properties:
-            studentNumber:
+            studentID:
               type: integer
               example: 520438
             workload:
@@ -818,14 +818,14 @@ components:
         CoachTutorantConnection:
           type: object
           required:
-            - studentNumberCoach
-            - studentNumberTutorant
+            - studentIDCoach
+            - studentIDTutorant
             - status
           properties:
-            studentNumberCoach:
+            studentIDCoach:
               type: integer
               example: 520438
-            studentNumberTutorant:
+            studentIDTutorant:
               type: integer
               example: 590549
             status:
@@ -843,8 +843,8 @@ components:
           type: object
           required:
           - messageID
-          - coachStudentNumber
-          - tutorantStudentNumber
+          - coachStudentID
+          - tutorantStudentID
           # text | photo | video | document | etc.
           - type
           # The message
@@ -858,10 +858,10 @@ components:
               # couchStudentNumber + tutorantStudentNumber + increment creates a unique id.
               # Saved as separate fields.
               example: 590539510539
-            coachStudentNumber:
+            coachStudentID:
               type: integer
               example: 590539
-            tutorantStudentNumber:
+            tutorantStudentID:
               type: integer
               example: 510539
             type:
