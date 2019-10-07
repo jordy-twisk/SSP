@@ -843,8 +843,8 @@ components:
           type: object
           required:
           - messageID
-          - coachStudentID
-          - tutorantStudentID
+          # - coachStudentID -> These can be deleted, yeah?
+          # - tutorantStudentID -> These can be deleted, yeah?
           # text | photo | video | document | etc.
           - type
           # The message
@@ -858,12 +858,12 @@ components:
               # couchStudentNumber + tutorantStudentNumber + increment creates a unique id.
               # Saved as separate fields.
               example: 590539510539
-            coachStudentID:
-              type: integer
-              example: 590539
-            tutorantStudentID:
-              type: integer
-              example: 510539
+            #coachStudentID:
+            #  type: integer
+            #  example: 590539
+            #tutorantStudentID:
+            #  type: integer
+            #  example: 510539
             type:
               type: string
               example: "text"
