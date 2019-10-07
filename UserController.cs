@@ -31,15 +31,20 @@ namespace TinderCloneV1{
 
                 using (SqlConnection connection = new SqlConnection(str)){
                     connection.Open();
-                    
-                    if (req.Method == HttpMethod.Get){
-                        queryString = $"SELECT * FROM [dbo].[Student] WHERE studentNumber = {studentID};";
 
-                        using (SqlCommand command = new SqlCommand(queryString, connection)){
-                            using (SqlDataReader reader = command.ExecuteReader()){
-                                while (reader.Read()){
-                                    student.Add(new User{
-                                        studentNumber = reader.GetInt32(0),
+                    if (req.Method == HttpMethod.Get)
+                    {
+                        queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = {studentID};";
+
+                        using (SqlCommand command = new SqlCommand(queryString, connection))
+                        {
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    student.Add(new User
+                                    {
+                                        studentID = reader.GetInt32(0),
                                         firstName = reader.GetString(1),
                                         surName = reader.GetString(2),
                                         phoneNumber = reader.GetString(3),
@@ -55,31 +60,27 @@ namespace TinderCloneV1{
                         }
                         var jsonToReturn = JsonConvert.SerializeObject(student);
                         log.Info($"{HttpStatusCode.OK} | Data shown succesfully");
-                        return new HttpResponseMessage(HttpStatusCode.OK){
+                        return new HttpResponseMessage(HttpStatusCode.OK)
+                        {
                             Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
                         };
                     }
-
-                    else if (req.Method == HttpMethod.Delete){
-                        queryString = $"DELETE FROM [dbo].[Student] WHERE {studentID} = studentNumber;";
-
-                        SqlCommand command = new SqlCommand(queryString, connection);
-                        await command.ExecuteNonQueryAsync();
-
-                        HttpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $"{studentID} Deleted from the database");
+                    else if (req.Method == HttpMethod.Put) { 
+                        
                     }
 
                     else if (req.Method == HttpMethod.Post){
                         string body = await req.Content.ReadAsStringAsync();
                         int i = student.Count;
 
-                        using (StringReader reader = new StringReader(body)){
+                        using (StringReader reader = new StringReader(body))
+                        {
                             string json = reader.ReadToEnd();
                             student.Add(JsonConvert.DeserializeObject<User>(json));
                         }
-                        
+
                         queryString = $"INSERT INTO [dbo].[Student] " +
-                            $"(studentNumber, firstName, surName, phoneNumber, photo, description, degree, study, studyYear, interests) " +
+                            $"(studentID, firstName, surName, phoneNumber, photo, description, degree, study, studyYear, interests) " +
                             $"VALUES " +
                             $"({studentID}, '{student[i].firstName}', '{student[i].surName}', '{student[i].phoneNumber}', '{student[i].photo}', " +
                             $"'{student[i].description}', '{student[i].degree}', '{student[i].study}', {student[i].studyYear}, '{student[i].interests}');";
@@ -89,8 +90,18 @@ namespace TinderCloneV1{
 
                         HttpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $" {studentID} Added to the database");
                     }
+                    else if (req.Method == HttpMethod.Delete)
+                    {
+                        queryString = $"DELETE FROM [dbo].[Student] WHERE {studentID} = studentID;";
 
-                    else{
+                        SqlCommand command = new SqlCommand(queryString, connection);
+                        await command.ExecuteNonQueryAsync();
+
+                        HttpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $"{studentID} Deleted from the database");
+                    }
+
+                    else
+                    {
                         HttpResponseMessage = req.CreateResponse(HttpStatusCode.NotFound, $"HTTP Trigger not initialized, Make sure to use GET, POST, DELETE, PUT");
                     }
 

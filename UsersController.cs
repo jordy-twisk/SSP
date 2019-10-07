@@ -27,14 +27,14 @@ namespace TinderCloneV1{
                 using (SqlConnection connection = new SqlConnection(str)){
 
                     connection.Open();
-                    string text = "SELECT * FROM User;";
+                    string text = "SELECT * FROM Student;";
 
 
                     using (SqlCommand command = new SqlCommand(text, connection)){
                         using (SqlDataReader reader = command.ExecuteReader()){
                             while (reader.Read()){
                                 student.Add(new User{
-                                    studentNumber = reader.GetInt32(0),
+                                    studentID = reader.GetInt32(0),
                                     firstName = reader.GetString(1),
                                     surName = reader.GetString(2)
                                 });

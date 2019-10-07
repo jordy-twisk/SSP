@@ -4,7 +4,7 @@ using System.Text;
 
 namespace TinderCloneV1{
     class User{
-        public int studentNumber{
+        public int studentID{
             get;
             set;
         }
