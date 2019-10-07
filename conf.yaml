@@ -439,7 +439,7 @@ paths:
           description: Student number already exists.
         '429':
           description: Too many request on the database
-  /api/coachTutorant/coach/{ID}:
+  /api/coachTutorant/coach/{studentID}:
     get:
       tags:
         - CoachTutorant
@@ -448,7 +448,7 @@ paths:
       description: get all coach connections with their tutorants.
       parameters:        
         - in: path
-          name: ID
+          name: studentID
           description: The student number is the students personal id.
           required: true
           schema:
@@ -477,7 +477,7 @@ paths:
       description: Delete all connections to coach.
       parameters: 
         - in: path
-          name: ID
+          name: studentID
           schema:
             type: integer
           description: ID of the student.
@@ -491,7 +491,7 @@ paths:
           description: messageID, Coach and tutorant number don't match any message.
         '429':
           description: Too many request on the database.
-  /api/coachTutorant/tutorant/{ID}:
+  /api/coachTutorant/tutorant/{studentID}:
     get:
       tags:
         - CoachTutorant
@@ -500,7 +500,7 @@ paths:
       description: Get the connection the tutorant has with his coach, to find out who his coach is.
       parameters:        
         - in: path
-          name: ID
+          name: studentID
           description: The student number is the students personal id.
           required: true
           schema:
@@ -530,7 +530,7 @@ paths:
       description: Modify the info in the coachTutorant connection, used to change the status.
       parameters:
         - in: path
-          name: ID
+          name: studentID
           description: The student number is the students personal id.
           required: true
           schema:
@@ -560,7 +560,7 @@ paths:
       description: Delete tutorant connection to coach.
       parameters: 
         - in: path
-          name: ID
+          name: studentID
           schema:
             type: integer
           description: ID of the student.
@@ -756,10 +756,8 @@ components:
                     type: string
                     example: "0645236582"
                 interests:
-                    type: array
-                    items:
-                      type: string
-                      example: ["Programming (C only)", "Servers", "Cisco"]
+                    type: string
+                    example: "Programming (C only), Servers, Cisco"
                 photo:
                     type: string
                     example: "https://i.redd.it/xmulu1f6urt11.jpg"
@@ -776,7 +774,7 @@ components:
                 # hbo: 1st, 2nd, 3rd, 4th year
                 studyYear:
                     type: integer
-                    example: "1st"
+                    example: 2
         TutorantProfile:
           type: object
           properties:
