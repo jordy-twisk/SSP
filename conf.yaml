@@ -191,12 +191,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: Student number not in database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '409':
           description: Student number already exists.
         '429':
@@ -582,7 +576,7 @@ paths:
           description: Student password is not accepted.
         '429':
           description: Too many request on the database.                
-  /api/messages:
+  /api/messages/{amount}:
     get:
       tags: 
       - Messages
