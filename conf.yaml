@@ -61,71 +61,24 @@ paths:
       operationId: dataUpdate
       description: Update a student data based on filters.
       parameters:
-        - in: path
+        - in: query
           name: studentNumber
           description: The student's personal id.
           required: true
           schema:
             type: integer
-        - in: query
-          name: firstName
-          description: The first name of the student.
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: surName
-          description: The surname of the student.
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: phoneNumber
-          description: The phone number of the student.
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: interests
-          description: Interests of the student.
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: photo
-          description: The photo of the student.
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: description
-          description: The description of the student.
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: study
-          description: The study of the student.
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: studyYear
-          description: The study year of the student.
-          required: false
-          schema:
-            type: integer
-        - in: query
-          name: degree
-          description: The degree of the student.
-          required: false
-          schema:
-            type: string
+      requestBody:
+        description: all info that is needed to create the coach + profile
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
       responses:
           '200':
-              description: modified.
+            description: modified.
           '400':
-              description: Undocumented filter parameter.
+            description: Undocumented filter parameter.
           '401':
             description: Student password is not accepted.
           '404':
@@ -134,74 +87,74 @@ paths:
             description: Too many request on the database.
   /api/users/search:
     get:
-        tags:
-        - Userdata
-        summary: search for user profiles
-        operationId: searchCall
-        description: Returns a list of user profiles from the database filtered by filters.
-        # No parameters returns back every profile.
-        parameters:
-            - in: query
-              name: studentNumber
-              description: The student number is the students personal id.
-              required: false
-              schema:
-                type: integer
-            - in: query
-              name: firstName
-              description: The first name of the student.
-              required: false
-              schema:
+      tags:
+      - Userdata
+      summary: search for user profiles
+      operationId: searchCall
+      description: Returns a list of user profiles from the database filtered by filters.
+      # No parameters returns back every profile.
+      parameters:
+          - in: query
+            name: studentNumber
+            description: The student number is the students personal id.
+            required: false
+            schema:
+              type: integer
+          - in: query
+            name: firstName
+            description: The first name of the student.
+            required: false
+            schema:
+              type: string
+          - in: query
+            name: surName
+            description: The surname of the student.
+            required: false
+            schema:
+              type: string
+          - in: query
+            name: phoneNumber
+            description: The phoneNumber of the student.
+            required: false
+            schema:
+              type: string
+          - in: query
+            name: interests
+            description: The interests of the student.
+            required: false
+            schema:
+              type: array
+              items:
                 type: string
-            - in: query
-              name: surName
-              description: The surname of the student.
-              required: false
-              schema:
-                type: string
-            - in: query
-              name: phoneNumber
-              description: The phoneNumber of the student.
-              required: false
-              schema:
-                type: string
-            - in: query
-              name: interests
-              description: The interests of the student.
-              required: false
-              schema:
-                type: array
-                items:
-                  type: string
-            - in: query
-              name: degree
-              description: The degree of the student.
-              required: false
-              schema:
-                type: string
-            - in: query
-              name: study
-              required: false
-              description: The study of the student.
-              schema:
-                type: string
-            - in: query
-              name: studyYear
-              description: The study year of the student.
-              required: false
-              schema:
-                type: integer
-        responses:
-          '200':
-                description: Return list of student profiles.
-          '400':
-                description: Undocumented filter parameter.
-          '401':
-            description: Student password is not accepted.
-          '404':
-            description: Student number not in database.
-          '429':
-                description: Too many requests
+          - in: query
+            name: degree
+            description: The degree of the student.
+            required: false
+            schema:
+              type: string
+          - in: query
+            name: study
+            required: false
+            description: The study of the student.
+            schema:
+              type: string
+          - in: query
+            name: studyYear
+            description: The study year of the student.
+            required: false
+            schema:
+              type: integer
+      responses:
+        '200':
+          description: Return list of student profiles.
+        '400':
+          description: Undocumented filter parameter.
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: Student number not in database.
+        '429':
+              description: Too many requests
   /api/profile/coach:
     get:
       tags:
@@ -301,7 +254,7 @@ paths:
             '401':
               description: Student password is not accepted.
             '404':
-                description: Delete has failed, no studentnumber exists.
+              description: Delete has failed, no studentnumber exists.
             '429':
               description: Too many request on the database.
   /api/profile/tutorant:
@@ -369,13 +322,13 @@ paths:
             type: integer
       responses:
           '200':
-                description: Return tutorant + his student profile.
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/TutorantProfile'
+            description: Return tutorant + his student profile.
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                  $ref: '#/components/schemas/TutorantProfile'
           '400':
             description: Undocumented filter parameter.
           '401':
@@ -425,13 +378,13 @@ paths:
             type: integer
       responses:
           '200':
-                description: Return coach profile.
-                content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/Coach'
+            description: Return coach profile.
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Coach'
           '400':
             description: Undocumented filter parameter.
           '401':
@@ -458,11 +411,11 @@ paths:
           '200':
             description: Return coach profile.
             content:
-                application/json:
-                    schema:
-                        type: array
-                        items:
-                            $ref: '#/components/schemas/Coach'
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Coach'
           '400':
             description: Undocumented filter parameter.
           '401':
@@ -629,32 +582,37 @@ paths:
           description: Student password is not accepted.
         '429':
           description: Too many request on the database.                
-  /api/messages/{amount}:
+  /api/messages:
     get:
       tags: 
       - Messages
       summary: get messages
       operationId: messagesCall
       description: Returns some messages, default number of last messages is 20 that will be returned.
-      parameters: 
-        - in: query
-          name: coachStudentNumber
-          schema:
-            type: integer
-          description: The coach his student number.
-          required: true
-        - in: query
-          name: tutorantStudentNumber
-          schema:
-            type: integer
-          description: The tutorant his student number.
-          required: true
-        - in: query
-          name: numberOfMessages
-          schema:
-            type: integer
-          description: Specify how much messages should be returned.
-          required: false
+      requestBody:
+        description: Optional description in *Markdown*
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - coachStudentNumber
+                - tutorantStudentNumber
+                - numberOfMessages
+              properties:
+                coachStudentNumber:
+                  description: The coach his student number.
+                  type: integer
+                  example: 520438
+                tutorantStudentNumber:
+                  description: The tutorant his student number.
+                  type: integer
+                  example: 520438
+                numberOfMessages:
+                  description: Specify how much messages should be returned.
+                  type: integer
+                  example: 50
       responses:
         '200':
           description: Return an array of "message".
@@ -671,6 +629,7 @@ paths:
         '429':
           description: Too many request on the database.
   /api/message/{ID}:
+    #think about if we need this one, or remove, because why would we only get one message?
     get:
       tags:
         - Message
@@ -798,28 +757,10 @@ paths:
           description: successfully posted the message.
         '401':
           description: Student password is not accepted.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '404':
           description: Coach or/and tutorant number don't exist in database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
         '429':
           description: Too many request on the database.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Fail'
 
 components:
     schemas:
