@@ -1,0 +1,887 @@
+openapi: 3.0.2
+# Coach == Tutor
+# Tutorant == student of the Tutor
+
+#to be done
+#authentication
+
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/barendmosch/TinderClone/1.0.0
+
+info:
+  description: This is the MBO-HBO Tinder Clone API
+  version: "1.0.0"
+  title: MBO Tinder API
+  contact:
+    email: 586141@student.inholland.nl
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+
+paths:
+  /api/user/{studentID}:
+    get:
+      tags:
+      - Userdata
+      summary: get data call
+      operationId: dataCall
+      description: Returns the student data based on the student number.
+      parameters: 
+        - in: path
+          name: studentID
+          description: The student's personal id.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Return student data.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: Student number not in database.
+        '429':
+          description: Too many request on the database.
+    put:
+      tags:
+      - Userdata
+      summary: update data information
+      operationId: dataUpdate
+      description: Update a student data based on filters.
+      parameters:
+        - in: path
+          name: studentID
+          description: The student's personal id.
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: all info that is needed to create the coach + profile
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+          '200':
+            description: modified.
+          '400':
+            description: Undocumented filter parameter.
+          '401':
+            description: Student password is not accepted.
+          '404':
+            description: Student number not in database.
+          '429':
+            description: Too many request on the database.
+  /api/users/search:
+    get:
+      tags:
+      - Userdata
+      summary: search for user profiles
+      operationId: searchCall
+      description: Returns a list of user profiles from the database filtered by filters.
+      # No parameters returns back every profile.
+      parameters:
+          - in: query
+            name: studentNumber
+            description: The student number is the students personal id.
+            required: false
+            schema:
+              type: integer
+          - in: query
+            name: firstName
+            description: The first name of the student.
+            required: false
+            schema:
+              type: string
+          - in: query
+            name: surName
+            description: The surname of the student.
+            required: false
+            schema:
+              type: string
+          - in: query
+            name: phoneNumber
+            description: The phoneNumber of the student.
+            required: false
+            schema:
+              type: string
+          - in: query
+            name: interests
+            description: The interests of the student.
+            required: false
+            schema:
+              type: array
+              items:
+                type: string
+          - in: query
+            name: degree
+            description: The degree of the student.
+            required: false
+            schema:
+              type: string
+          - in: query
+            name: study
+            required: false
+            description: The study of the student.
+            schema:
+              type: string
+          - in: query
+            name: studyYear
+            description: The study year of the student.
+            required: false
+            schema:
+              type: integer
+      responses:
+        '200':
+          description: Return list of student profiles.
+        '400':
+          description: Undocumented filter parameter.
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: Student number not in database.
+        '429':
+              description: Too many requests
+  /api/profile/coach:
+    get:
+      tags:
+        - Coach profile
+      summary: get all coach profiles.
+      operationId: coachProfileGet
+      description: Get all coach profiles.
+      responses:
+        '200':
+          description: Returned profiles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoachProfile'
+    post:
+      tags:
+        - Coach profile
+      summary: create user profile for a coach
+      operationId: coachProfileCreate
+      description: Creates a new coach profile.
+      requestBody:
+        description: all info that is needed to create the coach + profile
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachProfile'
+      responses:
+        '201':
+          description: Has been created.
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: Student number not in database.
+        '409':
+          description: Student number already exists.
+        '429':
+          description: Too many request on the database
+  /api/profile/coach/{studentID}:
+    get:
+      tags:
+      - Coach profile
+      summary: get coach and his profile
+      operationId: coachProfileCall
+      description: Returns requested coach.
+      # No parameters returns back every profile.
+      parameters:
+        - in: path
+          name: studentID
+          description: The student number is the students personal id.
+          required: true
+          schema:
+            type: integer
+      responses:
+          '200':
+            description: Return coach + his student profile.
+            content:
+                application/json:
+                    schema:
+                        type: array
+                        items:
+                            $ref: '#/components/schemas/CoachProfile'
+          '400':
+            description: Undocumented filter parameter.
+          '401':
+            description: Student password is not accepted.
+          '404':
+            description: Student number not in database.
+          '429':
+            description: Too many requests
+    delete:
+      tags:
+      - Coach profile
+      summary: delete coach profile information
+      operationId: coachProfileDelete
+      description: Delete a coach profile.
+      parameters:
+        - in: path
+          name: studentID
+          description: The student's personal id.
+          required: true
+          schema:
+            type: integer
+      responses:
+            '204':
+              description: Delete was successful.
+            '400':
+               description: Delete has failed.
+            '401':
+              description: Student password is not accepted.
+            '404':
+              description: Delete has failed, no studentnumber exists.
+            '429':
+              description: Too many request on the database.
+  /api/profile/tutorant:
+    get:
+      tags:
+        - Tutorant profile
+      summary: get all tutorant profiles
+      operationId: tutorantProfileGet
+      description: Get all tutorant profiles.
+      responses:
+        '200':
+          description: Returned profiles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TutorantProfile'
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: Student number not in database.
+        '409':
+          description: Student number already exists.
+        '429':
+          description: Too many request on the database
+    post:
+      tags:
+        - Tutorant profile
+      summary: create user profile for a tutorant
+      operationId: tutorantProfileCreate
+      description: Creates a new tutorant profile.
+      requestBody:
+        description: all info that is needed to create the tutorant + profile
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TutorantProfile'
+      responses:
+        '201':
+          description: Has been created.
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: Student number not in database.
+        '409':
+          description: Student number already exists.
+        '429':
+          description: Too many request on the database
+  /api/profile/tutorant/{studentID}:
+    get:
+      tags:
+      - Tutorant profile
+      summary: get tutorant and his profile.
+      operationId: tutorantProfileCall
+      description: Returns requested coach.
+      # No parameters returns back every profile.
+      parameters:
+        - in: path
+          name: studentID
+          description: The student number is the students personal id.
+          required: true
+          schema:
+            type: integer
+      responses:
+          '200':
+            description: Return tutorant + his student profile.
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                  $ref: '#/components/schemas/TutorantProfile'
+          '400':
+            description: Undocumented filter parameter.
+          '401':
+            description: Student password is not accepted.
+          '404':
+            description: Student number not in database.
+          '429':
+            description: Too many requests
+    delete:
+      tags:
+      - Tutorant profile
+      summary: delete tutorant profile information
+      operationId: tutorantProfileDelete
+      description: Delete a tutorant profile.
+      parameters:
+        - in: path
+          name: studentID
+          description: The student's personal id.
+          required: true
+          schema:
+            type: integer
+      responses:
+            '204':
+              description: Delete was successful.
+            '400':
+              description: Delete has failed.
+            '401':
+              description: Student password is not accepted.
+            '404':
+              description: Delete has failed, no studentnumber exists.
+            '429':
+              description: Too many request on the database.
+  /api/coach/{studentID}:
+    get:
+      tags:
+      - Coach profile
+      summary: get coach and workload.
+      operationId: coachCall
+      description: Returns requested coach and his maximum workload.
+      # No parameters returns back every profile.
+      parameters:
+        - in: path
+          name: studentID
+          description: The student number is the students personal id.
+          required: true
+          schema:
+            type: integer
+      responses:
+          '200':
+            description: Return coach profile.
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Coach'
+          '400':
+            description: Undocumented filter parameter.
+          '401':
+            description: Student password is not accepted.
+          '404':
+            description: Student number not in database.
+          '429':
+            description: Too many requests
+    put:
+      tags:
+      - Coach profile
+      summary: update coach and workload
+      operationId: coachModify
+      description: Returns requested coach and his maximum workload.
+      # No parameters returns back every profile.
+      parameters:
+        - in: path
+          name: studentID
+          description: The student number is the students personal id.
+          required: true
+          schema:
+            type: integer
+      responses:
+          '200':
+            description: Return coach profile.
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Coach'
+          '400':
+            description: Undocumented filter parameter.
+          '401':
+            description: Student password is not accepted.
+          '404':
+            description: Student number not in database.
+          '429':
+            description: Too many requests
+  /api/coachTutorant:
+    post:
+      tags:
+        - CoachTutorant
+      summary: create coach tutorant connection
+      operationId: coachTutorantCreate
+      description: Creates a new coach with tutorant connection.
+      requestBody:
+        description: all info that is needed to create the coach tutorant conenction.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachTutorantConnection'
+      responses:
+        '201':
+          description: Has been created.
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: Student number not in database.
+        '409':
+          description: Student number already exists.
+        '429':
+          description: Too many request on the database
+  /api/coachTutorant/coach/{studentID}:
+    get:
+      tags:
+        - CoachTutorant
+      summary: get all coach connections with their tutorants.
+      operationId: coachTutorantConnectionsGet
+      description: get all coach connections with their tutorants.
+      parameters:        
+        - in: path
+          name: studentID
+          description: The student number is the students personal id.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Returned coach connections.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoachTutorantConnection'
+        '400':
+          description: Undocumented filter parameter.
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: Student number not in database.
+        '429':
+          description: Too many requests
+    delete:
+      tags:
+        - CoachTutorant
+      operationId: coachTutorantConnectionDelete
+      description: Delete all connections to coach.
+      parameters: 
+        - in: path
+          name: studentID
+          schema:
+            type: integer
+          description: ID of the student.
+          required: true
+      responses:
+        '204':
+          description: Deleted connections
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: messageID, Coach and tutorant number don't match any message.
+        '429':
+          description: Too many request on the database.
+  /api/coachTutorant/tutorant/{studentID}:
+    get:
+      tags:
+        - CoachTutorant
+      summary: get tutorant connection with his coach.
+      operationId: tutorantCoachConnectionGet
+      description: Get the connection the tutorant has with his coach, to find out who his coach is.
+      parameters:        
+        - in: path
+          name: studentID
+          description: The student number is the students personal id.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Returned tutorant coach connection.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoachTutorantConnection'
+        '400':
+          description: Undocumented filter parameter.
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: Student number not in database.
+        '429':
+          description: Too many requests
+    put:
+      tags:
+        - CoachTutorant
+      summary: modify coachTutorant connection
+      operationId: coachTutorantConnectionUpdate
+      description: Modify the info in the coachTutorant connection, used to change the status.
+      parameters:
+        - in: path
+          name: studentID
+          description: The student number is the students personal id.
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: all info that is needed to create the coach tutorant connection.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachTutorantConnection'
+      responses:
+          '200':
+            description: modified.
+          '400':
+            description: Undocumented filter parameter.
+          '401':
+            description: Student password is not accepted.
+          '404':
+            description: Student number not in database.
+          '429':
+            description: Too many request on the database.
+    delete:
+      tags:
+        - CoachTutorant
+      operationId: tutorantCoachConnectionDelete
+      description: Delete tutorant connection to coach.
+      parameters: 
+        - in: path
+          name: studentID
+          schema:
+            type: integer
+          description: ID of the student.
+          required: true
+      responses:
+        '204':
+          description: Delete connection
+        '401':
+          description: Student password is not accepted.
+        '429':
+          description: Too many request on the database.                
+  /api/messages/{coachID}/{tutorantID}:
+    get:
+      tags: 
+      - Messages
+      summary: get messages
+      operationId: messagesCall
+      description: Returns some messages, default number of last messages is 20 that will be returned.
+      parameters: 
+        - in: path
+          name: coachID
+          schema:
+            type: integer
+          description: The coach his student number.
+          required: true
+        - in: path
+          name: tutorantID
+          schema:
+            type: integer
+          description: The tutorant his student number.
+          required: true
+        - in: query
+          name: amountOfMessages
+          schema:
+            type: integer
+          description: The number of messages that will be returned.
+          required: true
+      responses:
+        '200':
+          description: Return an array of "message".
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Messages'
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: Coach and tutorant number don't match any messages.
+        '429':
+          description: Too many request on the database.
+  /api/message/{messageID}:
+    #think about if we need this one, or remove, because why would we only get one message?
+    get:
+      tags:
+        - Message
+      summary: get message
+      operationId: messageCall
+      description: Returns a specific message.
+      parameters: 
+        - in: path
+          name: messageID
+          schema:
+            type: integer
+          description: Specific message ID.
+          required: true
+      responses:
+        '200':
+          description: Return the requested message.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: messageID, Coach and tutorant number don't match any message.
+        '429':
+          description: Too many request on the database.
+    put:
+      tags:
+        - Message
+      summary: modify message
+      operationId: messageUpdate
+      description: Changes the messages by the user's choice.
+      parameters: 
+        - in: path
+          name: messageID
+          schema:
+            type: integer
+          description: Specific message ID.
+          required: true
+        - in: query
+          name: coachStudentNumber
+          schema:
+            type: integer
+          description: The coach his student number.
+          required: true
+        - in: query
+          name: tutorantStudentNumber
+          schema:
+            type: integer
+          description: The tutorant his student number.
+          required: true
+        - in: query
+          name: payload
+          schema:
+            type: integer
+          description: The modified messaged.
+          required: true
+      responses:
+        '201':
+          description: Modified the requested message.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: messageID, Coach and tutorant number don't match any message.
+        '429':
+          description: Too many request on the database.
+    delete:
+      tags:
+        - Message
+      summary: delete a message
+      operationId: messageDelete
+      description: Delete a specific message.
+      parameters: 
+        - in: path
+          name: messageID
+          schema:
+            type: integer
+          description: Specific message ID.
+          required: true
+      responses:
+        '204':
+          description: Deleted the requested message.
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: messageID, Coach and tutorant number don't match any message.
+        '429':
+          description: Too many request on the database.
+  /api/message:  
+    post:
+      tags:
+      - Message
+      summary: post message
+      operationId: messagePost
+      description: post a message to the API.
+      requestBody:
+        description: all info needed to create message.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        '201':
+          description: successfully posted the message.
+        '401':
+          description: Student password is not accepted.
+        '404':
+          description: Coach or/and tutorant number don't exist in database.
+        '429':
+          description: Too many request on the database.
+
+components:
+    schemas:
+        # Is a profile.
+        User:
+            type: object
+            required: 
+                - studentNumber
+            properties:
+                studentNumber:
+                    type: integer
+                    example: 578123
+                firstName:
+                    type: string
+                    example: "Yuki"
+                surName:
+                    type: string
+                    example: "Basthiaan"
+                phoneNumber:
+                    type: string
+                    example: "0645236582"
+                interests:
+                    type: string
+                    example: "Programming (C only), Servers, Cisco"
+                photo:
+                    type: string
+                    example: "https://i.redd.it/xmulu1f6urt11.jpg"
+                description:
+                    type: string
+                    example: "I am a hbo student."
+                # Degree:  havo || vwo || mbo || hbo || wo
+                degree:
+                    type: string
+                    example: "hbo"
+                study:
+                    type: string
+                    example: "Informatica"
+                # hbo: 1st, 2nd, 3rd, 4th year
+                studyYear:
+                    type: integer
+                    example: 2
+        TutorantProfile:
+          type: object
+          properties:
+            profile:
+              type: object
+              $ref: '#/components/schemas/User'
+            student:
+              type: object
+              $ref: '#/components/schemas/Tutorant'
+        Tutorant:
+          type: object
+          required:
+           - studentNumber
+          properties:
+            studentNumber:
+              type: integer
+              example: 520438
+        # User profile of the coach and coach object.
+        CoachProfile:
+          type: object
+          properties:
+            profile:
+              type: object
+              $ref: '#/components/schemas/User'
+            coach:
+              type: object
+              $ref: '#/components/schemas/Coach'
+        # Coach studentNumber and workload.
+        Coach:
+          type: object
+          required:
+            - studentNumber
+            - workload
+          properties:
+            studentNumber:
+              type: integer
+              example: 520438
+            workload:
+              type: integer
+              example: 2
+        # Coach with a Tutorant pair. Status of the request as well.
+        CoachTutorantConnection:
+          type: object
+          required:
+            - studentNumberCoach
+            - studentNumberTutorant
+            - status
+          properties:
+            studentNumberCoach:
+              type: integer
+              example: 520438
+            studentNumberTutorant:
+              type: integer
+              example: 590549
+            status:
+              type: string
+              example: "pending"
+        # Chat system
+        Messages:
+          properties:
+            list:
+              type: array
+              items:
+                type: object
+                $ref: '#/components/schemas/Message'
+        Message:
+          type: object
+          required:
+          - messageID
+          - coachStudentNumber
+          - tutorantStudentNumber
+          # text | photo | video | document | etc.
+          - type
+          # The message
+          - payload
+          # Timestamp
+          - created
+          - lastModified
+          properties:
+            messageID:
+              type: integer
+              # couchStudentNumber + tutorantStudentNumber + increment creates a unique id.
+              # Saved as separate fields.
+              example: 590539510539
+            coachStudentNumber:
+              type: integer
+              example: 590539
+            tutorantStudentNumber:
+              type: integer
+              example: 510539
+            type:
+              type: string
+              example: "text"
+            payload:
+              type: object
+              example: {"text": "Interesting message!"}
+            created:
+              type: string
+              example: "2019-05-01T00:00:00Z"
+            # if put modified message: different
+            # else: same as created.
+            lastModified:
+              type: string
+              example: "2019-06-01T00:00:00Z"
+        # Generic fail message
+        Fail:
+            type: object
+            properties:
+                Message:
+                    type: string
+                    example: "Failed to do things."
