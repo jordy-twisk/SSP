@@ -19,7 +19,7 @@ namespace TinderCloneV1{
         [FunctionName("getUsers")]
         [Obsolete]
         public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "search/profiles")]HttpRequestMessage req, TraceWriter log){
-            List<Person> person = new List<Person>();
+            List<User> student = new List<User>();
 
             try{
                 string str = Environment.GetEnvironmentVariable("sqldb_connection");
@@ -27,21 +27,22 @@ namespace TinderCloneV1{
                 using (SqlConnection connection = new SqlConnection(str)){
 
                     connection.Open();
-                    string text = "SELECT * FROM Person;";
+                    string text = "SELECT * FROM User;";
 
 
                     using (SqlCommand command = new SqlCommand(text, connection)){
                         using (SqlDataReader reader = command.ExecuteReader()){
                             while (reader.Read()){
-                                person.Add(new Person{
-                                    UserID = reader.GetInt32(0),
-                                    UserName = reader.GetString(1)
+                                student.Add(new User{
+                                    studentNumber = reader.GetInt32(0),
+                                    firstName = reader.GetString(1),
+                                    surName = reader.GetString(2)
                                 });
                             }
                         }
                     }
 
-                    var jsonToReturn = JsonConvert.SerializeObject(person);
+                    var jsonToReturn = JsonConvert.SerializeObject(student);
                     log.Info(HttpStatusCode.OK + " | Data shown succesfully");
                     return new HttpResponseMessage(HttpStatusCode.OK){
                         Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
