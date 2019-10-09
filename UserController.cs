@@ -1,11 +1,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Net.Http;
 using Microsoft.Azure.WebJobs.Host;
@@ -13,36 +11,32 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Net;
 using System.Text;
-using com.sun.org.apache.bcel.@internal.generic;
-using System.Reflection;
 using Newtonsoft.Json.Linq;
 
 namespace TinderCloneV1{
     public static class UserController{
         [FunctionName("UserController")]
         [Obsolete]
-        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", "delete", "put", Route = "{ID}/profile")]HttpRequestMessage req, 
-            HttpRequest request, int ID, TraceWriter log){
+        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", "delete", "put", Route = "{ID}/profile")] HttpRequestMessage req, int ID, TraceWriter log){
 
-            List<User> student = new List<User>();
+            /* Intialize local variables*/
             HttpResponseMessage HttpResponseMessage = null;
             int studentID = ID;
-            string queryString;
+            string queryString = null;
+            User newStudent = null;
 
-            try{
-                string str = Environment.GetEnvironmentVariable("sqldb_connection");
+            string str = Environment.GetEnvironmentVariable("sqldb_connection");
 
-                using (SqlConnection connection = new SqlConnection(str)){
-                    connection.Open();
-
+            using (SqlConnection connection = new SqlConnection(str)) {
+                connection.Open();
+                try {
                     if (req.Method == HttpMethod.Get){
-                        User getStudent = new User();
                         queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = {studentID};";
-
-                        using (SqlCommand command = new SqlCommand(queryString, connection)){
-                            using (SqlDataReader reader = command.ExecuteReader())  {
-                                while (reader.Read())  {
-                                   getStudent = new User  {
+                        
+                        using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                            using (SqlDataReader reader = command.ExecuteReader()) {
+                                while (reader.Read()) {
+                                   newStudent = new User {
                                         studentID = reader.GetInt32(0),
                                         firstName = reader.GetString(1),
                                         surName = reader.GetString(2),
@@ -57,7 +51,7 @@ namespace TinderCloneV1{
                                 }
                             }
                         }
-                        var jsonToReturn = JsonConvert.SerializeObject(getStudent);
+                        var jsonToReturn = JsonConvert.SerializeObject(newStudent);
                         log.Info($"{HttpStatusCode.OK} | Data shown succesfully");
 
                         return new HttpResponseMessage(HttpStatusCode.OK){
@@ -66,51 +60,47 @@ namespace TinderCloneV1{
                     } 
                     else if (req.Method == HttpMethod.Put) {
                         string body = await req.Content.ReadAsStringAsync();
-                        //User newDataStudent = new User();
                         JObject jObject = new JObject();
                         List<String> propertyNames = new List<String>();
 
                         using (StringReader reader = new StringReader(body)) {
                             string json = reader.ReadToEnd();
                             jObject = JsonConvert.DeserializeObject<JObject>(json);
-                            //newDataStudent = jObject.ToObject<User>();
+                            newStudent = jObject.ToObject<User>();
                         }
 
-                        foreach(JProperty property in jObject.Properties()) {
-                            queryString = $"UPDATE [dbo].[Student]" +
-                                $"SET {property.Name} = '{property.Value}'" +
-                                $"WHERE studentID = {studentID};";
+                        /* Properties is only null when the User does not want to change anything, this should never happen in a PUT
+                        But it's here anyway for safety*/
+                        if(jObject.Properties() != null) {
+                            queryString = $"UPDATE [dbo].[Student] SET ";
+                            
+                            foreach (JProperty property in jObject.Properties()) {
+                                 queryString += $"{property.Name} = '{property.Value}',";
+                            }
+
+                            /*Remove the last ',' to ensure a working query. Add the condition statement to the end*/
+                            queryString = queryString.Remove(queryString.Length - 1);
+                            queryString += $" WHERE studentID = {studentID};";
 
                             SqlCommand commandUpdate = new SqlCommand(queryString, connection);
                             await commandUpdate.ExecuteNonQueryAsync();
                         }
                         
-                        /*
-                        New querystring for every column you want to change instead of changing multiple column at once
-                        This is because we do not know how many columns the user wants to change, hence the foreach loop
-                        */
-
-                        /* queryString = $"UPDATE [dbo].[Student] " +
-                            $"SET firstName = '', surName = '', phoneNumber = '', photo = '', description = '', degree = '', study = '', studyear = , interests = ''" +
-                            $"WHERE studentID = {studentID};"; */
-
-                        
                         HttpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $" Changed data of student: {studentID}");
                     } 
                     else if (req.Method == HttpMethod.Post) {
                         string body = await req.Content.ReadAsStringAsync();
-                        int i = student.Count;
 
                         using (StringReader reader = new StringReader(body)) {
                             string json = reader.ReadToEnd();
-                            student.Add(JsonConvert.DeserializeObject<User>(json));
+                            newStudent = JsonConvert.DeserializeObject<User>(json);
                         }
 
                         queryString = $"INSERT INTO [dbo].[Student] " +
                             $"(studentID, firstName, surName, phoneNumber, photo, description, degree, study, studyYear, interests) " +
                             $"VALUES " +
-                            $"({studentID}, '{student[i].firstName}', '{student[i].surName}', '{student[i].phoneNumber}', '{student[i].photo}', " +
-                            $"'{student[i].description}', '{student[i].degree}', '{student[i].study}', {student[i].studyYear}, '{student[i].interests}');";
+                            $"({studentID}, '{newStudent.firstName}', '{newStudent.surName}', '{newStudent.phoneNumber}', '{newStudent.photo}', " +
+                            $"'{newStudent.description}', '{newStudent.degree}', '{newStudent.study}', {newStudent.studyYear}, '{newStudent.interests}');";
 
                         SqlCommand command = new SqlCommand(queryString, connection);
                         await command.ExecuteNonQueryAsync();
@@ -126,15 +116,17 @@ namespace TinderCloneV1{
                         HttpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $"{studentID} Deleted from the database");
                     } 
                     else {
-                        HttpResponseMessage = req.CreateResponse(HttpStatusCode.NotFound, $"HTTP Trigger not initialized, Make sure to use GET, POST, DELETE, PUT");
+                        HttpResponseMessage = req.CreateResponse(HttpStatusCode.NotFound, $"HTTP Trigger not initialized, Make sure to use a correct HTTP Trigger");
                     }
 
+                    connection.Close();
                     return HttpResponseMessage;
                 }
-            } catch (SqlException e){
-                log.Info(e.Message);
-                return req.CreateResponse($"HttpStatusCode.BadRequest, The following SqlException happened: {e.Message}");
-            }
+                catch (SqlException e) {
+                    log.Info(e.Message);
+                    return req.CreateResponse($"HttpStatusCode.BadRequest, The following SqlException happened: {e.Message}");
+                }
+            } 
         }
     }
 }
