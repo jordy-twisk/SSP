@@ -25,6 +25,7 @@ namespace TinderCloneV1{
             string queryString = null;
             User newStudent = null;
 
+            /* Setup the sql connection string, get the string from the environment */
             string str = Environment.GetEnvironmentVariable("sqldb_connection");
 
             using (SqlConnection connection = new SqlConnection(str)) {
