@@ -17,7 +17,7 @@ namespace TinderCloneV1{
     public static class UsersController{
         [FunctionName("getUsers")]
         [Obsolete]
-        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "search/profiles")]HttpRequestMessage req, TraceWriter log){
+        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "search/profiles")]HttpRequestMessage req, TraceWriter log){
             try{
                 string str = Environment.GetEnvironmentVariable("sqldb_connection");
                 User getStudents = new User();
