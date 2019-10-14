@@ -17,7 +17,7 @@ namespace TinderCloneV1{
     public static class UserController{
         [FunctionName("UserController")]
         [Obsolete]
-        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", "delete", "put", Route = "{ID}/profile")] HttpRequestMessage req, int ID, TraceWriter log){
+        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", "delete", "put", Route = "student/{ID}")] HttpRequestMessage req, int ID, TraceWriter log){
 
             /* Intialize local variables*/
             HttpResponseMessage HttpResponseMessage = null;

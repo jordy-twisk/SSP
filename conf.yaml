@@ -8,6 +8,7 @@ openapi: 3.0.2
 servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/barendmosch/TinderClone/1.0.0
+  - description: Server URL
     url: https://tinderclonev120190930031733.azurewebsites.net
 
 info:
@@ -24,7 +25,7 @@ security:
   - BasicAuth: [] #username:password -> base64encoded string
 
 paths:
-  /api/user/{studentID}:
+  /api/student/{studentID}:
     get:
       tags:
       - Userdata
@@ -84,7 +85,7 @@ paths:
             description: Student number not in database.
           '429':
             description: Too many request on the database.
-  /api/users/search:
+  /api/students/search:
     get:
       tags:
       - Userdata
