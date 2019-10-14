@@ -12,6 +12,7 @@ using System.Data.SqlClient;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace TinderCloneV1{
     public static class UsersController{
@@ -26,9 +27,8 @@ namespace TinderCloneV1{
                 // listOfParameters.Add(request.Query)
                 string name = request.Query["firstName"];
 
-                foreach (var key in Request.QueryString.AllKeys){
-
-                }
+                IDictionary<string, string> queryParams = request.GetQueryParameterDictionary();
+                log.Info($"queryparams: {queryParams["firstName"]}");
 
                 using (SqlConnection connection = new SqlConnection(str)){
 
