@@ -8,6 +8,7 @@ openapi: 3.0.2
 servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/barendmosch/TinderClone/1.0.0
+    url: https://tinderclonev120190930031733.azurewebsites.net
 
 info:
   description: This is the MBO-HBO Tinder Clone API
@@ -18,6 +19,9 @@ info:
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+
+security:
+  - BasicAuth: [] #username:password -> base64encoded string
 
 paths:
   /api/user/{studentID}:
@@ -735,153 +739,157 @@ paths:
           description: Too many request on the database.
 
 components:
+    securitySchemes:
+      BasicAuth:
+        type: http
+        scheme: basic
     schemas:
-        # Is a profile.
-        User:
+      # Is a profile.
+      User:
+          type: object
+          required: 
+              - studentID
+          properties:
+              studentID:
+                  type: integer
+                  example: 578123
+              firstName:
+                  type: string
+                  example: "Yuki"
+              surName:
+                  type: string
+                  example: "Basthiaan"
+              phoneNumber:
+                  type: string
+                  example: "0645236582"
+              interests:
+                  type: string
+                  example: "Programming (C only), Servers, Cisco"
+              photo:
+                  type: string
+                  example: "https://i.redd.it/xmulu1f6urt11.jpg"
+              description:
+                  type: string
+                  example: "I am a hbo student."
+              # Degree:  havo || vwo || mbo || hbo || wo
+              degree:
+                  type: string
+                  example: "hbo"
+              study:
+                  type: string
+                  example: "Informatica"
+              # hbo: 1st, 2nd, 3rd, 4th year
+              studyYear:
+                  type: integer
+                  example: 2
+      TutorantProfile:
+        type: object
+        properties:
+          profile:
             type: object
-            required: 
-                - studentID
-            properties:
-                studentID:
-                    type: integer
-                    example: 578123
-                firstName:
-                    type: string
-                    example: "Yuki"
-                surName:
-                    type: string
-                    example: "Basthiaan"
-                phoneNumber:
-                    type: string
-                    example: "0645236582"
-                interests:
-                    type: string
-                    example: "Programming (C only), Servers, Cisco"
-                photo:
-                    type: string
-                    example: "https://i.redd.it/xmulu1f6urt11.jpg"
-                description:
-                    type: string
-                    example: "I am a hbo student."
-                # Degree:  havo || vwo || mbo || hbo || wo
-                degree:
-                    type: string
-                    example: "hbo"
-                study:
-                    type: string
-                    example: "Informatica"
-                # hbo: 1st, 2nd, 3rd, 4th year
-                studyYear:
-                    type: integer
-                    example: 2
-        TutorantProfile:
-          type: object
-          properties:
-            profile:
-              type: object
-              $ref: '#/components/schemas/User'
-            student:
-              type: object
-              $ref: '#/components/schemas/Tutorant'
-        Tutorant:
-          type: object
-          required:
-           - studentID
-          properties:
-            studentID:
-              type: integer
-              example: 520438
-        # User profile of the coach and coach object.
-        CoachProfile:
-          type: object
-          properties:
-            profile:
-              type: object
-              $ref: '#/components/schemas/User'
-            coach:
-              type: object
-              $ref: '#/components/schemas/Coach'
-        # Coach studentID and workload.
-        Coach:
-          type: object
-          required:
-            - studentID
-            - workload
-          properties:
-            studentID:
-              type: integer
-              example: 520438
-            workload:
-              type: integer
-              example: 2
-        # Coach with a Tutorant pair. Status of the request as well.
-        CoachTutorantConnection:
-          type: object
-          required:
-            - studentIDCoach
-            - studentIDTutorant
-            - status
-          properties:
-            studentIDCoach:
-              type: integer
-              example: 520438
-            studentIDTutorant:
-              type: integer
-              example: 590549
-            status:
-              type: string
-              example: "pending"
-        # Chat system
-        Messages:
-          properties:
-            list:
-              type: array
-              items:
-                type: object
-                $ref: '#/components/schemas/Message'
-        Message:
-          type: object
-          required:
-          - messageID
-          # - coachStudentID -> These can be deleted, yeah?
-          # - tutorantStudentID -> These can be deleted, yeah?
-          # text | photo | video | document | etc.
-          - type
-          # The message
-          - payload
-          # Timestamp
-          - created
-          - lastModified
-          properties:
-            messageID:
-              type: integer
-              # couchStudentNumber + tutorantStudentNumber + increment creates a unique id.
-              # Saved as separate fields.
-              example: 590539510539
-            #coachStudentID:
-            #  type: integer
-            #  example: 590539
-            #tutorantStudentID:
-            #  type: integer
-            #  example: 510539
-            type:
-              type: string
-              example: "text"
-            payload:
-              type: object
-              example: {"text": "Interesting message!"}
-            created:
-              type: string
-              example: "2019-05-01T00:00:00Z"
-            # if put modified message: different
-            # else: same as created.
-            lastModified:
-              type: string
-              example: "2019-06-01T00:00:00Z"
-        # Generic fail message
-        Fail:
+            $ref: '#/components/schemas/User'
+          student:
             type: object
-            properties:
-                Message:
-                    type: string
-                    example: "Failed to do things."
+            $ref: '#/components/schemas/Tutorant'
+      Tutorant:
+        type: object
+        required:
+          - studentID
+        properties:
+          studentID:
+            type: integer
+            example: 520438
+      # User profile of the coach and coach object.
+      CoachProfile:
+        type: object
+        properties:
+          profile:
+            type: object
+            $ref: '#/components/schemas/User'
+          coach:
+            type: object
+            $ref: '#/components/schemas/Coach'
+      # Coach studentID and workload.
+      Coach:
+        type: object
+        required:
+          - studentID
+          - workload
+        properties:
+          studentID:
+            type: integer
+            example: 520438
+          workload:
+            type: integer
+            example: 2
+      # Coach with a Tutorant pair. Status of the request as well.
+      CoachTutorantConnection:
+        type: object
+        required:
+          - studentIDCoach
+          - studentIDTutorant
+          - status
+        properties:
+          studentIDCoach:
+            type: integer
+            example: 520438
+          studentIDTutorant:
+            type: integer
+            example: 590549
+          status:
+            type: string
+            example: "pending"
+      # Chat system
+      Messages:
+        properties:
+          list:
+            type: array
+            items:
+              type: object
+              $ref: '#/components/schemas/Message'
+      Message:
+        type: object
+        required:
+        - messageID
+        # - coachStudentID -> These can be deleted, yeah?
+        # - tutorantStudentID -> These can be deleted, yeah?
+        # text | photo | video | document | etc.
+        - type
+        # The message
+        - payload
+        # Timestamp
+        - created
+        - lastModified
+        properties:
+          messageID:
+            type: integer
+            # couchStudentNumber + tutorantStudentNumber + increment creates a unique id.
+            # Saved as separate fields.
+            example: 590539510539
+          #coachStudentID:
+          #  type: integer
+          #  example: 590539
+          #tutorantStudentID:
+          #  type: integer
+          #  example: 510539
+          type:
+            type: string
+            example: "text"
+          payload:
+            type: object
+            example: {"text": "Interesting message!"}
+          created:
+            type: string
+            example: "2019-05-01T00:00:00Z"
+          # if put modified message: different
+          # else: same as created.
+          lastModified:
+            type: string
+            example: "2019-06-01T00:00:00Z"
+      # Generic fail message
+      Fail:
+          type: object
+          properties:
+              Message:
+                  type: string
+                  example: "Failed to do things."
