@@ -8,7 +8,11 @@ openapi: 3.0.2
 servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/barendmosch/TinderClone/1.0.0
+<<<<<<< HEAD
   - description: Azure dev   
+=======
+  - description: Server URL
+>>>>>>> 6f9b037d5245ebf478d30c8883d798d3163aa2d4
     url: https://tinderclonev120190930031733.azurewebsites.net
 
 info:
