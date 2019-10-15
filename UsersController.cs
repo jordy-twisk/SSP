@@ -26,12 +26,7 @@ namespace TinderCloneV1{
                 List<String> listOfProperties = new List<String>();
                 // listOfParameters.Add(request.Query)
                 User newUser = new User();
-                newUser.firstName = "Barend";
                 PropertyInfo[] properties = typeof(User).GetProperties();
-
-                foreach(PropertyInfo p in properties){
-                    listOfProperties.Add(p.Name);
-                }
 
                 using (SqlConnection connection = new SqlConnection(str)){
 
@@ -39,6 +34,10 @@ namespace TinderCloneV1{
 
                     string text = $"SELECT * FROM [dbo].[Student]";
 
+                    foreach(PropertyInfo p in properties){
+                        log.Info($"p.name & property: {p.Name} + {request.Query[p.Name]}");
+                    }
+        
                     using (SqlCommand command = new SqlCommand(text, connection)){
                         using (SqlDataReader reader = command.ExecuteReader()){
                             while (reader.Read()){
