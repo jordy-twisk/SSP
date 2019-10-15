@@ -8,7 +8,11 @@ openapi: 3.0.2
 servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/barendmosch/TinderClone/1.0.0
+<<<<<<< HEAD
+  - description: Azure dev   
+=======
   - description: Server URL
+>>>>>>> 6f9b037d5245ebf478d30c8883d798d3163aa2d4
     url: https://tinderclonev120190930031733.azurewebsites.net
 
 info:
@@ -28,7 +32,7 @@ paths:
   /api/student/{studentID}:
     get:
       tags:
-      - Userdata
+      - Studentdata
       summary: get data call
       operationId: dataCall
       description: Returns the student data based on the student number.
@@ -47,7 +51,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
+                  $ref: '#/components/schemas/Student'
         '401':
           description: Student password is not accepted.
         '404':
@@ -56,7 +60,7 @@ paths:
           description: Too many request on the database.
     put:
       tags:
-      - Userdata
+      - Studentdata
       summary: update data information
       operationId: dataUpdate
       description: Update a student data based on filters.
@@ -73,7 +77,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/Student'
       responses:
           '200':
             description: modified.
@@ -88,10 +92,10 @@ paths:
   /api/students/search:
     get:
       tags:
-      - Userdata
-      summary: search for user profiles
+      - Studentdata
+      summary: search for student profiles
       operationId: searchCall
-      description: Returns a list of user profiles from the database filtered by filters.
+      description: Returns a list of student profiles from the database filtered by filters.
       # No parameters returns back every profile.
       parameters:
           - in: query
@@ -147,6 +151,10 @@ paths:
       responses:
         '200':
           description: Return list of student profiles.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
         '400':
           description: Undocumented filter parameter.
         '401':
@@ -746,7 +754,7 @@ components:
         scheme: basic
     schemas:
       # Is a profile.
-      User:
+      Student:
           type: object
           required: 
               - studentID
@@ -788,7 +796,7 @@ components:
         properties:
           profile:
             type: object
-            $ref: '#/components/schemas/User'
+            $ref: '#/components/schemas/Student'
           student:
             type: object
             $ref: '#/components/schemas/Tutorant'
@@ -806,7 +814,7 @@ components:
         properties:
           profile:
             type: object
-            $ref: '#/components/schemas/User'
+            $ref: '#/components/schemas/Student'
           coach:
             type: object
             $ref: '#/components/schemas/Coach'
