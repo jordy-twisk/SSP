@@ -19,7 +19,8 @@ namespace TinderCloneV1{
     public static class UsersController{
         [FunctionName("getUsers")]
         [Obsolete]
-        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "search/profiles")]HttpRequestMessage req, TraceWriter log){
+        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", 
+        Route = "search/students")]HttpRequestMessage req, HttpRequest request, TraceWriter log){
             try{
                 string str = Environment.GetEnvironmentVariable("sqldb_connection");
                 List<User> listOfUsers = new List<User>();
