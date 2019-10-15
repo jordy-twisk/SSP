@@ -13,6 +13,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace TinderCloneV1{
     public static class UsersController{
@@ -23,18 +24,21 @@ namespace TinderCloneV1{
             try{
                 string str = Environment.GetEnvironmentVariable("sqldb_connection");
                 List<User> listOfUsers = new List<User>();
-                List<String> listOfParameters = new List<String>();
+                List<String> listOfProperties = new List<String>();
                 // listOfParameters.Add(request.Query)
-                string name = request.Query["firstName"];
+                User newUser = new User();
+                newUser.firstName = "Barend";
+                PropertyInfo[] properties = typeof(User).GetProperties();
 
-                IDictionary<string, string> queryParams = request.GetQueryParameterDictionary();
-                log.Info($"queryparams: {queryParams["firstName"]}");
+                foreach(PropertyInfo p in properties){
+                    listOfProperties.Add(p.Name);
+                }
 
                 using (SqlConnection connection = new SqlConnection(str)){
 
                     connection.Open();
 
-                    string text = $"SELECT * FROM [dbo].[Student] WHERE firstName = '{name}';";
+                    string text = $"SELECT * FROM [dbo].[Student]";
 
                     using (SqlCommand command = new SqlCommand(text, connection)){
                         using (SqlDataReader reader = command.ExecuteReader()){
