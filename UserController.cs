@@ -77,7 +77,7 @@ namespace TinderCloneV1{
                             queryString = $"UPDATE [dbo].[Student] SET ";
                             
                             foreach (JProperty property in jObject.Properties()) {
-                                 queryString += $"{property.Name} = '{property.Value}',";
+                                queryString += $"{property.Name} = '{property.Value}',";
                             }
 
                             /*Remove the last ',' to ensure a working query. Add the condition statement to the end*/

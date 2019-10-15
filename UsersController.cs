@@ -19,26 +19,39 @@ namespace TinderCloneV1{
     public static class UsersController{
         [FunctionName("getUsers")]
         [Obsolete]
-        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "search/profiles")]HttpRequestMessage req, HttpRequest request, TraceWriter log){
+        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", 
+        Route = "students/search")] HttpRequestMessage req, HttpRequest request, TraceWriter log){
             try{
                 string str = Environment.GetEnvironmentVariable("sqldb_connection");
                 List<User> listOfUsers = new List<User>();
-                List<String> listOfProperties = new List<String>();
-                // listOfParameters.Add(request.Query)
-                User newUser = new User();
+                string queryString = null;
+                string isEmpty = null;
+
                 PropertyInfo[] properties = typeof(User).GetProperties();
 
                 using (SqlConnection connection = new SqlConnection(str)){
 
                     connection.Open();
 
-                    string text = $"SELECT * FROM [dbo].[Student]";
+                    queryString = $"SELECT * FROM [dbo].[Student]";
 
-                    foreach(PropertyInfo p in properties){
-                        log.Info($"p.name & property: {p.Name} + {request.Query[p.Name]}");
+                    int i = 0;
+                    foreach(PropertyInfo p in properties){ 
+                        if (i == 0){
+                            queryString += $" WHERE";
+                        }
+
+                        if(request.Query[p.Name] != isEmpty){
+                            queryString += $" {p.Name} = '{request.Query[p.Name]}' AND";
+                        }
+
+                        i++;
                     }
-        
-                    using (SqlCommand command = new SqlCommand(text, connection)){
+
+                    queryString = queryString.Remove(queryString.Length - 4);
+                    queryString += $";";
+
+                    using (SqlCommand command = new SqlCommand(queryString, connection)){
                         using (SqlDataReader reader = command.ExecuteReader()){
                             while (reader.Read()){
                                 listOfUsers.Add(new User{
