@@ -19,7 +19,7 @@ namespace TinderCloneV1{
     public static class UsersController{
         [FunctionName("getUsers")]
         [Obsolete]
-        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "search/profiles")]HttpRequestMessage req, TraceWriter log){
+        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "search/profiles")]HttpRequestMessage req, HttpRequest request, TraceWriter log){
             try{
                 string str = Environment.GetEnvironmentVariable("sqldb_connection");
                 List<User> listOfUsers = new List<User>();
@@ -34,9 +34,9 @@ namespace TinderCloneV1{
 
                     string text = $"SELECT * FROM [dbo].[Student]";
 
-                    foreach(PropertyInfo p in properties){
-                        log.Info($"p.name & property: {p.Name} + {request.Query[p.Name]}");
-                    }
+                    //foreach(PropertyInfo p in properties){
+                    //    log.Info($"p.name & property: {p.Name} + {request.Query[p.Name]}");
+                    //}
         
                     using (SqlCommand command = new SqlCommand(text, connection)){
                         using (SqlDataReader reader = command.ExecuteReader()){
