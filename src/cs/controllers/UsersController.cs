@@ -20,10 +20,26 @@ namespace TinderCloneV1{
         public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, 
             "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, TraceWriter log){
 
+<<<<<<< HEAD:src/cs/controllers/UsersController.cs
             string str = Environment.GetEnvironmentVariable("sqldb_connection");
             List<User> listOfUsers = new List<User>();
             string queryString = null;
             string isEmpty = null;
+=======
+namespace TinderCloneV1{
+    public static class UsersController{
+        [FunctionName("getUsers")]
+        [Obsolete]
+        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", 
+        Route = "search/students")]HttpRequestMessage req, HttpRequest request, TraceWriter log){
+            try{
+                string str = Environment.GetEnvironmentVariable("sqldb_connection");
+                List<User> listOfUsers = new List<User>();
+                List<String> listOfProperties = new List<String>();
+                // listOfParameters.Add(request.Query)
+                User newUser = new User();
+                PropertyInfo[] properties = typeof(User).GetProperties();
+>>>>>>> mbb:UsersController.cs
 
             PropertyInfo[] properties = typeof(User).GetProperties();
 
