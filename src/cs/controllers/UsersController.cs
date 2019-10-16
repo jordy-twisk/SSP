@@ -11,27 +11,25 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Net;
 using System.Text;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace TinderCloneV1{
     public static class UsersController{
         [FunctionName("getUsers")]
         [Obsolete]
-        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", 
-        Route = "students/search")] HttpRequestMessage req, HttpRequest request, TraceWriter log){
-            try{
-                string str = Environment.GetEnvironmentVariable("sqldb_connection");
-                List<User> listOfUsers = new List<User>();
-                string queryString = null;
-                string isEmpty = null;
+        public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, 
+            "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, TraceWriter log){
 
-                PropertyInfo[] properties = typeof(User).GetProperties();
+            string str = Environment.GetEnvironmentVariable("sqldb_connection");
+            List<User> listOfUsers = new List<User>();
+            string queryString = null;
+            string isEmpty = null;
 
-                using (SqlConnection connection = new SqlConnection(str)){
+            PropertyInfo[] properties = typeof(User).GetProperties();
 
-                    connection.Open();
+            using (SqlConnection connection = new SqlConnection(str)){
+                connection.Open();
+                try{
 
                     queryString = $"SELECT * FROM [dbo].[Student]";
 
@@ -42,14 +40,21 @@ namespace TinderCloneV1{
                         }
 
                         if(request.Query[p.Name] != isEmpty){
-                            queryString += $" {p.Name} = '{request.Query[p.Name]}' AND";
+                            if (p.Name == "interests"){
+                                queryString += $" {p.Name} LIKE '%{request.Query[p.Name]}%' AND";
+                            }
+                            else {
+                                queryString += $" {p.Name} = '{request.Query[p.Name]}' AND";
+                            }
                         }
 
                         i++;
                     }
 
                     queryString = queryString.Remove(queryString.Length - 4);
-                    queryString += $";";
+                    queryString += $" ORDER BY studentID;";
+
+                    log.Info($"Executing the following query: {queryString}");
 
                     using (SqlCommand command = new SqlCommand(queryString, connection)){
                         using (SqlDataReader reader = command.ExecuteReader()){
@@ -78,10 +83,10 @@ namespace TinderCloneV1{
                     };
 
                 }
-            }
-            catch (SqlException e){
-                log.Info(e.StackTrace);
-                return req.CreateResponse(HttpStatusCode.BadRequest, $"The following SqlException happened: {e.StackTrace}");
+                catch (SqlException e){
+                    log.Info(e.StackTrace);
+                    return req.CreateResponse(HttpStatusCode.BadRequest, $"The following SqlException happened: {e.StackTrace}");
+                }
             }
         }
     }

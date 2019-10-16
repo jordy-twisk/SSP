@@ -20,20 +20,22 @@ namespace TinderCloneV1{
         public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, 
         "get", "post", "delete", "put", Route = "student/{ID}")] HttpRequestMessage req, int ID, TraceWriter log){
 
+            /* Setup the sql connection string, get the string from the environment */
+            string str = Environment.GetEnvironmentVariable("sqldb_connection");
+
             /* Intialize local variables*/
             HttpResponseMessage HttpResponseMessage = null;
             int studentID = ID;
             string queryString = null;
             User newStudent = null;
 
-            /* Setup the sql connection string, get the string from the environment */
-            string str = Environment.GetEnvironmentVariable("sqldb_connection");
-
             using (SqlConnection connection = new SqlConnection(str)) {
                 connection.Open();
                 try {
                     if (req.Method == HttpMethod.Get){
                         queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = {studentID};";
+
+                        log.Info($"Executing the following query: {queryString}");
                         
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             using (SqlDataReader reader = command.ExecuteReader()) {
@@ -84,6 +86,8 @@ namespace TinderCloneV1{
                             queryString = queryString.Remove(queryString.Length - 1);
                             queryString += $" WHERE studentID = {studentID};";
 
+                            log.Info($"Executing the following query: {queryString}");
+
                             SqlCommand commandUpdate = new SqlCommand(queryString, connection);
                             await commandUpdate.ExecuteNonQueryAsync();
                         }
@@ -104,6 +108,8 @@ namespace TinderCloneV1{
                             $"({studentID}, '{newStudent.firstName}', '{newStudent.surName}', '{newStudent.phoneNumber}', '{newStudent.photo}', " +
                             $"'{newStudent.description}', '{newStudent.degree}', '{newStudent.study}', {newStudent.studyYear}, '{newStudent.interests}');";
 
+                        log.Info($"Executing the following query: {queryString}");
+
                         SqlCommand command = new SqlCommand(queryString, connection);
                         await command.ExecuteNonQueryAsync();
 
@@ -111,6 +117,8 @@ namespace TinderCloneV1{
                     } 
                     else if (req.Method == HttpMethod.Delete){
                         queryString = $"DELETE FROM [dbo].[Student] WHERE {studentID} = studentID;";
+
+                        log.Info($"Executing the following query: {queryString}");
 
                         SqlCommand command = new SqlCommand(queryString, connection);
                         await command.ExecuteNonQueryAsync();
