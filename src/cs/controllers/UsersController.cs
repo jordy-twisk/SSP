@@ -40,7 +40,7 @@ namespace TinderCloneV1{
                         }
 
                         if(request.Query[p.Name] != isEmpty){
-                            if (p.Name == "interests"){
+                            if (p.Name == "interests" || p.Name == "study"){
                                 queryString += $" {p.Name} LIKE '%{request.Query[p.Name]}%' AND";
                             }
                             else {
