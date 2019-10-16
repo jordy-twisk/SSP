@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System.Net.Http;
 using Microsoft.Azure.WebJobs.Host;
@@ -23,11 +22,14 @@ namespace TinderCloneV1{
             /* Setup the sql connection string, get the string from the environment */
             string str = Environment.GetEnvironmentVariable("sqldb_connection");
 
+            ExceptionHandler exception = new ExceptionHandler();
+
             /* Intialize local variables*/
             HttpResponseMessage HttpResponseMessage = null;
             int studentID = ID;
             string queryString = null;
             User newStudent = null;
+            bool studentExists = false;
 
             using (SqlConnection connection = new SqlConnection(str)) {
                 connection.Open();
@@ -39,22 +41,31 @@ namespace TinderCloneV1{
                         
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             using (SqlDataReader reader = command.ExecuteReader()) {
-                                while (reader.Read()) {
-                                   newStudent = new User {
-                                        studentID = reader.GetInt32(0),
-                                        firstName = reader.GetString(1),
-                                        surName = reader.GetString(2),
-                                        phoneNumber = reader.GetString(3),
-                                        photo = reader.GetString(4),
-                                        description = reader.GetString(5),
-                                        degree = reader.GetString(6),
-                                        study = reader.GetString(7),
-                                        studyYear = reader.GetInt32(8),
-                                        interests = reader.GetString(9)
-                                    };
+                                studentExists = reader.HasRows;
+                                log.Info($"studentExists: {studentExists}");
+
+                                if (!studentExists){
+                                    return exception.NotFoundException(log, studentID);
+                                }
+                                else{
+                                    while (reader.Read()){
+                                        newStudent = new User{
+                                            studentID = reader.GetInt32(0),
+                                            firstName = reader.GetString(1),
+                                            surName = reader.GetString(2),
+                                            phoneNumber = reader.GetString(3),
+                                            photo = reader.GetString(4),
+                                            description = reader.GetString(5),
+                                            degree = reader.GetString(6),
+                                            study = reader.GetString(7),
+                                            studyYear = reader.GetInt32(8),
+                                            interests = reader.GetString(9)
+                                        };
+                                    }
                                 }
                             }
                         }
+
                         var jsonToReturn = JsonConvert.SerializeObject(newStudent);
                         log.Info($"{HttpStatusCode.OK} | Data shown succesfully");
 

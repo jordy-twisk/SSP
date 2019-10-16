@@ -856,13 +856,8 @@ components:
         type: object
         required:
         - messageID
-        # - coachStudentID -> These can be deleted, yeah?
-        # - tutorantStudentID -> These can be deleted, yeah?
-        # text | photo | video | document | etc.
         - type
-        # The message
         - payload
-        # Timestamp
         - created
         - lastModified
         properties:
