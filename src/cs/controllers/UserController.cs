@@ -21,8 +21,8 @@ namespace TinderCloneV1{
 
             /* Setup the sql connection string, get the string from the environment */
             string str = Environment.GetEnvironmentVariable("sqldb_connection");
-
-            ExceptionHandler exception = new ExceptionHandler();
+            
+            ExceptionHandler exception = new ExceptionHandler(ID);
 
             /* Intialize local variables*/
             HttpResponseMessage HttpResponseMessage = null;
@@ -45,7 +45,7 @@ namespace TinderCloneV1{
                                 log.Info($"studentExists: {studentExists}");
 
                                 if (!studentExists){
-                                    return exception.NotFoundException(log, studentID);
+                                    return exception.NotFoundException(log);
                                 }
                                 else{
                                     while (reader.Read()){

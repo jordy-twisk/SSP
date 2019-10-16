@@ -496,7 +496,7 @@ paths:
         '401':
           description: Student password is not accepted.
         '404':
-          description: messageID, Coach and tutorant number don't match any message.
+          description: messageID Coach and tutorant number don't match any message.
         '429':
           description: Too many request on the database.
   /api/coachTutorant/tutorant/{studentID}:
@@ -648,7 +648,7 @@ paths:
         '401':
           description: Student password is not accepted.
         '404':
-          description: messageID, Coach and tutorant number don't match any message.
+          description: messageID Coach and tutorant number don't match any message.
         '429':
           description: Too many request on the database.
     put:
@@ -694,7 +694,7 @@ paths:
         '401':
           description: Student password is not accepted.
         '404':
-          description: messageID, Coach and tutorant number don't match any message.
+          description: messageID Coach and tutorant number don't match any message.
         '429':
           description: Too many request on the database.
     delete:
@@ -716,7 +716,7 @@ paths:
         '401':
           description: Student password is not accepted.
         '404':
-          description: messageID, Coach and tutorant number don't match any message.
+          description: messageID Coach and tutorant number don't match any message.
         '429':
           description: Too many request on the database.
   /api/message:  
