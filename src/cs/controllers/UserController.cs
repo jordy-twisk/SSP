@@ -42,6 +42,9 @@ namespace TinderCloneV1{
                     return exception.ServiceUnavailable(log);
                 }
                 try {
+                    // [Studentdata]
+                    // GET a student by his ID.
+                    //
                     if (req.Method == HttpMethod.Get){
                         queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = {studentID};";
 
@@ -81,6 +84,9 @@ namespace TinderCloneV1{
                             Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
                         };
                     } 
+                    // [Studentdata]
+                    // PUT: Update a student by his ID.
+                    //
                     else if (req.Method == HttpMethod.Put) {
                         string body = await req.Content.ReadAsStringAsync();
                         JObject jObject = new JObject();
@@ -113,6 +119,9 @@ namespace TinderCloneV1{
                         
                         HttpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $" Changed data of student: {studentID}");
                     } 
+                    //
+                    // POST: Create a new student.
+                    //
                     else if (req.Method == HttpMethod.Post) {
                         string body = await req.Content.ReadAsStringAsync();
 
@@ -134,6 +143,9 @@ namespace TinderCloneV1{
 
                         HttpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $" {studentID} Added to the database");
                     } 
+                    //
+                    // DELETE a student by his ID.
+                    //
                     else if (req.Method == HttpMethod.Delete){
                         queryString = $"DELETE FROM [dbo].[Student] WHERE {studentID} = studentID;";
 
