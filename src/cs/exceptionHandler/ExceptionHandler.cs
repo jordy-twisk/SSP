@@ -12,6 +12,7 @@ using Microsoft.Azure.WebJobs.Host;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace TinderCloneV1
 {
@@ -38,9 +39,9 @@ namespace TinderCloneV1
         string ServiceUnavailableMessage = $"{HttpStatusCode.ServiceUnavailable}: External component or service is unavailable at the moment. Our admin is notified by your call, thank you!";
 
         [Obsolete]
-        public HttpResponseMessage NotFoundException(TraceWriter log) {
+        public HttpResponseMessage NotFoundException(ILogger log) {
             notFoundMessage += $", ID: {ID}";
-            log.Info(notFoundMessage);
+            log.LogInformation(notFoundMessage);
 
             return new HttpResponseMessage(HttpStatusCode.NotFound){
                 Content = new StringContent(notFoundMessage)
@@ -48,39 +49,39 @@ namespace TinderCloneV1
         }
 
         [Obsolete]
-        public HttpResponseMessage NotAuthorized(TraceWriter log){
+        public HttpResponseMessage NotAuthorized(ILogger log){
             notAuthorized += $", ID: {ID}";
-            log.Info(notAuthorized);
+            log.LogInformation(notAuthorized);
 
             return new HttpResponseMessage(HttpStatusCode.Unauthorized){
                 Content = new StringContent(notAuthorized)
             };
         }
         [Obsolete]
-        public HttpResponseMessage TooManyRequests(TraceWriter log){
+        public HttpResponseMessage TooManyRequests(ILogger log){
             tooManyRequestsMessage += $", ID: {ID}";
-            log.Info(tooManyRequestsMessage);
+            log.LogInformation(tooManyRequestsMessage);
 
             return new HttpResponseMessage(HttpStatusCode.TooManyRequests){
                 Content = new StringContent(tooManyRequestsMessage)
             };
         }
         [Obsolete]
-        public HttpResponseMessage BadRequest(TraceWriter log){
+        public HttpResponseMessage BadRequest(ILogger log){
             badRequestMessage += $", ID: {ID}";
-            log.Info(badRequestMessage);
+            log.LogInformation(badRequestMessage);
 
             return new HttpResponseMessage(HttpStatusCode.TooManyRequests){
                 Content = new StringContent(badRequestMessage)
             };
         }
-        public HttpResponseMessage ServiceUnavailable(TraceWriter log)
-        {
-            //ServiceUnavailableMessage += $", ID: {ID}";
-            log.Info(ServiceUnavailableMessage);
 
-            return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
-            {
+        [Obsolete]
+        public HttpResponseMessage ServiceUnavailable(ILogger log)
+        {
+            log.LogInformation(ServiceUnavailableMessage);
+
+            return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable){
                 Content = new StringContent(ServiceUnavailableMessage)
             };
         }

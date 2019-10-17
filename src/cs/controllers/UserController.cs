@@ -13,117 +13,39 @@ using System.Text;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
-namespace TinderCloneV1{
+namespace TinderCloneV1
+{
     public class UserController{
-        UserService userService {get; }
+
 
         string str = Environment.GetEnvironmentVariable("sqldb_connection");
         ExceptionHandler exception = new ExceptionHandler(0);
-        List<User> listOfUsers = new List<User>();
         string queryString = null;
 
         [FunctionName("GetUsers")]
-        [Obsolete]
         public async Task<HttpResponseMessage> GetUsers([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, TraceWriter log){
+            "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, ILogger log){
+            
+            UserService userService = new UserService(req, request, log);
 
-
-            userService.GetAll(req, request, log);
-
-            string isEmpty = null;
-
-            PropertyInfo[] properties = typeof(User).GetProperties();
-
-            using (SqlConnection connection = new SqlConnection(str)){
-                try{
-                    connection.Open();
-                }
-                catch (SqlException e){
-                    log.Info(e.Message);
-                    return exception.ServiceUnavailable(log);
-                }
-
-                try{
-                    queryString = $"SELECT * FROM [dbo].[Student]";
-                    int i = 0;
-                    
-                    foreach (PropertyInfo p in properties){
-                        if (i == 0){
-                            queryString += $" WHERE";
-                        }
-
-                        if (request.Query[p.Name] != isEmpty) { 
-                            if (p.Name == "interests" || p.Name == "study"){
-                                queryString += $" {p.Name} LIKE '%{request.Query[p.Name]}%' AND";
-                            }
-                            else{
-                                queryString += $" {p.Name} = '{request.Query[p.Name]}' AND";
-                            }
-                        }
-
-                        i++;
-                    }
-
-                    queryString = queryString.Remove(queryString.Length - 4);
-                    queryString += $" ORDER BY studentID;";
-
-                    log.Info($"Executing the following query: {queryString}");
-
-                    using (SqlCommand command = new SqlCommand(queryString, connection))
-                    {
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                listOfUsers.Add(new User
-                                {
-                                    studentID = reader.GetInt32(0),
-                                    firstName = reader.GetString(1),
-                                    surName = reader.GetString(2),
-                                    phoneNumber = reader.GetString(3),
-                                    photo = reader.GetString(4),
-                                    description = reader.GetString(5),
-                                    degree = reader.GetString(6),
-                                    study = reader.GetString(7),
-                                    studyYear = reader.GetInt32(8),
-                                    interests = reader.GetString(9)
-                                });
-                            }
-                        }
-                    }
-
-                    var jsonToReturn = JsonConvert.SerializeObject(listOfUsers);
-                    log.Info($"{HttpStatusCode.OK} | Data shown succesfully");
-
-                    connection.Close();
-                    
-                    return new HttpResponseMessage(HttpStatusCode.OK)
-                    {
-                        Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
-                    };
-                }
-                catch (SqlException e)
-                {
-                    log.Info(e.StackTrace);
-                    return req.CreateResponse(HttpStatusCode.BadRequest, $"The following SqlException happened: {e.StackTrace}");
-                }
-            }
+            return await userService.GetAll();
         }
 
         [FunctionName("GetUser")]
-        [Obsolete]
         public async Task<HttpResponseMessage> GetUser([HttpTrigger(AuthorizationLevel.Anonymous, 
-        "get", "post", "delete", "put", Route = "student/{ID}")] HttpRequestMessage req, int ID, TraceWriter log){
+        "get", "post", "delete", "put", Route = "student/{ID}")] HttpRequestMessage req, HttpRequest request, int ID, ILogger log){
 
             /* Setup the sql connection string, get the string from the environment */
             
             /* Intialize local variables*/
-            
+            UserService userService = new UserService(req, request, log);
+
             int studentID = ID;
             User newStudent = null;
             bool studentExists = false;
-            HttpResponseMessage HttpResponseMessage = null;
+            HttpResponseMessage httpResponseMessage = null;
 
             using (SqlConnection connection = new SqlConnection(str)) {
                 try
@@ -132,47 +54,12 @@ namespace TinderCloneV1{
                 }
                 catch (SqlException e)
                 {
-                    log.Info(e.Message);
+                    log.LogInformation(e.Message);
                     return exception.ServiceUnavailable(log);
                 }
                 try {
                     if (req.Method == HttpMethod.Get){
-                        queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = {studentID};";
-
-                        log.Info($"Executing the following query: {queryString}");
-                        
-                        using (SqlCommand command = new SqlCommand(queryString, connection)) {
-                            using (SqlDataReader reader = command.ExecuteReader()) {
-                                studentExists = reader.HasRows;
-
-                                if (!studentExists){
-                                    return exception.NotFoundException(log);
-                                }
-                                else{
-                                    while (reader.Read()){
-                                        newStudent = new User{
-                                            studentID = reader.GetInt32(0),
-                                            firstName = reader.GetString(1),
-                                            surName = reader.GetString(2),
-                                            phoneNumber = reader.GetString(3),
-                                            photo = reader.GetString(4),
-                                            description = reader.GetString(5),
-                                            degree = reader.GetString(6),
-                                            study = reader.GetString(7),
-                                            studyYear = reader.GetInt32(8),
-                                            interests = reader.GetString(9)
-                                        };
-                                    }
-                                }
-                            }
-                        }
-
-                        var jsonToReturn = JsonConvert.SerializeObject(newStudent);
-                        log.Info($"{HttpStatusCode.OK} | Data shown succesfully");
-
-                        return new HttpResponseMessage(HttpStatusCode.OK){
-                            Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
-                        };
+                        return await userService.GetStudent(studentID, connection);
                     } 
                     else if (req.Method == HttpMethod.Put) {
                         string body = await req.Content.ReadAsStringAsync();
@@ -198,14 +85,14 @@ namespace TinderCloneV1{
                             queryString = queryString.Remove(queryString.Length - 1);
                             queryString += $" WHERE studentID = {studentID};";
 
-                            log.Info($"Executing the following query: {queryString}");
+                            log.LogInformation($"Executing the following query: {queryString}");
 
                             SqlCommand commandUpdate = new SqlCommand(queryString, connection);
                             await commandUpdate.ExecuteNonQueryAsync();
                         }
-                        
-                        HttpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $" Changed data of student: {studentID}");
-                    } 
+
+                        httpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $" Changed data of student: {studentID}");
+                    }
                     else if (req.Method == HttpMethod.Post) {
                         string body = await req.Content.ReadAsStringAsync();
 
@@ -220,32 +107,32 @@ namespace TinderCloneV1{
                             $"({studentID}, '{newStudent.firstName}', '{newStudent.surName}', '{newStudent.phoneNumber}', '{newStudent.photo}', " +
                             $"'{newStudent.description}', '{newStudent.degree}', '{newStudent.study}', {newStudent.studyYear}, '{newStudent.interests}');";
 
-                        log.Info($"Executing the following query: {queryString}");
+                        log.LogInformation($"Executing the following query: {queryString}");
 
                         SqlCommand command = new SqlCommand(queryString, connection);
                         await command.ExecuteNonQueryAsync();
 
-                        HttpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $" {studentID} Added to the database");
+                        httpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $" {studentID} Added to the database");
                     } 
                     else if (req.Method == HttpMethod.Delete){
                         queryString = $"DELETE FROM [dbo].[Student] WHERE {studentID} = studentID;";
 
-                        log.Info($"Executing the following query: {queryString}");
+                        log.LogInformation($"Executing the following query: {queryString}");
 
                         SqlCommand command = new SqlCommand(queryString, connection);
                         await command.ExecuteNonQueryAsync();
 
-                        HttpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $"{studentID} Deleted from the database");
+                        httpResponseMessage = req.CreateResponse(HttpStatusCode.OK, $"{studentID} Deleted from the database");
                     } 
                     else {
-                        HttpResponseMessage = req.CreateResponse(HttpStatusCode.NotFound, $"HTTP Trigger not initialized, Make sure to use a correct HTTP Trigger");
+                        httpResponseMessage = req.CreateResponse(HttpStatusCode.NotFound, $"HTTP Trigger not initialized, Make sure to use a correct HTTP Trigger");
                     }
 
                     connection.Close();
-                    return HttpResponseMessage;
+                    return httpResponseMessage;
                 }
                 catch (SqlException e) {
-                    log.Info(e.Message);
+                    log.LogInformation(e.Message);
                     return req.CreateResponse($"HttpStatusCode.BadRequest, The following SqlException happened: {e.Message}");
                 }
             } 
