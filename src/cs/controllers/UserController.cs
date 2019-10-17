@@ -32,7 +32,15 @@ namespace TinderCloneV1{
             bool studentExists = false;
 
             using (SqlConnection connection = new SqlConnection(str)) {
-                connection.Open();
+                try
+                {
+                    connection.Open();
+                }
+                catch (SqlException e)
+                {
+                    log.Info(e.Message);
+                    return exception.ServiceUnavailable(log);
+                }
                 try {
                     if (req.Method == HttpMethod.Get){
                         queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = {studentID};";
