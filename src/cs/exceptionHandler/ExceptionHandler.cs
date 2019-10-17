@@ -33,7 +33,10 @@ namespace TinderCloneV1
 
         /*Too many requests*/
         string tooManyRequestsMessage = $"{HttpStatusCode.TooManyRequests}: Too many requests on the database";
-        
+
+        /*Outside service is unavailable*/
+        string ServiceUnavailableMessage = $"{HttpStatusCode.ServiceUnavailable}: External component or service is unavailable at the moment. Our admin is notified by your call, thank you!";
+
         [Obsolete]
         public HttpResponseMessage NotFoundException(TraceWriter log) {
             notFoundMessage += $", ID: {ID}";
@@ -69,6 +72,16 @@ namespace TinderCloneV1
 
             return new HttpResponseMessage(HttpStatusCode.TooManyRequests){
                 Content = new StringContent(badRequestMessage)
+            };
+        }
+        public HttpResponseMessage ServiceUnavailable(TraceWriter log)
+        {
+            //ServiceUnavailableMessage += $", ID: {ID}";
+            log.Info(ServiceUnavailableMessage);
+
+            return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+            {
+                Content = new StringContent(ServiceUnavailableMessage)
             };
         }
     }
