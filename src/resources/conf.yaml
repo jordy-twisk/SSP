@@ -54,6 +54,8 @@ paths:
           description: Student number not in database.
         '429':
           description: Too many request on the database.
+        '503':
+          description: External component or service is unavailable at the moment.
     put:
       tags:
       - Studentdata
@@ -75,16 +77,18 @@ paths:
             schema:
               $ref: '#/components/schemas/Student'
       responses:
-          '200':
-            description: modified.
-          '400':
-            description: Undocumented filter parameter.
-          '401':
-            description: Student password is not accepted.
-          '404':
-            description: Student number not in database.
-          '429':
-            description: Too many request on the database.
+        '200':
+        description: modified.
+        '400':
+        description: Undocumented filter parameter.
+        '401':
+        description: Student password is not accepted.
+        '404':
+        description: Student number not in database.
+        '429':
+        description: Too many request on the database.
+        '503':
+        description: External component or service is unavailable at the moment.
   /api/students/search:
     get:
       tags:
@@ -94,56 +98,56 @@ paths:
       description: Returns a list of student profiles from the database filtered by filters.
       # No parameters returns back every profile.
       parameters:
-          - in: query
-            name: studentID
-            description: The student number is the students personal id.
-            required: false
-            schema:
-              type: integer
-          - in: query
-            name: firstName
-            description: The first name of the student.
-            required: false
-            schema:
-              type: string
-          - in: query
-            name: surName
-            description: The surname of the student.
-            required: false
-            schema:
-              type: string
-          - in: query
-            name: phoneNumber
-            description: The phoneNumber of the student.
-            required: false
-            schema:
-              type: string
-          - in: query
-            name: interests
-            description: The interests of the student.
-            required: false
-            schema:
-              type: array
-              items:
-                type: string
-          - in: query
-            name: degree
-            description: The degree of the student.
-            required: false
-            schema:
-              type: string
-          - in: query
-            name: study
-            required: false
-            description: The study of the student.
-            schema:
-              type: string
-          - in: query
-            name: studyYear
-            description: The study year of the student.
-            required: false
-            schema:
-              type: integer
+        - in: query
+        name: studentID
+        description: The student number is the students personal id.
+        required: false
+        schema:
+            type: integer
+        - in: query
+        name: firstName
+        description: The first name of the student.
+        required: false
+        schema:
+            type: string
+        - in: query
+        name: surName
+        description: The surname of the student.
+        required: false
+        schema:
+            type: string
+        - in: query
+        name: phoneNumber
+        description: The phoneNumber of the student.
+        required: false
+        schema:
+            type: string
+        - in: query
+        name: interests
+        description: The interests of the student.
+        required: false
+        schema:
+            type: array
+            items:
+            type: string
+        - in: query
+        name: degree
+        description: The degree of the student.
+        required: false
+        schema:
+            type: string
+        - in: query
+        name: study
+        required: false
+        description: The study of the student.
+        schema:
+            type: string
+        - in: query
+        name: studyYear
+        description: The study year of the student.
+        required: false
+        schema:
+            type: integer
       responses:
         '200':
           description: Return list of student profiles.
@@ -158,7 +162,9 @@ paths:
         '404':
           description: Student number not in database.
         '429':
-              description: Too many requests
+          description: Too many requests
+        '503':
+          description: External component or service is unavailable at the moment.
   /api/profile/coach:
     get:
       tags:
@@ -175,6 +181,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CoachProfile'
+        '400':
+          description: Undocumented filter parameter.
+        '401':
+          description: Student password is not accepted.
+        '429':
+          description: Too many requests
+        '503':
+          description: External component or service is unavailable at the moment.
     post:
       tags:
         - Coach profile
@@ -199,6 +213,8 @@ paths:
           description: Student number already exists.
         '429':
           description: Too many request on the database
+        '503':
+          description: External component or service is unavailable at the moment.
   /api/profile/coach/{studentID}:
     get:
       tags:
@@ -231,6 +247,8 @@ paths:
             description: Student number not in database.
           '429':
             description: Too many requests
+          '503':
+            description: External component or service is unavailable at the moment.
     delete:
       tags:
       - Coach profile
@@ -255,6 +273,8 @@ paths:
               description: Delete has failed no studentnumber exists.
             '429':
               description: Too many request on the database.
+            '503':
+              description: External component or service is unavailable at the moment.
   /api/profile/tutorant:
     get:
       tags:
@@ -279,6 +299,8 @@ paths:
           description: Student number already exists.
         '429':
           description: Too many request on the database
+        '503':
+          description: External component or service is unavailable at the moment.
     post:
       tags:
         - Tutorant profile
@@ -303,6 +325,8 @@ paths:
           description: Student number already exists.
         '429':
           description: Too many request on the database
+        '503':
+          description: External component or service is unavailable at the moment.
   /api/profile/tutorant/{studentID}:
     get:
       tags:
@@ -335,6 +359,8 @@ paths:
             description: Student number not in database.
           '429':
             description: Too many requests
+          '503':
+            description: External component or service is unavailable at the moment.
     delete:
       tags:
       - Tutorant profile
@@ -359,6 +385,8 @@ paths:
               description: Delete has failed, no studentnumber exists.
             '429':
               description: Too many request on the database.
+            '503':
+              description: External component or service is unavailable at the moment.
   /api/coach/{studentID}:
     get:
       tags:
@@ -391,6 +419,8 @@ paths:
             description: Student number not in database.
           '429':
             description: Too many requests
+          '503':
+            description: External component or service is unavailable at the moment.
     put:
       tags:
       - Coach profile
@@ -422,6 +452,8 @@ paths:
             description: Student number not in database.
           '429':
             description: Too many requests
+          '503':
+            description: External component or service is unavailable at the moment.
   /api/coachTutorant:
     post:
       tags:
@@ -447,6 +479,8 @@ paths:
           description: Student number already exists.
         '429':
           description: Too many request on the database
+        '503':
+          description: External component or service is unavailable at the moment.
   /api/coachTutorant/coach/{studentID}:
     get:
       tags:
@@ -478,6 +512,8 @@ paths:
           description: Student number not in database.
         '429':
           description: Too many requests
+        '503':
+          description: External component or service is unavailable at the moment.
     delete:
       tags:
         - CoachTutorant
@@ -499,6 +535,8 @@ paths:
           description: messageID Coach and tutorant number don't match any message.
         '429':
           description: Too many request on the database.
+        '503':
+          description: External component or service is unavailable at the moment.
   /api/coachTutorant/tutorant/{studentID}:
     get:
       tags:
@@ -530,6 +568,8 @@ paths:
           description: Student number not in database.
         '429':
           description: Too many requests
+        '503':
+          description: External component or service is unavailable at the moment.
     put:
       tags:
         - CoachTutorant
@@ -561,6 +601,8 @@ paths:
             description: Student number not in database.
           '429':
             description: Too many request on the database.
+          '503':
+            description: External component or service is unavailable at the moment.
     delete:
       tags:
         - CoachTutorant
@@ -579,7 +621,9 @@ paths:
         '401':
           description: Student password is not accepted.
         '429':
-          description: Too many request on the database.                
+          description: Too many request on the database. 
+        '503':
+          description: External component or service is unavailable at the moment.
   /api/messages/{coachID}/{tutorantID}:
     get:
       tags: 
@@ -621,6 +665,8 @@ paths:
           description: Coach and tutorant number don't match any messages.
         '429':
           description: Too many request on the database.
+        '503':
+          description: External component or service is unavailable at the moment.
   /api/message/{messageID}:
     #think about if we need this one, or remove, because why would we only get one message?
     get:
@@ -651,6 +697,8 @@ paths:
           description: messageID Coach and tutorant number don't match any message.
         '429':
           description: Too many request on the database.
+        '503':
+          description: External component or service is unavailable at the moment.
     put:
       tags:
         - Message
@@ -697,6 +745,8 @@ paths:
           description: messageID Coach and tutorant number don't match any message.
         '429':
           description: Too many request on the database.
+        '503':
+          description: External component or service is unavailable at the moment.
     delete:
       tags:
         - Message
@@ -719,6 +769,8 @@ paths:
           description: messageID Coach and tutorant number don't match any message.
         '429':
           description: Too many request on the database.
+        '503':
+          description: External component or service is unavailable at the moment.
   /api/message:  
     post:
       tags:
@@ -742,6 +794,8 @@ paths:
           description: Coach or/and tutorant number don't exist in database.
         '429':
           description: Too many request on the database.
+        '503':
+          description: External component or service is unavailable at the moment.
 
 components:
     securitySchemes:
