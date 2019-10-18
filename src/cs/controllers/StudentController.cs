@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace TinderCloneV1
 {
-    public class UserController{
+    public class StudentController{
         string str = Environment.GetEnvironmentVariable("sqldb_connection");
         ExceptionHandler exceptionHandler = new ExceptionHandler(0);
         Task<HttpResponseMessage> httpResponseMessage = null;
@@ -29,6 +29,8 @@ namespace TinderCloneV1
                     return exceptionHandler.ServiceUnavailable(log);
                 }
 
+                // [Studentdata]
+                // GET all student data filtered by query parameters
                 httpResponseMessage = userService.GetAll(connection);
                 connection.Close();
 
@@ -38,7 +40,7 @@ namespace TinderCloneV1
 
         [FunctionName("GetUser")]
         public async Task<HttpResponseMessage> GetUser([HttpTrigger(AuthorizationLevel.Anonymous, 
-        "get", "post", "delete", "put", Route = "student/{ID}")] HttpRequestMessage req, HttpRequest request, int ID, ILogger log){
+        "get", "post", Route = "student/{ID}")] HttpRequestMessage req, HttpRequest request, int ID, ILogger log){
 
             UserService userService = new UserService(req, request, log);
 
@@ -50,10 +52,15 @@ namespace TinderCloneV1
                     log.LogInformation(e.Message);
                     return exceptionHandler.ServiceUnavailable(log);
                 }
-                
+
+                // [Studentdata]
+                // GET a student by his ID.
                 if (req.Method == HttpMethod.Get){
                     httpResponseMessage = userService.GetStudent(ID, connection);
                 } 
+
+                // [Studentdata]
+                // PUT: Update a student by his ID.
                 else if (req.Method == HttpMethod.Put) {
                     httpResponseMessage = userService.PutStudent(ID, connection);
                 }
