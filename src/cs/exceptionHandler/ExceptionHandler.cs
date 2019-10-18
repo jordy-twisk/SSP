@@ -38,7 +38,6 @@ namespace TinderCloneV1
         /*Outside service is unavailable*/
         string ServiceUnavailableMessage = $"{HttpStatusCode.ServiceUnavailable}: External component or service is unavailable at the moment. Our admin is notified by your call, thank you!";
 
-        [Obsolete]
         public HttpResponseMessage NotFoundException(ILogger log) {
             notFoundMessage += $", ID: {ID}";
             log.LogInformation(notFoundMessage);
@@ -48,7 +47,6 @@ namespace TinderCloneV1
             };
         }
 
-        [Obsolete]
         public HttpResponseMessage NotAuthorized(ILogger log){
             notAuthorized += $", ID: {ID}";
             log.LogInformation(notAuthorized);
@@ -57,7 +55,6 @@ namespace TinderCloneV1
                 Content = new StringContent(notAuthorized)
             };
         }
-        [Obsolete]
         public HttpResponseMessage TooManyRequests(ILogger log){
             tooManyRequestsMessage += $", ID: {ID}";
             log.LogInformation(tooManyRequestsMessage);
@@ -66,7 +63,6 @@ namespace TinderCloneV1
                 Content = new StringContent(tooManyRequestsMessage)
             };
         }
-        [Obsolete]
         public HttpResponseMessage BadRequest(ILogger log){
             badRequestMessage += $", ID: {ID}";
             log.LogInformation(badRequestMessage);
@@ -76,7 +72,6 @@ namespace TinderCloneV1
             };
         }
 
-        [Obsolete]
         public HttpResponseMessage ServiceUnavailable(ILogger log)
         {
             log.LogInformation(ServiceUnavailableMessage);
