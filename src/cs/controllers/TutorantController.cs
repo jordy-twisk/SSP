@@ -16,7 +16,7 @@ namespace TinderCloneV1
         Task<HttpResponseMessage> httpResponseMessage = null;
 
         [FunctionName("GetTutorants")]
-        public async Task<HttpResponseMessage> GetCoaches([HttpTrigger(AuthorizationLevel.Anonymous,
+        public async Task<HttpResponseMessage> GetTutorants([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "put", Route = "profile/tutorant")] HttpRequestMessage req, HttpRequest request, ILogger log)
         {
 
@@ -34,13 +34,13 @@ namespace TinderCloneV1
                     return exceptionHandler.ServiceUnavailable(log);
                 }
                 // [TutorantData]
-                // GET all tutorant data
+                // GET: all tutorant data
                 if (req.Method == HttpMethod.Get)
                 {
                     httpResponseMessage = null;
                 }
                 //// [TutorantData]
-                //// Post: create a new tutorant
+                //// POST: create a new tutorant
                 else if (req.Method == HttpMethod.Post)
                 {
                     httpResponseMessage = null;
@@ -50,8 +50,8 @@ namespace TinderCloneV1
             return await httpResponseMessage;
         }
 
-        [FunctionName("GetCoachProfile")]
-        public async Task<HttpResponseMessage> GetCoachProfile([HttpTrigger(AuthorizationLevel.Anonymous,
+        [FunctionName("GetTutorantProfile")]
+        public async Task<HttpResponseMessage> GetTutorantProfile([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "delete", Route = "profile/tutorant/{ID}")] HttpRequestMessage req, HttpRequest request, int ID, ILogger log)
         {
 
@@ -69,13 +69,13 @@ namespace TinderCloneV1
                     return exceptionHandler.ServiceUnavailable(log);
                 }
                 // [TutorantData]
-                // GET the tutorant data by studentID
+                // GET: the tutorant data by studentID
                 if (req.Method == HttpMethod.Get)
                 {
                     httpResponseMessage = null;
                 }
                 //// [TutorantData]
-                //// Delete: tutorant by studentID
+                //// DELETE: tutorant by studentID
                 else if (req.Method == HttpMethod.Delete)
                 {
                     httpResponseMessage = null;

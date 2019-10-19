@@ -34,13 +34,13 @@ namespace TinderCloneV1
                     return exceptionHandler.ServiceUnavailable(log);
                 }
                 // [CoachData]
-                // GET all coaches data
+                // GET: all coaches data
                 if (req.Method == HttpMethod.Get)
                 {
                     httpResponseMessage = null;
                 }
                 //// [CoachData]
-                //// Post: create a new coach
+                //// POST: create a new coach
                 else if (req.Method == HttpMethod.Post)
                 {
                     httpResponseMessage = null;
@@ -69,13 +69,13 @@ namespace TinderCloneV1
                     return exceptionHandler.ServiceUnavailable(log);
                 }
                 // [CoachData]
-                // GET the coach data by studentID
+                // GET: the coach data by studentID
                 if (req.Method == HttpMethod.Get)
                 {
                     httpResponseMessage = null;
                 }
                 //// [CoachData]
-                //// Delete: coach by studentID
+                //// DELETE: coach by studentID
                 else if (req.Method == HttpMethod.Delete)
                 {
                     httpResponseMessage = null;
@@ -103,7 +103,7 @@ namespace TinderCloneV1
                     return exceptionHandler.ServiceUnavailable(log);
                 }
                 // [CoachData]
-                // GET the coach and workload by studentID
+                // GET: the coach and workload by studentID
                 if (req.Method == HttpMethod.Get)
                 {
                     httpResponseMessage = null;
