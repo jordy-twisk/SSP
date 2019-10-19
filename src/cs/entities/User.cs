@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace TinderCloneV1{
+namespace TinderCloneV1 {
     class User{
         [JsonProperty("studentID")]
         public int studentID{

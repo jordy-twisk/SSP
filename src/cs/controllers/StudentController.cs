@@ -7,20 +7,27 @@ using System.Data.SqlClient;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
-namespace TinderCloneV1
-{
+namespace TinderCloneV1 {
     public class StudentController{
         string str = Environment.GetEnvironmentVariable("sqldb_connection");
         ExceptionHandler exceptionHandler = new ExceptionHandler(0);
         Task<HttpResponseMessage> httpResponseMessage = null;
 
+        SqlConnection connection;
+        ILogger log;
+
+        public StudentController(SqlConnection connection) {
+            this.connection = connection;
+            this.log = log;
+        }
+
         [FunctionName("GetUsers")]
         public async Task<HttpResponseMessage> GetUsers([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, ILogger log){
+            "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request){
             
-            UserService userService = new UserService(req, request, log);
+            UserService userService = new UserService(req, request);
 
-            using (SqlConnection connection = new SqlConnection(str)){
+            /*using (SqlConnection connection = new SqlConnection(str)){
                 try {
                     connection.Open();
                 }
@@ -28,13 +35,13 @@ namespace TinderCloneV1
                     log.LogInformation(e.Message);
                     return exceptionHandler.ServiceUnavailable(log);
                 }
-
+                */
                 // [Studentdata]
                 // GET all student data filtered by query parameters
                 httpResponseMessage = userService.GetAll(connection);
-                connection.Close();
+                // connection.Close();
 
-            }
+            //}
             return await httpResponseMessage;
         }
 
@@ -49,7 +56,7 @@ namespace TinderCloneV1
                     connection.Open();
                 }
                 catch (SqlException e){
-                    log.LogInformation(e.Message);
+                    log.LogError(e.Message);
                     return exceptionHandler.ServiceUnavailable(log);
                 }
 

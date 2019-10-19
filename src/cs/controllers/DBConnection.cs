@@ -7,7 +7,7 @@ using Microsoft.Azure.WebJobs.Host;
 using System.Net;
 using System.Data.SqlClient;
 
-namespace TinderCloneV1{
+namespace TinderCloneV1 {
     public static class DBConnection{
         [FunctionName("Status")]
         [Obsolete]

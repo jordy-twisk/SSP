@@ -12,8 +12,15 @@ using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
-namespace TinderCloneV1{
-    class UserService{
+namespace TinderCloneV1 {
+
+    public interface IUserService {
+        Task<HttpResponseMessage> GetAll(SqlConnection connection);
+        Task<HttpResponseMessage> GetStudent(int ID, SqlConnection connection);
+        Task<HttpResponseMessage> PutStudent(int ID, SqlConnection connection);
+    }
+
+    class UserService : IUserService{
         HttpRequestMessage req;
         HttpRequest request;
         ILogger log;
@@ -21,6 +28,11 @@ namespace TinderCloneV1{
             this.req = req;
             this.request = request;
             this.log = log;
+        }
+
+        public UserService(HttpRequestMessage req, HttpRequest request) {
+            this.req = req;
+            this.request = request;
         }
 
         ExceptionHandler exceptionHandler = new ExceptionHandler(0);

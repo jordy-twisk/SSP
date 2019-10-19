@@ -9,6 +9,8 @@
     <PackageReference Include="Glimpse.Ado" Version="1.7.3" />
     <PackageReference Include="IdentityModel" Version="4.0.0" />
     <PackageReference Include="IKVM" Version="8.1.5717" />
+    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols" Version="5.5.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.29" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />

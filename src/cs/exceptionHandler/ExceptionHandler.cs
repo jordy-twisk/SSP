@@ -2,8 +2,7 @@
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
 
-namespace TinderCloneV1
-{
+namespace TinderCloneV1 {
     public class ExceptionHandler{
 
         private int ID;
