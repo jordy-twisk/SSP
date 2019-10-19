@@ -13,21 +13,23 @@ namespace TinderCloneV1 {
         ExceptionHandler exceptionHandler = new ExceptionHandler(0);
         Task<HttpResponseMessage> httpResponseMessage = null;
 
-        SqlConnection connection;
-        ILogger log;
-
-        public StudentController(SqlConnection connection) {
-            this.connection = connection;
-            this.log = log;
+        //SqlConnection connection;
+        IUserService userService;
+        public StudentController(IUserService userService) {
+            //this.connection = connection;
+            Console.WriteLine("Hello from StudentController constructor");
+            this.userService = userService;
         }
 
         [FunctionName("GetUsers")]
         public async Task<HttpResponseMessage> GetUsers([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request){
+            "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, ILogger log){
             
-            UserService userService = new UserService(req, request);
+            log.LogInformation("Hello from Controller");
 
-            /*using (SqlConnection connection = new SqlConnection(str)){
+            userService = new UserService(req, request, log);
+            //log.LogInformation($"con.State from Controller: {connection.State}");
+            using (SqlConnection connection = new SqlConnection(str)){
                 try {
                     connection.Open();
                 }
@@ -35,13 +37,12 @@ namespace TinderCloneV1 {
                     log.LogInformation(e.Message);
                     return exceptionHandler.ServiceUnavailable(log);
                 }
-                */
                 // [Studentdata]
                 // GET all student data filtered by query parameters
                 httpResponseMessage = userService.GetAll(connection);
-                // connection.Close();
+                 connection.Close();
 
-            //}
+            }
             return await httpResponseMessage;
         }
 

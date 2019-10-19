@@ -15,9 +15,9 @@ using Microsoft.Extensions.Logging;
 namespace TinderCloneV1 {
 
     public interface IUserService {
-        Task<HttpResponseMessage> GetAll(SqlConnection connection);
-        Task<HttpResponseMessage> GetStudent(int ID, SqlConnection connection);
-        Task<HttpResponseMessage> PutStudent(int ID, SqlConnection connection);
+        Task<HttpResponseMessage> GetAll(SqlConnection con);
+        Task<HttpResponseMessage> GetStudent(int ID, SqlConnection con);
+        Task<HttpResponseMessage> PutStudent(int ID, SqlConnection con);
     }
 
     class UserService : IUserService{
@@ -30,17 +30,15 @@ namespace TinderCloneV1 {
             this.log = log;
         }
 
-        public UserService(HttpRequestMessage req, HttpRequest request) {
-            this.req = req;
-            this.request = request;
-        }
-
         ExceptionHandler exceptionHandler = new ExceptionHandler(0);
         List<User> listOfUsers = new List<User>();
         string queryString = null;
 
         [Obsolete]
-        public async Task<HttpResponseMessage> GetAll(SqlConnection connection){
+        public async Task<HttpResponseMessage> GetAll(SqlConnection con) {
+
+            //log.LogInformation($"con.State from Service: {con.State}");
+
             string isEmpty = null;
 
             PropertyInfo[] properties = typeof(User).GetProperties();
@@ -71,7 +69,7 @@ namespace TinderCloneV1 {
             log.LogInformation($"Executing the following query: {queryString}");
 
             try {
-                using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                using (SqlCommand command = new SqlCommand(queryString, con)) {
                     using (SqlDataReader reader = command.ExecuteReader()) {
                         while (reader.Read()) {
                             listOfUsers.Add(new User {
@@ -93,7 +91,7 @@ namespace TinderCloneV1 {
                 var jsonToReturn = JsonConvert.SerializeObject(listOfUsers);
                 log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
 
-                connection.Close();
+                con.Close();
 
                 return new HttpResponseMessage(HttpStatusCode.OK) {
                     Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
