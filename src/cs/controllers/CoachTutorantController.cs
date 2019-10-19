@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TinderCloneV1.src.cs.controllers
+namespace TinderCloneV1
 {
-    class CoachTutorantController
+    public class CoachTutorantController
     {
     }
 }

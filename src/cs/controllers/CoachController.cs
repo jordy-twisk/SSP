@@ -7,15 +7,15 @@ using System.Data.SqlClient;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
-namespace TinderCloneV1.src.cs.controllers
+namespace TinderCloneV1
 {
-    class CoachController
+    public class CoachController
     {
         string str = Environment.GetEnvironmentVariable("sqldb_connection");
         ExceptionHandler exceptionHandler = new ExceptionHandler(0);
         Task<HttpResponseMessage> httpResponseMessage = null;
 
-        [FunctionName("GetCoaches or post")]
+        [FunctionName("GetCoaches")]
         public async Task<HttpResponseMessage> GetCoaches([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "put", Route = "profile/coach")] HttpRequestMessage req, HttpRequest request, ILogger log)
         {
