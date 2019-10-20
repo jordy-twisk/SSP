@@ -4,7 +4,7 @@ using System.Net.Http;
 namespace TinderCloneV1 {
     public interface IUserService {
         Task<HttpResponseMessage> GetAll();
-        Task<HttpResponseMessage> GetStudentByID(int ID);
-        Task<HttpResponseMessage> CreateStudentByID(int ID);
+        Task<HttpResponseMessage> GetStudentByID(int userID);
+        Task<HttpResponseMessage> CreateStudentByID(int userID);
     } 
 }

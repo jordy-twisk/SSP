@@ -103,9 +103,9 @@ namespace TinderCloneV1 {
             };
         }
 
-        public async Task<HttpResponseMessage> GetStudentByID(int ID) {
-            int studentID = ID;
-            exceptionHandler = new ExceptionHandler(ID);
+        public async Task<HttpResponseMessage> GetStudentByID(int userID) {
+            int studentID = userID;
+            exceptionHandler = new ExceptionHandler(userID);
 
             User newUser = new User();
             queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = {studentID};";
@@ -158,9 +158,9 @@ namespace TinderCloneV1 {
             };
         }
 
-        public async Task<HttpResponseMessage> CreateStudentByID(int ID) {
-            int studentID = ID;
-            exceptionHandler = new ExceptionHandler(ID);
+        public async Task<HttpResponseMessage> CreateStudentByID(int userID) {
+            int studentID = userID;
+            exceptionHandler = new ExceptionHandler(userID);
 
             User newUser;
             string body = await req.Content.ReadAsStringAsync();

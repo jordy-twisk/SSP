@@ -5,7 +5,7 @@ namespace TinderCloneV1 {
     interface ITutorantService {
         Task<HttpResponseMessage> GetAllTutorants();
         Task<HttpResponseMessage> CreateTutorant();
-        Task<HttpResponseMessage> GetTutorantByID(int ID);
-        Task<HttpResponseMessage> DeleteTutorantByID(int ID);
+        Task<HttpResponseMessage> GetTutorantByID(int tutorantID);
+        Task<HttpResponseMessage> DeleteTutorantByID(int tutorantID);
     }
 }

@@ -5,10 +5,10 @@ namespace TinderCloneV1 {
     interface ICoachService {
         Task<HttpResponseMessage> GetAllCoaches();
         Task<HttpResponseMessage> CreateCoach();
-        Task<HttpResponseMessage> GetCoachByID(int ID);
-        Task<HttpResponseMessage> DeleteCoachByID(int ID);
-        Task<HttpResponseMessage> GetCoachAndWorkloadByID(int ID);
-        Task<HttpResponseMessage> UpdateCoachAndWorkloadByID(int ID);
+        Task<HttpResponseMessage> GetCoachByID(int coachID);
+        Task<HttpResponseMessage> DeleteCoachByID(int coachID);
+        Task<HttpResponseMessage> GetCoachAndWorkloadByID(int coachID);
+        Task<HttpResponseMessage> UpdateCoachAndWorkloadByID(int coachID);
 
     }
 }
