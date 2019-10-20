@@ -12,9 +12,7 @@ namespace TinderCloneV1 {
 
             string sqlconnection = Environment.GetEnvironmentVariable("sqldb_connection");
 
-            //builder.Services.AddDbContext<StudentController>(options => options.UseSqlServer(SqlConnection));
-            builder.Services.AddDbContext<StudentController>(options => options.UseSqlServer(sqlconnection));
-
+            //builder.Services.AddDbContext<StudentController>(options => options.UseSqlServer(sqlconnection));
 
             //builder.Services.AddScoped<SqlConnection, StudentController>();
 
