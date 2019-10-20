@@ -13,8 +13,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace TinderCloneV1 {
-   
-    public class UserService : IUserService{
+
+    public class UserService : IUserService {
 
         private readonly string str = Environment.GetEnvironmentVariable("sqldb_connection");
 
@@ -23,8 +23,8 @@ namespace TinderCloneV1 {
         private readonly HttpRequestMessage req;
         private readonly HttpRequest request;
         private readonly ILogger log;
-        
-        public UserService(HttpRequestMessage req, HttpRequest request, ILogger log){
+
+        public UserService(HttpRequestMessage req, HttpRequest request, ILogger log) {
             this.req = req;
             this.request = request;
             this.log = log;
@@ -39,7 +39,7 @@ namespace TinderCloneV1 {
             PropertyInfo[] properties = typeof(User).GetProperties();
 
             queryString = $"SELECT * FROM [dbo].[Student]";
-         
+
             int i = 0;
             string isEmpty = null;
             foreach (PropertyInfo p in properties) {
@@ -103,10 +103,10 @@ namespace TinderCloneV1 {
             };
         }
 
-        public async Task<HttpResponseMessage> GetStudent(int ID){
+        public async Task<HttpResponseMessage> GetStudent(int ID) {
             int studentID = ID;
             exceptionHandler = new ExceptionHandler(ID);
-            
+
             User newUser = new User();
             queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = {studentID};";
 
@@ -158,7 +158,7 @@ namespace TinderCloneV1 {
             };
         }
 
-        public async Task<HttpResponseMessage> PutStudent(int ID){
+        public async Task<HttpResponseMessage> PutStudent(int ID) {
             int studentID = ID;
             exceptionHandler = new ExceptionHandler(ID);
 
@@ -171,9 +171,9 @@ namespace TinderCloneV1 {
                 newUser = jObject.ToObject<User>();
             }
 
-            if(jObject.Properties() != null) {
+            if (jObject.Properties() != null) {
                 queryString = $"UPDATE [dbo].[Student] SET ";
-                
+
                 foreach (JProperty property in jObject.Properties()) {
                     queryString += $"{property.Name} = '{property.Value}',";
                 }
@@ -183,7 +183,7 @@ namespace TinderCloneV1 {
 
                 log.LogInformation($"Executing the following query: {queryString}");
 
-                try{
+                try {
                     using (SqlConnection connection = new SqlConnection(str)) {
                         try {
                             connection.Open();
@@ -197,8 +197,7 @@ namespace TinderCloneV1 {
 
                         connection.Close();
                     }
-                }
-                catch (SqlException e) {
+                } catch (SqlException e) {
                     log.LogError(e.Message);
                     return exceptionHandler.BadRequest(log);
                 }
