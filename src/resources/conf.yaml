@@ -78,17 +78,17 @@ paths:
               $ref: '#/components/schemas/Student'
       responses:
         '200':
-        description: modified.
+          description: modified.
         '400':
-        description: Undocumented filter parameter.
+          description: Undocumented filter parameter.
         '401':
-        description: Student password is not accepted.
+          description: Student password is not accepted.
         '404':
-        description: Student number not in database.
+          description: Student number not in database.
         '429':
-        description: Too many request on the database.
+          description: Too many request on the database.
         '503':
-        description: External component or service is unavailable at the moment.
+          description: External component or service is unavailable at the moment.
   /api/students/search:
     get:
       tags:
@@ -99,55 +99,55 @@ paths:
       # No parameters returns back every profile.
       parameters:
         - in: query
-        name: studentID
-        description: The student number is the students personal id.
-        required: false
-        schema:
-            type: integer
+          name: studentID
+          description: The student number is the students personal id.
+          required: false
+          schema:
+              type: integer
         - in: query
-        name: firstName
-        description: The first name of the student.
-        required: false
-        schema:
-            type: string
+          name: firstName
+          description: The first name of the student.
+          required: false
+          schema:
+              type: string
         - in: query
-        name: surName
-        description: The surname of the student.
-        required: false
-        schema:
-            type: string
+          name: surName
+          description: The surname of the student.
+          required: false
+          schema:
+              type: string
         - in: query
-        name: phoneNumber
-        description: The phoneNumber of the student.
-        required: false
-        schema:
-            type: string
+          name: phoneNumber
+          description: The phoneNumber of the student.
+          required: false
+          schema:
+              type: string
         - in: query
-        name: interests
-        description: The interests of the student.
-        required: false
-        schema:
-            type: array
-            items:
-            type: string
+          name: interests
+          description: The interests of the student.
+          required: false
+          schema:
+              type: array
+              items:
+                type: string
         - in: query
-        name: degree
-        description: The degree of the student.
-        required: false
-        schema:
-            type: string
+          name: degree
+          description: The degree of the student.
+          required: false
+          schema:
+              type: string
         - in: query
-        name: study
-        required: false
-        description: The study of the student.
-        schema:
-            type: string
+          name: study
+          required: false
+          description: The study of the student.
+          schema:
+              type: string
         - in: query
-        name: studyYear
-        description: The study year of the student.
-        required: false
-        schema:
-            type: integer
+          name: studyYear
+          description: The study year of the student.
+          required: false
+          schema:
+              type: integer
       responses:
         '200':
           description: Return list of student profiles.

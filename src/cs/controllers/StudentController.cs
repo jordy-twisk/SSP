@@ -16,7 +16,7 @@ namespace TinderCloneV1 {
 
         [FunctionName("GetUsers")]
         public async Task<HttpResponseMessage> GetUsers([HttpTrigger(AuthorizationLevel.Function,
-            "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, ILogger log){
+            "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
             userService = new UserService(req, request, log);
 
