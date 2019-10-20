@@ -1,81 +1,47 @@
-using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using System.Net.Http;
-using System.Data.SqlClient;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace TinderCloneV1 {
     public class StudentController{
-        string str = Environment.GetEnvironmentVariable("sqldb_connection");
-        ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-        Task<HttpResponseMessage> httpResponseMessage = null;
 
-        //SqlConnection connection;
         IUserService userService;
         public StudentController(IUserService userService) {
-            //this.connection = connection;
-            Console.WriteLine("Hello from StudentController constructor");
             this.userService = userService;
         }
 
         [FunctionName("GetUsers")]
-        public async Task<HttpResponseMessage> GetUsers([HttpTrigger(AuthorizationLevel.Anonymous,
+        public async Task<HttpResponseMessage> GetUsers([HttpTrigger(AuthorizationLevel.Function,
             "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, ILogger log){
-            
-            log.LogInformation("Hello from Controller");
 
             userService = new UserService(req, request, log);
-            //log.LogInformation($"con.State from Controller: {connection.State}");
-            using (SqlConnection connection = new SqlConnection(str)){
-                try {
-                    connection.Open();
-                }
-                catch (SqlException e) {
-                    log.LogInformation(e.Message);
-                    return exceptionHandler.ServiceUnavailable(log);
-                }
-                // [Studentdata]
-                // GET all student data filtered by query parameters
-                httpResponseMessage = userService.GetAll(connection);
-                 connection.Close();
 
-            }
-            return await httpResponseMessage;
+            return await userService.GetAll();
         }
 
         [FunctionName("GetUser")]
-        public async Task<HttpResponseMessage> GetUser([HttpTrigger(AuthorizationLevel.Anonymous, 
-        "get", "post", Route = "student/{ID}")] HttpRequestMessage req, HttpRequest request, int ID, ILogger log){
+        public async Task<HttpResponseMessage> GetUser([HttpTrigger(AuthorizationLevel.Function, 
+        "get", "put", Route = "student/{ID}")] HttpRequestMessage req, HttpRequest request, ILogger log, int ID) {
 
-            UserService userService = new UserService(req, request, log);
+            userService = new UserService(req, request, log);
 
-            using (SqlConnection connection = new SqlConnection(str)) {
-                try{
-                    connection.Open();
-                }
-                catch (SqlException e){
-                    log.LogError(e.Message);
-                    return exceptionHandler.ServiceUnavailable(log);
-                }
-
-                // [Studentdata]
-                // GET a student by his ID.
-                if (req.Method == HttpMethod.Get){
-                    httpResponseMessage = userService.GetStudent(ID, connection);
-                } 
-
-                // [Studentdata]
-                // PUT: Update a student by his ID.
-                else if (req.Method == HttpMethod.Put) {
-                    httpResponseMessage = userService.PutStudent(ID, connection);
-                }
-
-                connection.Close();
+            if (req.Method == HttpMethod.Get) {
+                return await userService.GetStudent(ID);
+            }
+            
+            else if (req.Method == HttpMethod.Put) {
+                return await userService.PutStudent(ID);
             } 
-            return await httpResponseMessage;
+            
+            else {
+                return new HttpResponseMessage(HttpStatusCode.NotFound) {
+                    Content = new StringContent($"Student {ID} not found in the database")
+                };
+            }
         }
     }
 }

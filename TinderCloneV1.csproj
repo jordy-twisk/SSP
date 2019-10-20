@@ -8,11 +8,12 @@
     <PackageReference Include="IdentityModel" Version="4.0.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.2.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.2.1" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols" Version="5.6.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.29" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.6.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
@@ -25,7 +26,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\cs\exceptionHandler\" />
-    <Folder Include="src\cs\services\" />
-    <Folder Include="src\cs\entities\" />
   </ItemGroup>
 </Project>

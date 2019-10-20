@@ -13,53 +13,46 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace TinderCloneV1 {
+   
+    public class UserService : IUserService{
 
-    public interface IUserService {
-        Task<HttpResponseMessage> GetAll(SqlConnection con);
-        Task<HttpResponseMessage> GetStudent(int ID, SqlConnection con);
-        Task<HttpResponseMessage> PutStudent(int ID, SqlConnection con);
-    }
+        private readonly string str = Environment.GetEnvironmentVariable("sqldb_connection");
 
-    class UserService : IUserService{
-        HttpRequestMessage req;
-        HttpRequest request;
-        ILogger log;
+        private ExceptionHandler exceptionHandler;
+
+        private readonly HttpRequestMessage req;
+        private readonly HttpRequest request;
+        private readonly ILogger log;
+        
         public UserService(HttpRequestMessage req, HttpRequest request, ILogger log){
             this.req = req;
             this.request = request;
             this.log = log;
         }
 
-        ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-        List<User> listOfUsers = new List<User>();
-        string queryString = null;
+        private string queryString = null;
+        public async Task<HttpResponseMessage> GetAll() {
 
-        [Obsolete]
-        public async Task<HttpResponseMessage> GetAll(SqlConnection con) {
+            exceptionHandler = new ExceptionHandler(0);
 
-            //log.LogInformation($"con.State from Service: {con.State}");
-
-            string isEmpty = null;
-
+            List<User> listOfUsers = new List<User>();
             PropertyInfo[] properties = typeof(User).GetProperties();
 
             queryString = $"SELECT * FROM [dbo].[Student]";
+         
             int i = 0;
-
+            string isEmpty = null;
             foreach (PropertyInfo p in properties) {
                 if (i == 0) {
                     queryString += $" WHERE";
                 }
-
                 if (request.Query[p.Name] != isEmpty) {
                     if (p.Name == "interests" || p.Name == "study") {
                         queryString += $" {p.Name} LIKE '%{request.Query[p.Name]}%' AND";
-                    }
-                    else {
+                    } else {
                         queryString += $" {p.Name} = '{request.Query[p.Name]}' AND";
                     }
                 }
-
                 i++;
             }
 
@@ -69,54 +62,16 @@ namespace TinderCloneV1 {
             log.LogInformation($"Executing the following query: {queryString}");
 
             try {
-                using (SqlCommand command = new SqlCommand(queryString, con)) {
-                    using (SqlDataReader reader = command.ExecuteReader()) {
-                        while (reader.Read()) {
-                            listOfUsers.Add(new User {
-                                studentID = reader.GetInt32(0),
-                                firstName = reader.GetString(1),
-                                surName = reader.GetString(2),
-                                phoneNumber = reader.GetString(3),
-                                photo = reader.GetString(4),
-                                description = reader.GetString(5),
-                                degree = reader.GetString(6),
-                                study = reader.GetString(7),
-                                studyYear = reader.GetInt32(8),
-                                interests = reader.GetString(9)
-                            });
-                        }
+                using (SqlConnection connection = new SqlConnection(str)) {
+                    try {
+                        connection.Open();
+                    } catch (SqlException e) {
+                        log.LogError(e.Message);
+                        return exceptionHandler.ServiceUnavailable(log);
                     }
-                }
 
-                var jsonToReturn = JsonConvert.SerializeObject(listOfUsers);
-                log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
-
-                con.Close();
-
-                return new HttpResponseMessage(HttpStatusCode.OK) {
-                    Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
-                };
-            }
-            catch (SqlException e) {
-                log.LogError(e.Message);
-                return req.CreateResponse(HttpStatusCode.BadRequest, $"The following SqlException happened: {e.StackTrace}");
-            }
-        }
-
-        public async Task<HttpResponseMessage> GetStudent(int ID, SqlConnection con){
-
-            int studentID = ID;
-            queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = {studentID};";
-
-            log.LogInformation($"Executing the following query: {queryString}");
-
-            try{
-                using (SqlCommand command = new SqlCommand(queryString, con)) {
-                    using (SqlDataReader reader = command.ExecuteReader()) {
-                        if (!reader.HasRows)  {
-                            return exceptionHandler.NotFoundException(log);
-                        }
-                        else {
+                    using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                        using (SqlDataReader reader = command.ExecuteReader()) {
                             while (reader.Read()) {
                                 listOfUsers.Add(new User {
                                     studentID = reader.GetInt32(0),
@@ -133,11 +88,11 @@ namespace TinderCloneV1 {
                             }
                         }
                     }
-                } 
-            }
-            catch (SqlException e) {
+                    connection.Close();
+                }
+            } catch (SqlException e) {
                 log.LogError(e.Message);
-                return req.CreateResponse(HttpStatusCode.BadRequest, $"The following SqlException happened: {e.StackTrace}");
+                return exceptionHandler.BadRequest(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(listOfUsers);
@@ -148,16 +103,72 @@ namespace TinderCloneV1 {
             };
         }
 
-
-        public async Task<HttpResponseMessage> PutStudent(int ID, SqlConnection con){
+        public async Task<HttpResponseMessage> GetStudent(int ID){
             int studentID = ID;
+            exceptionHandler = new ExceptionHandler(ID);
+            
+            User newUser = new User();
+            queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = {studentID};";
+
+            log.LogInformation($"Executing the following query: {queryString}");
+
+            try {
+                using (SqlConnection connection = new SqlConnection(str)) {
+                    try {
+                        connection.Open();
+                    } catch (SqlException e) {
+                        log.LogError(e.Message);
+                        return exceptionHandler.ServiceUnavailable(log);
+                    }
+
+                    using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                        using (SqlDataReader reader = command.ExecuteReader()) {
+                            if (!reader.HasRows) {
+                                return exceptionHandler.NotFoundException(log);
+                            } else {
+                                while (reader.Read()) {
+                                    newUser = new User {
+                                        studentID = reader.GetInt32(0),
+                                        firstName = reader.GetString(1),
+                                        surName = reader.GetString(2),
+                                        phoneNumber = reader.GetString(3),
+                                        photo = reader.GetString(4),
+                                        description = reader.GetString(5),
+                                        degree = reader.GetString(6),
+                                        study = reader.GetString(7),
+                                        studyYear = reader.GetInt32(8),
+                                        interests = reader.GetString(9)
+                                    };
+                                }
+                            }
+                        }
+                    }
+                    connection.Close();
+                }
+            } catch (SqlException e) {
+                log.LogError(e.Message);
+                return exceptionHandler.BadRequest(log);
+            }
+
+            var jsonToReturn = JsonConvert.SerializeObject(newUser);
+            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
+
+            return new HttpResponseMessage(HttpStatusCode.OK) {
+                Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
+            };
+        }
+
+        public async Task<HttpResponseMessage> PutStudent(int ID){
+            int studentID = ID;
+            exceptionHandler = new ExceptionHandler(ID);
+
+            User newUser;
             string body = await req.Content.ReadAsStringAsync();
             JObject jObject = new JObject();
-            List<String> propertyNames = new List<String>();
 
             using (StringReader reader = new StringReader(body)) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                listOfUsers.Add(jObject.ToObject<User>());
+                newUser = jObject.ToObject<User>();
             }
 
             if(jObject.Properties() != null) {
@@ -173,17 +184,30 @@ namespace TinderCloneV1 {
                 log.LogInformation($"Executing the following query: {queryString}");
 
                 try{
-                    SqlCommand commandUpdate = new SqlCommand(queryString, con);
-                    await commandUpdate.ExecuteNonQueryAsync();
+                    using (SqlConnection connection = new SqlConnection(str)) {
+                        try {
+                            connection.Open();
+                        } catch (SqlException e) {
+                            log.LogError(e.Message);
+                            return exceptionHandler.ServiceUnavailable(log);
+                        }
+
+                        SqlCommand commandUpdate = new SqlCommand(queryString, connection);
+                        await commandUpdate.ExecuteNonQueryAsync();
+
+                        connection.Close();
+                    }
                 }
                 catch (SqlException e) {
                     log.LogError(e.Message);
-                    return req.CreateResponse(HttpStatusCode.BadRequest, $"The following SqlException happened: {e.StackTrace}");
+                    return exceptionHandler.BadRequest(log);
                 }
+                log.LogInformation($"Changed data of student: {studentID}");
+            } else {
+                log.LogError($"Request body was empty nothing to change for student: {studentID}");
             }
 
-            log.LogInformation($" Changed data of student: {studentID}");
-            
+
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent($" Changed data of student: {studentID}")
             };
