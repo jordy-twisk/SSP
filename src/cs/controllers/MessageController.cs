@@ -15,7 +15,7 @@ namespace TinderCloneV1
         ExceptionHandler exceptionHandler = new ExceptionHandler(0);
         Task<HttpResponseMessage> httpResponseMessage = null;
 
-        [FunctionName("GetMessages")]
+        [FunctionName("GetMessagesByID")]
         public async Task<HttpResponseMessage> GetMessages([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", Route = "messages/{coachID}/{tutorantID}")] HttpRequestMessage req, HttpRequest request, int coachID, int tutorantID, ILogger log)
         {
@@ -41,7 +41,7 @@ namespace TinderCloneV1
             return await httpResponseMessage;
         }
 
-        [FunctionName("GetMessage")]
+        [FunctionName("MessageByID")]
         public async Task<HttpResponseMessage> GetMessage([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "put", "delete", Route = "message/{messageID}")] HttpRequestMessage req, HttpRequest request, int messageID, ILogger log)
         {
@@ -82,7 +82,7 @@ namespace TinderCloneV1
             return await httpResponseMessage;
         }
 
-        [FunctionName("PostMessages")]
+        [FunctionName("PostMessage")]
         public async Task<HttpResponseMessage> PostMessage([HttpTrigger(AuthorizationLevel.Anonymous,
             "post", Route = "message")] HttpRequestMessage req, HttpRequest request, ILogger log)
         {

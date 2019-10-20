@@ -15,9 +15,9 @@ namespace TinderCloneV1
         ExceptionHandler exceptionHandler = new ExceptionHandler(0);
         Task<HttpResponseMessage> httpResponseMessage = null;
 
-        [FunctionName("GetCoaches")]
+        [FunctionName("CoachProfile")]
         public async Task<HttpResponseMessage> GetCoaches([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", "put", Route = "profile/coach")] HttpRequestMessage req, HttpRequest request, ILogger log)
+            "get", "post", Route = "profile/coach")] HttpRequestMessage req, HttpRequest request, ILogger log)
         {
 
             UserService userService = new UserService(req, request, log);
@@ -50,7 +50,7 @@ namespace TinderCloneV1
             return await httpResponseMessage;
         }
 
-        [FunctionName("GetCoachProfile")]
+        [FunctionName("CoachProfileByID")]
         public async Task<HttpResponseMessage> GetCoachProfile([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "delete", Route = "profile/coach/{ID}")] HttpRequestMessage req, HttpRequest request, int ID, ILogger log)
         {
@@ -84,7 +84,7 @@ namespace TinderCloneV1
             }
             return await httpResponseMessage;
         }
-        [FunctionName("GetCoach")]
+        [FunctionName("CoachProfileAndWorkloadByID")]
         public async Task<HttpResponseMessage> GetCoach([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "put", Route = "coach/{ID}")] HttpRequestMessage req, HttpRequest request, int ID, ILogger log)
         {

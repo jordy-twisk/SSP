@@ -103,7 +103,7 @@ namespace TinderCloneV1 {
             };
         }
 
-        public async Task<HttpResponseMessage> GetStudent(int ID) {
+        public async Task<HttpResponseMessage> GetStudentByID(int ID) {
             int studentID = ID;
             exceptionHandler = new ExceptionHandler(ID);
 
@@ -158,7 +158,7 @@ namespace TinderCloneV1 {
             };
         }
 
-        public async Task<HttpResponseMessage> PutStudent(int ID) {
+        public async Task<HttpResponseMessage> CreateStudentByID(int ID) {
             int studentID = ID;
             exceptionHandler = new ExceptionHandler(ID);
 

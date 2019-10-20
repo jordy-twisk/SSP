@@ -7,10 +7,10 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 
 namespace TinderCloneV1 {
-    public class StudentController{
+    public class UserController{
 
         IUserService userService;
-        public StudentController(IUserService userService) {
+        public UserController(IUserService userService) {
             this.userService = userService;
         }
 
@@ -30,11 +30,11 @@ namespace TinderCloneV1 {
             userService = new UserService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
-                return await userService.GetStudent(ID);
+                return await userService.GetStudentByID(ID);
             }
             
             else if (req.Method == HttpMethod.Put) {
-                return await userService.PutStudent(ID);
+                return await userService.CreateStudentByID(ID);
             } 
             
             else {
