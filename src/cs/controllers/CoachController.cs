@@ -1,122 +1,69 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using System.Net.Http;
-using System.Data.SqlClient;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System;
 
-namespace TinderCloneV1
-{
-    public class CoachController
-    {
-        string str = Environment.GetEnvironmentVariable("sqldb_connection");
-        ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-        Task<HttpResponseMessage> httpResponseMessage = null;
+namespace TinderCloneV1 {
+    public class CoachController{
+
+        ICoachService coachService;
+
+        public CoachController (ICoachService coachService) {
+            this.coachService = coachService;
+        }
 
         [FunctionName("CoachProfile")]
-        public async Task<HttpResponseMessage> GetCoaches([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", "post", Route = "profile/coach")] HttpRequestMessage req, HttpRequest request, ILogger log)
-        {
+        public async Task<HttpResponseMessage> GetCoaches([HttpTrigger(AuthorizationLevel.Function,
+            "get", "post", Route = "profile/coach")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
-            UserService userService = new UserService(req, request, log);
+            coachService = new CoachService(req, request, log);
 
-            using (SqlConnection connection = new SqlConnection(str))
-            {
-                try
-                {
-                    connection.Open();
-                }
-                catch (SqlException e)
-                {
-                    log.LogInformation(e.Message);
-                    return exceptionHandler.ServiceUnavailable(log);
-                }
-                // [CoachData]
-                // GET: all coaches data
-                if (req.Method == HttpMethod.Get)
-                {
-                    httpResponseMessage = null;
-                }
-                //// [CoachData]
-                //// POST: create a new coach
-                else if (req.Method == HttpMethod.Post)
-                {
-                    httpResponseMessage = null;
-                }
-                connection.Close();
+            if (req.Method == HttpMethod.Get) {
+                return await coachService.GetAllCoaches();
             }
-            return await httpResponseMessage;
+            else if(req.Method == HttpMethod.Post){
+                return await coachService.CreateCoach();
+            } 
+            else {
+                throw new NotImplementedException();
+            }
         }
 
         [FunctionName("CoachProfileByID")]
-        public async Task<HttpResponseMessage> GetCoachProfile([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", "delete", Route = "profile/coach/{ID}")] HttpRequestMessage req, HttpRequest request, int ID, ILogger log)
-        {
+        public async Task<HttpResponseMessage> GetCoachProfile([HttpTrigger(AuthorizationLevel.Function,
+            "get", "delete", Route = "profile/coach/{coachID}")] HttpRequestMessage req, HttpRequest request, int coachID, ILogger log) {
 
-            UserService userService = new UserService(req, request, log);
+            coachService = new CoachService(req, request, log);
 
-            using (SqlConnection connection = new SqlConnection(str))
-            {
-                try
-                {
-                    connection.Open();
-                }
-                catch (SqlException e)
-                {
-                    log.LogInformation(e.Message);
-                    return exceptionHandler.ServiceUnavailable(log);
-                }
-                // [CoachData]
-                // GET: the coach data by studentID
-                if (req.Method == HttpMethod.Get)
-                {
-                    httpResponseMessage = null;
-                }
-                //// [CoachData]
-                //// DELETE: coach by studentID
-                else if (req.Method == HttpMethod.Delete)
-                {
-                    httpResponseMessage = null;
-                }
-                connection.Close();
+            if (req.Method == HttpMethod.Get) {
+                return await coachService.GetCoachByID(coachID);
+            } 
+            else if (req.Method == HttpMethod.Delete) {
+                return await coachService.DeleteCoachByID(coachID);
+            } 
+            else {
+                throw new NotImplementedException();
             }
-            return await httpResponseMessage;
         }
+
         [FunctionName("CoachProfileAndWorkloadByID")]
         public async Task<HttpResponseMessage> GetCoach([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", "put", Route = "coach/{ID}")] HttpRequestMessage req, HttpRequest request, int ID, ILogger log)
-        {
+            "get", "put", Route = "coach/{coachID}")] HttpRequestMessage req, HttpRequest request, int coachID, ILogger log) {
 
-            UserService userService = new UserService(req, request, log);
+            coachService = new CoachService(req, request, log);
 
-            using (SqlConnection connection = new SqlConnection(str))
-            {
-                try
-                {
-                    connection.Open();
-                }
-                catch (SqlException e)
-                {
-                    log.LogInformation(e.Message);
-                    return exceptionHandler.ServiceUnavailable(log);
-                }
-                // [CoachData]
-                // GET: the coach and workload by studentID
-                if (req.Method == HttpMethod.Get)
-                {
-                    httpResponseMessage = null;
-                }
-                //// [CoachData]
-                //// PUT: coach and workload by studentID
-                else if (req.Method == HttpMethod.Put)
-                {
-                    httpResponseMessage = null;
-                }
-                connection.Close();
+            if (req.Method == HttpMethod.Get) {
+                return await coachService.GetCoachAndWorkloadByID(coachID);
+            } 
+            else if (req.Method == HttpMethod.Post) {
+                return await coachService.UpdateCoachAndWorkloadByID(coachID);
+            } 
+            else {
+                throw new NotImplementedException();
             }
-            return await httpResponseMessage;
         }
     }
 }

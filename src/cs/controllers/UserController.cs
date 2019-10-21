@@ -4,7 +4,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Net;
+using System;
 
 namespace TinderCloneV1 {
     public class UserController{
@@ -14,7 +14,7 @@ namespace TinderCloneV1 {
             this.userService = userService;
         }
 
-        [FunctionName("GetUsers")]
+        [FunctionName("Users")]
         public async Task<HttpResponseMessage> GetUsers([HttpTrigger(AuthorizationLevel.Function,
             "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
@@ -23,7 +23,7 @@ namespace TinderCloneV1 {
             return await userService.GetAll();
         }
 
-        [FunctionName("GetUser")]
+        [FunctionName("UserByID")]
         public async Task<HttpResponseMessage> GetUser([HttpTrigger(AuthorizationLevel.Function, 
         "get", "put", Route = "student/{ID}")] HttpRequestMessage req, HttpRequest request, ILogger log, int ID) {
 
@@ -32,15 +32,11 @@ namespace TinderCloneV1 {
             if (req.Method == HttpMethod.Get) {
                 return await userService.GetStudentByID(ID);
             }
-            
             else if (req.Method == HttpMethod.Put) {
                 return await userService.CreateStudentByID(ID);
             } 
-            
             else {
-                return new HttpResponseMessage(HttpStatusCode.NotFound) {
-                    Content = new StringContent($"Student {ID} not found in the database")
-                };
+                throw new NotImplementedException();
             }
         }
     }

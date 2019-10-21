@@ -2,7 +2,7 @@
 using System.Net.Http;
 
 namespace TinderCloneV1 {
-    interface IMessageService {
+    public interface IMessageService {
         Task<HttpResponseMessage> GetAllMessages(int coachID, int tutorantID);
         Task<HttpResponseMessage> GetMessageByID(int messageID);
         Task<HttpResponseMessage> UpdateMessageByID(int messageID);

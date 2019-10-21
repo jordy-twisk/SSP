@@ -2,7 +2,7 @@
 using System.Net.Http;
 
 namespace TinderCloneV1 {
-    interface ICoachTutorantService {
+    public interface ICoachTutorantService {
         Task<HttpResponseMessage> GetAllCoachConnections(int coachID);
         Task<HttpResponseMessage> CreateConnection();
         Task<HttpResponseMessage> DeleteCoachConnection(int coachID);

@@ -2,7 +2,7 @@
 using System.Net.Http;
 
 namespace TinderCloneV1 {
-    interface ICoachService {
+    public interface ICoachService {
         Task<HttpResponseMessage> GetAllCoaches();
         Task<HttpResponseMessage> CreateCoach();
         Task<HttpResponseMessage> GetCoachByID(int coachID);
