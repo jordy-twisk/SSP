@@ -12,7 +12,6 @@ namespace TinderCloneV1 {
             builder.Services.AddTransient<ITutorantService, TutorantService>();
             builder.Services.AddTransient<IUserService, UserService>();
             builder.Services.AddLogging();
-
         }
     }
 }
