@@ -5,6 +5,6 @@ namespace TinderCloneV1 {
     public interface IUserService {
         Task<HttpResponseMessage> GetAll();
         Task<HttpResponseMessage> GetStudentByID(int userID);
-        Task<HttpResponseMessage> CreateStudentByID(int userID);
+        Task<HttpResponseMessage> UpdateUserByID(int userID);
     } 
 }

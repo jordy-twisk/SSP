@@ -33,7 +33,7 @@ namespace TinderCloneV1 {
                 return await userService.GetStudentByID(ID);
             }
             else if (req.Method == HttpMethod.Put) {
-                return await userService.CreateStudentByID(ID);
+                return await userService.UpdateUserByID(ID);
             } 
             else {
                 throw new NotImplementedException();

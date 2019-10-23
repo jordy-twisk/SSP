@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace TinderCloneV1 {
-
     public class UserService : IUserService {
 
         private readonly string str = Environment.GetEnvironmentVariable("sqldb_connection");
