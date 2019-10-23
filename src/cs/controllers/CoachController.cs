@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using System;
 
 namespace TinderCloneV1 {
-    public class CoachController{
+    public class CoachController {
 
         ICoachService coachService;
 

@@ -6,6 +6,7 @@ namespace TinderCloneV1 {
     public class ExceptionHandler {
 
         private readonly int ID;
+        
         public ExceptionHandler(int ID){
             this.ID = ID;
         }

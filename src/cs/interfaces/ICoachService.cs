@@ -9,6 +9,5 @@ namespace TinderCloneV1 {
         Task<HttpResponseMessage> DeleteCoachByID(int coachID);
         Task<HttpResponseMessage> GetCoachAndWorkloadByID(int coachID);
         Task<HttpResponseMessage> UpdateCoachAndWorkloadByID(int coachID);
-
     }
 }

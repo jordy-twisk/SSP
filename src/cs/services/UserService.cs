@@ -158,9 +158,9 @@ namespace TinderCloneV1 {
             };
         }
 
-        public async Task<HttpResponseMessage> CreateStudentByID(int userID) {
+        public async Task<HttpResponseMessage> UpdateUserByID(int userID) {
             int studentID = userID;
-            exceptionHandler = new ExceptionHandler(userID);
+            exceptionHandler = new ExceptionHandler(studentID);
 
             User newUser;
             string body = await req.Content.ReadAsStringAsync();
@@ -205,7 +205,6 @@ namespace TinderCloneV1 {
             } else {
                 log.LogError($"Request body was empty nothing to change for student: {studentID}");
             }
-
 
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent($" Changed data of student: {studentID}")
