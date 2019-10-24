@@ -220,7 +220,7 @@ paths:
       tags:
       - Coach profile
       summary: get coach and his profile
-      operationId: coachProfileCall
+      operationId: GetCoachByID
       description: Returns requested coach.
       # No parameters returns back every profile.
       parameters:
