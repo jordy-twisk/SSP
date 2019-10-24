@@ -170,7 +170,7 @@ paths:
       tags:
         - Coach profile
       summary: get all coach profiles.
-      operationId: coachProfileGet
+      operationId: GetAllCoaches
       description: Get all coach profiles.
       responses:
         '200':
@@ -193,7 +193,7 @@ paths:
       tags:
         - Coach profile
       summary: create user profile for a coach
-      operationId: coachProfileCreate
+      operationId: CreateCoach
       description: Creates a new coach profile.
       requestBody:
         description: all info that is needed to create the coach + profile
@@ -253,7 +253,7 @@ paths:
       tags:
       - Coach profile
       summary: delete coach profile information
-      operationId: coachProfileDelete
+      operationId: DeleteCoachByID
       description: Delete a coach profile.
       parameters:
         - in: path
