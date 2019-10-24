@@ -147,7 +147,7 @@ namespace TinderCloneV1 {
             } catch (SqlException e) {
                 log.LogError(e.Message);
                 return exceptionHandler.BadRequest(log);
-            }
+            } 
 
             var jsonToReturn = JsonConvert.SerializeObject(newUser);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
