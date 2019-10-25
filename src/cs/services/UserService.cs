@@ -100,12 +100,11 @@ namespace TinderCloneV1 {
             };
         }
 
-        public async Task<HttpResponseMessage> GetStudentByID(int userID) {
-            int studentID = userID;
-            exceptionHandler = new ExceptionHandler(userID);
+        public async Task<HttpResponseMessage> GetStudentByID(int studentID) {
+            exceptionHandler = new ExceptionHandler(studentID);
 
             User newUser = new User();
-            queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = @{studentID};";
+            queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = @studentID;";
 
             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -154,8 +153,7 @@ namespace TinderCloneV1 {
             };
         }
 
-        public async Task<HttpResponseMessage> UpdateUserByID(int userID) {
-            int studentID = userID;
+        public async Task<HttpResponseMessage> UpdateUserByID(int studentID) {
             exceptionHandler = new ExceptionHandler(studentID);
 
             User newUser;
