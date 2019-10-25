@@ -105,7 +105,7 @@ namespace TinderCloneV1 {
             exceptionHandler = new ExceptionHandler(userID);
 
             User newUser = new User();
-            queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = {studentID};";
+            queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = @{studentID};";
 
             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -114,7 +114,7 @@ namespace TinderCloneV1 {
                     try {
                         connection.Open();
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = studentID;
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
                                     return exceptionHandler.NotFoundException(log);
