@@ -64,7 +64,6 @@ namespace TinderCloneV1 {
                 using (SqlConnection connection = new SqlConnection(str)) {
                     try {
                         connection.Open();
-
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 while (reader.Read()) {
@@ -86,8 +85,6 @@ namespace TinderCloneV1 {
                     } catch (SqlException e) {
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
-                    } finally{
-                        connection.Close();
                     }
                 }
             } catch (SqlException e) {
@@ -116,34 +113,32 @@ namespace TinderCloneV1 {
                 using (SqlConnection connection = new SqlConnection(str)) {
                     try {
                         connection.Open();
-                    } catch (SqlException e) {
-                        log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
-                    }
-
-                    using (SqlCommand command = new SqlCommand(queryString, connection)) {
-                        using (SqlDataReader reader = command.ExecuteReader()) {
-                            if (!reader.HasRows) {
-                                return exceptionHandler.NotFoundException(log);
-                            } else {
-                                while (reader.Read()) {
-                                    newUser = new User {
-                                        studentID = reader.GetInt32(0),
-                                        firstName = reader.GetString(1),
-                                        surName = reader.GetString(2),
-                                        phoneNumber = reader.GetString(3),
-                                        photo = reader.GetString(4),
-                                        description = reader.GetString(5),
-                                        degree = reader.GetString(6),
-                                        study = reader.GetString(7),
-                                        studyYear = reader.GetInt32(8),
-                                        interests = reader.GetString(9)
-                                    };
+                        using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                            using (SqlDataReader reader = command.ExecuteReader()) {
+                                if (!reader.HasRows) {
+                                    return exceptionHandler.NotFoundException(log);
+                                } else {
+                                    while (reader.Read()) {
+                                        newUser = new User {
+                                            studentID = reader.GetInt32(0),
+                                            firstName = reader.GetString(1),
+                                            surName = reader.GetString(2),
+                                            phoneNumber = reader.GetString(3),
+                                            photo = reader.GetString(4),
+                                            description = reader.GetString(5),
+                                            degree = reader.GetString(6),
+                                            study = reader.GetString(7),
+                                            studyYear = reader.GetInt32(8),
+                                            interests = reader.GetString(9)
+                                        };
+                                    }
                                 }
                             }
                         }
-                    }
-                    connection.Close();
+                    } catch (SqlException e) {
+                        log.LogError(e.Message);
+                        return exceptionHandler.ServiceUnavailable(log);
+                    } 
                 }
             } catch (SqlException e) {
                 log.LogError(e.Message);
@@ -187,15 +182,12 @@ namespace TinderCloneV1 {
                     using (SqlConnection connection = new SqlConnection(str)) {
                         try {
                             connection.Open();
+                            SqlCommand commandUpdate = new SqlCommand(queryString, connection);
+                            await commandUpdate.ExecuteNonQueryAsync();
                         } catch (SqlException e) {
                             log.LogError(e.Message);
                             return exceptionHandler.ServiceUnavailable(log);
                         }
-
-                        SqlCommand commandUpdate = new SqlCommand(queryString, connection);
-                        await commandUpdate.ExecuteNonQueryAsync();
-
-                        connection.Close();
                     }
                 } catch (SqlException e) {
                     log.LogError(e.Message);
