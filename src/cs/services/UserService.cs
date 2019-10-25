@@ -114,6 +114,7 @@ namespace TinderCloneV1 {
                     try {
                         connection.Open();
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = coachID;
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
                                     return exceptionHandler.NotFoundException(log);
