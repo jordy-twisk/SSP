@@ -16,7 +16,7 @@ namespace TinderCloneV1 {
         }
 
         [FunctionName("PostCoachTutorant")]
-        public async Task<HttpResponseMessage> PostCoachTutorant([HttpTrigger(AuthorizationLevel.Function,
+        public async Task<HttpResponseMessage> PostCoachTutorant([HttpTrigger(AuthorizationLevel.Anonymous,
             "post", Route = "coachTutorant")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
             coachTutorantService = new CoachTutorantService(req, request, log);
@@ -26,7 +26,7 @@ namespace TinderCloneV1 {
         }
 
         [FunctionName("CoachConnectionTutorantByID")]
-        public async Task<HttpResponseMessage> GetCoachTutorantCoach([HttpTrigger(AuthorizationLevel.Function,
+        public async Task<HttpResponseMessage> GetCoachTutorantCoach([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "delete", Route = "coachTutorant/coach/{studentID}")] HttpRequestMessage req, HttpRequest request, int studentID, ILogger log) {
 
             coachTutorantService = new CoachTutorantService(req, request, log);
@@ -43,7 +43,7 @@ namespace TinderCloneV1 {
         }
 
         [FunctionName("TutorantConnectionCoachByID")]
-        public async Task<HttpResponseMessage> GetCoachTutorantTutorant([HttpTrigger(AuthorizationLevel.Function,
+        public async Task<HttpResponseMessage> GetCoachTutorantTutorant([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "put", "delete", Route = "coachTutorant/tutorant/{studentID}")] HttpRequestMessage req, HttpRequest request, int studentID, ILogger log) {
 
             coachTutorantService = new CoachTutorantService(req, request, log);

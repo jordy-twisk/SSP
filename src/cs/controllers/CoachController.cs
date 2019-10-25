@@ -16,7 +16,7 @@ namespace TinderCloneV1 {
         }
 
         [FunctionName("CoachProfile")]
-        public async Task<HttpResponseMessage> GetCoaches([HttpTrigger(AuthorizationLevel.Function,
+        public async Task<HttpResponseMessage> GetCoaches([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "post", Route = "profile/coach")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
             coachService = new CoachService(req, request, log);
@@ -33,7 +33,7 @@ namespace TinderCloneV1 {
         }
 
         [FunctionName("CoachProfileByID")]
-        public async Task<HttpResponseMessage> GetCoachProfile([HttpTrigger(AuthorizationLevel.Function,
+        public async Task<HttpResponseMessage> GetCoachProfile([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "delete", Route = "profile/coach/{coachID}")] HttpRequestMessage req, HttpRequest request, int coachID, ILogger log) {
 
             coachService = new CoachService(req, request, log);
