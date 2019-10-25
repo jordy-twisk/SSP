@@ -64,30 +64,31 @@ namespace TinderCloneV1 {
                 using (SqlConnection connection = new SqlConnection(str)) {
                     try {
                         connection.Open();
+
+                        using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                            using (SqlDataReader reader = command.ExecuteReader()) {
+                                while (reader.Read()) {
+                                    listOfUsers.Add(new User {
+                                        studentID = reader.GetInt32(0),
+                                        firstName = reader.GetString(1),
+                                        surName = reader.GetString(2),
+                                        phoneNumber = reader.GetString(3),
+                                        photo = reader.GetString(4),
+                                        description = reader.GetString(5),
+                                        degree = reader.GetString(6),
+                                        study = reader.GetString(7),
+                                        studyYear = reader.GetInt32(8),
+                                        interests = reader.GetString(9)
+                                    });
+                                }
+                            }
+                        }
                     } catch (SqlException e) {
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
+                    } finally{
+                        connection.Close();
                     }
-
-                    using (SqlCommand command = new SqlCommand(queryString, connection)) {
-                        using (SqlDataReader reader = command.ExecuteReader()) {
-                            while (reader.Read()) {
-                                listOfUsers.Add(new User {
-                                    studentID = reader.GetInt32(0),
-                                    firstName = reader.GetString(1),
-                                    surName = reader.GetString(2),
-                                    phoneNumber = reader.GetString(3),
-                                    photo = reader.GetString(4),
-                                    description = reader.GetString(5),
-                                    degree = reader.GetString(6),
-                                    study = reader.GetString(7),
-                                    studyYear = reader.GetInt32(8),
-                                    interests = reader.GetString(9)
-                                });
-                            }
-                        }
-                    }
-                    connection.Close();
                 }
             } catch (SqlException e) {
                 log.LogError(e.Message);
