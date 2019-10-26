@@ -94,16 +94,110 @@ namespace TinderCloneV1 {
             };
         }
 
+        //Creates a new profile based on the data in the requestbody
         public async Task<HttpResponseMessage> CreateCoachProfile() {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            Coach newCoach = new Coach();
-            User newUser = new User();
-            JObject jObject = new JObject();
+            CoachProfile coachProfile;
+            JObject jObject;
 
-            string body = await req.Content.ReadAsStringAsync();
+            //Read from the requestBody
+            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
+                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                coachProfile = jObject.ToObject<CoachProfile>();
+            }
 
-            throw new NotImplementedException();
+            //Verify if all parameters for the Coach table exist,
+            //return response code 400 if one or more is missing
+            if (jObject["coach"]["studentID"] == null || jObject["coach"]["workload"] == null) {
+                log.LogError("Requestbody is missing data for the coach table!");
+                return exceptionHandler.BadRequest(log);
+            }
 
+            //Verify if all required parameters for the Student table exist,
+            //return response code 400 if one or more is missing
+            if (jObject["user"]["studentID"] == null) {
+                log.LogError("Requestbody is missing data for the student table!");
+                return exceptionHandler.BadRequest(log);
+            }
+
+            string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
+                                            VALUES (@studentID, @workload);";
+
+            //Dynamically create the INSERT INTO line of the SQL statement:
+            string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
+            if (jObject["user"]["firstName"] != null)       queryString_Student += ", firstName";
+            if (jObject["user"]["surName"] != null)         queryString_Student += ", surName";
+            if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", phoneNumber";
+            if (jObject["user"]["photo"] != null)           queryString_Student += ", photo";
+            if (jObject["user"]["description"] != null)     queryString_Student += ", description";
+            if (jObject["user"]["degree"] != null)          queryString_Student += ", degree";
+            if (jObject["user"]["study"] != null)           queryString_Student += ", study";
+            if (jObject["user"]["studyYear"] != null)       queryString_Student += ", studyYear";
+            if (jObject["user"]["interests"] != null)       queryString_Student += ", interests";
+            queryString_Student += ") ";
+                
+            //Dynamically create the VALUES line of the SQL statement:
+            queryString_Student += "VALUES (@studentID";
+            if (jObject["user"]["firstName"] != null)       queryString_Student += ", @firstName";
+            if (jObject["user"]["surName"] != null)         queryString_Student += ", @surName";
+            if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", @phoneNumber";
+            if (jObject["user"]["photo"] != null)           queryString_Student += ", @photo";
+            if (jObject["user"]["description"] != null)     queryString_Student += ", @description";
+            if (jObject["user"]["degree"] != null)          queryString_Student += ", @degree";
+            if (jObject["user"]["study"] != null)           queryString_Student += ", @study";
+            if (jObject["user"]["studyYear"] != null)       queryString_Student += ", @studyYear";
+            if (jObject["user"]["interests"] != null)       queryString_Student += ", @interests";
+            queryString_Student += ");";
+
+            try {
+                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                    try {
+                        //The connection is automatically closed when going out of scope of the using block
+                        connection.Open();
+
+                        //Insert profile into the Student table
+                        using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
+                            //Parameters are used to ensure no SQL injection can take place
+                            command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = coachProfile.user.studentID;
+                            if (jObject["user"]["firstName"] != null)   command.Parameters.Add("@firstName", System.Data.SqlDbType.NVarChar).Value =     coachProfile.user.firstName; //todo
+                            if (jObject["user"]["surName"] != null)     command.Parameters.Add("@surName", System.Data.SqlDbType.NVarChar).Value =       coachProfile.user.surName; //todo
+                            if (jObject["user"]["phoneNumber"] != null) command.Parameters.Add("@phoneNumber", System.Data.SqlDbType.NVarChar).Value =   coachProfile.user.phoneNumber; //todo
+                            if (jObject["user"]["photo"] != null)       command.Parameters.Add("@photo", System.Data.SqlDbType.VarChar).Value =         coachProfile.user.photo; //todo
+                            if (jObject["user"]["description"] != null) command.Parameters.Add("@description", System.Data.SqlDbType.VarChar).Value =   coachProfile.user.description; //todo
+                            if (jObject["user"]["degree"] != null)      command.Parameters.Add("@degree", System.Data.SqlDbType.NVarChar).Value =        coachProfile.user.degree; //todo
+                            if (jObject["user"]["study"] != null)       command.Parameters.Add("@study", System.Data.SqlDbType.NVarChar).Value =         coachProfile.user.study; //todo
+                            if (jObject["user"]["studyYear"] != null)   command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value =     coachProfile.user.studyYear;
+                            if (jObject["user"]["interests"] != null)   command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value =     coachProfile.user.interests; //todo
+                            log.LogInformation($"Executing the following query: {queryString_Student}");
+
+                            command.ExecuteNonQuery();
+                        }
+
+                        //Insert profile into the Coach table
+                        using (SqlCommand command = new SqlCommand(queryString_Coach, connection)) {
+                            //Parameters are used to ensure no SQL injection can take place
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = coachProfile.coach.studentID;
+                            command.Parameters.Add("@workload", System.Data.SqlDbType.Int).Value = coachProfile.coach.workload;
+                            log.LogInformation($"Executing the following query: {queryString_Coach}");
+
+                            command.ExecuteNonQuery();
+                        }
+                    } catch (SqlException e) {
+                        //Return response code 503
+                        log.LogError(e.Message);
+                        return exceptionHandler.ServiceUnavailable(log);
+                    }
+                }
+            } catch (SqlException e) {
+                //Return response code 400
+                log.LogError(e.Message);
+                return exceptionHandler.BadRequest(log);
+            }
+
+            log.LogInformation($"{HttpStatusCode.Created} | Profile created succesfully");
+
+            //Return response code 201
+            return new HttpResponseMessage(HttpStatusCode.Created);
         }
 
         //Returns the profile of the coach (from the student table) 
