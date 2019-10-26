@@ -5,7 +5,9 @@ using System.Text;
 
 namespace TinderCloneV1 {
     public class CoachProfile {
+        [JsonProperty("coach")]
         private Coach coach;
+        [JsonProperty("user")]
         private User user;
 
         public CoachProfile(Coach coach, User user) {

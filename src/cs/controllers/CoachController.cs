@@ -6,6 +6,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
 
+/*
+ * Note:
+ * CoachProfile is understood as the combination of the data in the Student table and the Coach table
+ * Coach is the understood as the data in the Coach table
+ */
+
 namespace TinderCloneV1 {
     public class CoachController {
 
@@ -16,16 +22,16 @@ namespace TinderCloneV1 {
         }
 
         [FunctionName("CoachProfile")]
-        public async Task<HttpResponseMessage> GetCoaches([HttpTrigger(AuthorizationLevel.Function,
+        public async Task<HttpResponseMessage> CoachProfiles([HttpTrigger(AuthorizationLevel.Function,
             "get", "post", Route = "profile/coach")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
             coachService = new CoachService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
-                return await coachService.GetAllCoaches();
+                return await coachService.GetAllCoachProfiles();
             }
             else if(req.Method == HttpMethod.Post){
-                return await coachService.CreateCoach();
+                return await coachService.CreateCoachProfile();
             } 
             else {
                 throw new NotImplementedException();
@@ -33,33 +39,33 @@ namespace TinderCloneV1 {
         }
 
         [FunctionName("CoachProfileByID")]
-        public async Task<HttpResponseMessage> GetCoachProfile([HttpTrigger(AuthorizationLevel.Function,
+        public async Task<HttpResponseMessage> CoachProfile([HttpTrigger(AuthorizationLevel.Function,
             "get", "delete", Route = "profile/coach/{coachID}")] HttpRequestMessage req, HttpRequest request, int coachID, ILogger log) {
 
             coachService = new CoachService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
-                return await coachService.GetCoachByID(coachID);
+                return await coachService.GetCoachProfileByID(coachID);
             } 
             else if (req.Method == HttpMethod.Delete) {
-                return await coachService.DeleteCoachByID(coachID);
+                return await coachService.DeleteCoachProfileByID(coachID);
             } 
             else {
                 throw new NotImplementedException();
             }
         }
 
-        [FunctionName("CoachProfileAndWorkloadByID")]
-        public async Task<HttpResponseMessage> GetCoach([HttpTrigger(AuthorizationLevel.Anonymous,
+        [FunctionName("CoachByID")]
+        public async Task<HttpResponseMessage> Coach([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "put", Route = "coach/{coachID}")] HttpRequestMessage req, HttpRequest request, int coachID, ILogger log) {
 
             coachService = new CoachService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
-                return await coachService.GetCoachAndWorkloadByID(coachID);
+                return await coachService.GetCoachByID(coachID);
             } 
-            else if (req.Method == HttpMethod.Post) {
-                return await coachService.UpdateCoachAndWorkloadByID(coachID);
+            else if (req.Method == HttpMethod.Put) {
+                return await coachService.UpdateCoachByID(coachID);
             } 
             else {
                 throw new NotImplementedException();
