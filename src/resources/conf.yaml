@@ -1,6 +1,9 @@
 openapi: 3.0.2
 # Coach == Tutor
 # Tutorant == student of the Tutor
+# CoachProfile == Data of a Coach in the Coach AND Student table
+#	This means deleting a CoachProfile deletes the Coach from the Coach table and the Student table
+#	Note the only field that may be changed from the Coach table is the workload 
 
 #to be done
 #authentication
@@ -170,7 +173,7 @@ paths:
       tags:
         - Coach profile
       summary: get all coach profiles.
-      operationId: coachProfileGet
+      operationId: GetAllCoachProfiles
       description: Get all coach profiles.
       responses:
         '200':
@@ -193,7 +196,7 @@ paths:
       tags:
         - Coach profile
       summary: create user profile for a coach
-      operationId: coachProfileCreate
+      operationId: CreateCoachProfile
       description: Creates a new coach profile.
       requestBody:
         description: all info that is needed to create the coach + profile
@@ -220,9 +223,8 @@ paths:
       tags:
       - Coach profile
       summary: get coach and his profile
-      operationId: coachProfileCall
+      operationId: GetCoachProfileByID
       description: Returns requested coach.
-      # No parameters returns back every profile.
       parameters:
         - in: path
           name: studentID
@@ -253,7 +255,7 @@ paths:
       tags:
       - Coach profile
       summary: delete coach profile information
-      operationId: coachProfileDelete
+      operationId: DeleteCoachProfileByID
       description: Delete a coach profile.
       parameters:
         - in: path
@@ -334,7 +336,6 @@ paths:
       summary: get tutorant and his profile.
       operationId: tutorantProfileCall
       description: Returns requested coach.
-      # No parameters returns back every profile.
       parameters:
         - in: path
           name: studentID
@@ -391,10 +392,9 @@ paths:
     get:
       tags:
       - Coach profile
-      summary: get coach and workload.
-      operationId: coachCall
+      summary: get coach and workload
+      operationId: GetCoachByID
       description: Returns requested coach and his maximum workload.
-      # No parameters returns back every profile.
       parameters:
         - in: path
           name: studentID
@@ -425,9 +425,8 @@ paths:
       tags:
       - Coach profile
       summary: update coach and workload
-      operationId: coachModify
+      operationId: UpdateCoachByID
       description: Returns requested coach and his maximum workload.
-      # No parameters returns back every profile.
       parameters:
         - in: path
           name: studentID
@@ -435,15 +434,16 @@ paths:
           required: true
           schema:
             type: integer
+	  requestBody:
+        description: studentID (ignored) and workload of the coach (studentID of the path is used) 
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Coach'
       responses:
-          '200':
-            description: Return coach profile.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Coach'
+          '204':
+            description: Update was successful.
           '400':
             description: Undocumented filter parameter.
           '401':
