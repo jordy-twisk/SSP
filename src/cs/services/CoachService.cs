@@ -120,9 +120,11 @@ namespace TinderCloneV1 {
                 return exceptionHandler.BadRequest(log);
             }
 
+            //All fields for the Coach table are required
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
                                             VALUES (@studentID, @workload);";
 
+            //Since the query string for the Student table contains many optional fields it needs to be dynamically created
             //Dynamically create the INSERT INTO line of the SQL statement:
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
             if (jObject["user"]["firstName"] != null)       queryString_Student += ", firstName";
@@ -162,12 +164,12 @@ namespace TinderCloneV1 {
                             if (jObject["user"]["firstName"] != null)   command.Parameters.Add("@firstName", System.Data.SqlDbType.NVarChar).Value =     coachProfile.user.firstName; //todo
                             if (jObject["user"]["surName"] != null)     command.Parameters.Add("@surName", System.Data.SqlDbType.NVarChar).Value =       coachProfile.user.surName; //todo
                             if (jObject["user"]["phoneNumber"] != null) command.Parameters.Add("@phoneNumber", System.Data.SqlDbType.NVarChar).Value =   coachProfile.user.phoneNumber; //todo
-                            if (jObject["user"]["photo"] != null)       command.Parameters.Add("@photo", System.Data.SqlDbType.VarChar).Value =         coachProfile.user.photo; //todo
-                            if (jObject["user"]["description"] != null) command.Parameters.Add("@description", System.Data.SqlDbType.VarChar).Value =   coachProfile.user.description; //todo
+                            if (jObject["user"]["photo"] != null)       command.Parameters.Add("@photo", System.Data.SqlDbType.VarChar).Value =          coachProfile.user.photo; //todo
+                            if (jObject["user"]["description"] != null) command.Parameters.Add("@description", System.Data.SqlDbType.VarChar).Value =    coachProfile.user.description; //todo
                             if (jObject["user"]["degree"] != null)      command.Parameters.Add("@degree", System.Data.SqlDbType.NVarChar).Value =        coachProfile.user.degree; //todo
                             if (jObject["user"]["study"] != null)       command.Parameters.Add("@study", System.Data.SqlDbType.NVarChar).Value =         coachProfile.user.study; //todo
-                            if (jObject["user"]["studyYear"] != null)   command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value =     coachProfile.user.studyYear;
-                            if (jObject["user"]["interests"] != null)   command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value =     coachProfile.user.interests; //todo
+                            if (jObject["user"]["studyYear"] != null)   command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value =          coachProfile.user.studyYear;
+                            if (jObject["user"]["interests"] != null)   command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value =      coachProfile.user.interests; //todo
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
                             command.ExecuteNonQuery();
