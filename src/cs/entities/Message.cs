@@ -6,7 +6,7 @@ using System.Text;
 namespace TinderCloneV1 {
     public class Message {
         [JsonProperty("MessageID")]
-        public long MessageID {
+        public long messageID {
             get;
             set;
         }
