@@ -275,7 +275,7 @@ namespace TinderCloneV1 {
         }
 
         //Deletes the Coach from the Coach table
-        //then deletes the Coach from Studen table
+        //then deletes the Coach from Student table
         public async Task<HttpResponseMessage> DeleteCoachProfileByID(int coachID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
 
@@ -386,13 +386,6 @@ namespace TinderCloneV1 {
         }
 
         //Updates the workload of the coach (in the coach table)
-        /*
-         * Example requestbody for use in Postman (testing):
-            {
-                "studentID": 500000, 
-                "workload": 5
-            } 
-        */
         public async Task<HttpResponseMessage> UpdateCoachByID(int coachID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
             Coach newCoach;
