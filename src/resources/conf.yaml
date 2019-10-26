@@ -843,6 +843,9 @@ components:
                   example: 2
       TutorantProfile:
         type: object
+		required:
+		  - profile
+		  - student
         properties:
           profile:
             type: object
@@ -861,6 +864,9 @@ components:
       # User profile of the coach and coach object.
       CoachProfile:
         type: object
+		required:
+		  - profile
+		  - coach
         properties:
           profile:
             type: object
