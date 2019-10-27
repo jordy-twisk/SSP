@@ -22,7 +22,7 @@ namespace TinderCloneV1 {
         private readonly HttpRequestMessage req;
         private readonly HttpRequest request;
         private readonly ILogger log;
-        private string queryString = null;
+        private string queryString;
 
         public MessageService(HttpRequestMessage req, HttpRequest request, ILogger log) {
             this.req = req;
@@ -30,13 +30,74 @@ namespace TinderCloneV1 {
             this.log = log;
         }
 
-        public Task<HttpResponseMessage> CreateMessage() {
-            throw new NotImplementedException();
+        // Creates a new message based on data given in the request body.
+        public async Task<HttpResponseMessage> CreateMessage() {
+            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            Message message;
+            JObject jObject;
+
+            // Read from the requestBody.
+            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
+                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                message = jObject.ToObject<Message>();
+            }
+
+            // Verify if all parameters for the Message table exist,
+            // return response code 400 if one or more of the parameters are missing.
+            if (jObject["Message"]["MessageID"] == null ||
+                jObject["Message"]["type"] == null ||
+                jObject["Message"]["payload"] == null ||
+                jObject["Message"]["created"] == null ||
+                jObject["Message"]["lastModified"] == null) {
+                log.LogError("Requestbody is missing data for the Message table!");
+                return exceptionHandler.BadRequest(log);
+            }
+
+            // All fields for the Message table are required.
+            queryString = $@"INSERT INTO [dbo].[Message] (MessageID, type, payload, created, lastModified)" +
+                $"VALUES (@MessageID, @type, @payload, @created, @lastModified);";
+
+            try {
+                using (SqlConnection connection = new SqlConnection(str)) {
+                    try {
+                        // The connection is automatically closed when going out of scope of the using block
+                        connection.Open();
+
+                        // Insert new message into the Message table.
+                        using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                            // Parameters are used to ensure no SQL injection can take place.
+                            command.Parameters.Add("@MessageID", System.Data.SqlDbType.Int).Value = message.MessageID;
+                            command.Parameters.Add("@type", System.Data.SqlDbType.VarChar).Value = message.type;
+                            command.Parameters.Add("@payload", System.Data.SqlDbType.VarChar).Value = message.payload;
+                            command.Parameters.Add("@created", System.Data.SqlDbType.DateTime).Value = message.created;
+                            command.Parameters.Add("@lastModified", System.Data.SqlDbType.DateTime).Value = message.lastModified;
+                            log.LogInformation($"Executing the following query: {queryString}");
+
+                            command.ExecuteNonQuery();
+                        }
+                    }
+                    catch (SqlException e) {
+                        // Return response code 503
+                        log.LogError(e.Message);
+                        return exceptionHandler.ServiceUnavailable(log);
+                    }
+                }
+            }
+            catch (SqlException e) {
+                // Return response code 400.
+                log.LogError(e.Message);
+                return exceptionHandler.BadRequest(log);
+            }
+
+            log.LogInformation($"{HttpStatusCode.Created} | Message created succesfully");
+
+            // Return response code 201.
+            return new HttpResponseMessage(HttpStatusCode.Created);
         }
 
         public async Task<HttpResponseMessage> DeleteMessageByID(int messageID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            string queryString = $"DELETE FROM [dbo].[Message] WHERE messageID = {messageID}";
+            string queryString = $"DELETE FROM [dbo].[Message] WHERE MessageID = {messageID}";
 
             try {
                 using (SqlConnection connection = new SqlConnection(str)) {
@@ -48,7 +109,7 @@ namespace TinderCloneV1 {
                         }
                     }
                     catch (SqlException e) {
-                        //Return response code 503
+                        // Return response code 503
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
                     }
@@ -56,12 +117,12 @@ namespace TinderCloneV1 {
                 }
             }
             catch (SqlException e) {
-                //Return response code 400
+                // Return response code 400
                 log.LogError(e.Message);
                 return exceptionHandler.BadRequest(log);
             }
             log.LogInformation($"{HttpStatusCode.NoContent} | Data deleted succesfully");
-            //Return response code 204
+            // Return response code 204
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
@@ -96,7 +157,7 @@ namespace TinderCloneV1 {
                             while (reader.Read()) {
                                 listOfMessages.Add(new Message
                                 {
-                                    messageID = reader.GetInt32(0),
+                                    MessageID = reader.GetInt32(0),
                                     type = reader.GetString(2),
                                     payload = reader.GetString(3),
                                     created = reader.GetDateTime(4),
@@ -126,7 +187,7 @@ namespace TinderCloneV1 {
             exceptionHandler = new ExceptionHandler(messageID);
 
             Message newMessage = new Message();
-            queryString = $"SELECT * FROM [dbo].[Message] WHERE messageID = {messageID};";
+            queryString = $"SELECT * FROM [dbo].[Message] WHERE MessageID = {messageID};";
 
             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -149,7 +210,7 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     newMessage = new Message
                                     {
-                                        messageID = reader.GetInt32(0),
+                                        MessageID = reader.GetInt32(0),
                                         type = reader.GetString(2),
                                         payload = reader.GetString(3),
                                         created = reader.GetDateTime(4),
@@ -197,7 +258,7 @@ namespace TinderCloneV1 {
                 }
 
                 queryString = queryString.Remove(queryString.Length - 1);
-                queryString += $" WHERE messageID = {messageID};";
+                queryString += $" WHERE MessageID = {messageID};";
 
                 log.LogInformation($"Executing the following query: {queryString}");
 
