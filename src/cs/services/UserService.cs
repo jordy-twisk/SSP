@@ -48,7 +48,8 @@ namespace TinderCloneV1 {
                 if (request.Query[p.Name] != isEmpty) {
                     if (p.Name == "interests" || p.Name == "study") {
                         queryString += $" {p.Name} LIKE '%{request.Query[p.Name]}%' AND";
-                    } else {
+                    }
+                    else {
                         queryString += $" {p.Name} = '{request.Query[p.Name]}' AND";
                     }
                 }
@@ -82,12 +83,14 @@ namespace TinderCloneV1 {
                                 }
                             }
                         }
-                    } catch (SqlException e) {
+                    }
+                    catch (SqlException e) {
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
                     }
                 }
-            } catch (SqlException e) {
+            }
+            catch (SqlException e) {
                 log.LogError(e.Message);
                 return exceptionHandler.BadRequest(log);
             }
@@ -114,12 +117,18 @@ namespace TinderCloneV1 {
                         connection.Open();
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = studentID;
-                            using (SqlDataReader reader = command.ExecuteReader()) {
-                                if (!reader.HasRows) {
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                if (!reader.HasRows)
+                                {
                                     return exceptionHandler.NotFoundException(log);
-                                } else {
-                                    while (reader.Read()) {
-                                        newUser = new User {
+                                }
+                                else
+                                {
+                                    while (reader.Read())
+                                    {
+                                        newUser = new User
+                                        {
                                             studentID = reader.GetInt32(0),
                                             firstName = reader.GetString(1),
                                             surName = reader.GetString(2),
@@ -135,40 +144,49 @@ namespace TinderCloneV1 {
                                 }
                             }
                         }
-                    } catch (SqlException e) {
+                    }
+                    catch (SqlException e)
+                    {
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
-                    } 
+                    }
                 }
-            } catch (SqlException e) {
+            }
+            catch (SqlException e)
+            {
                 log.LogError(e.Message);
                 return exceptionHandler.BadRequest(log);
-            } 
+            }
 
             var jsonToReturn = JsonConvert.SerializeObject(newUser);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
 
-            return new HttpResponseMessage(HttpStatusCode.OK) {
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
         }
 
-        public async Task<HttpResponseMessage> UpdateUserByID(int studentID) {
+        public async Task<HttpResponseMessage> UpdateUserByID(int studentID)
+        {
             exceptionHandler = new ExceptionHandler(studentID);
 
             User newUser;
             string body = await req.Content.ReadAsStringAsync();
             JObject jObject = new JObject();
 
-            using (StringReader reader = new StringReader(body)) {
+            using (StringReader reader = new StringReader(body))
+            {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 newUser = jObject.ToObject<User>();
             }
 
-            if (jObject.Properties() != null) {
+            if (jObject.Properties() != null)
+            {
                 queryString = $"UPDATE [dbo].[Student] SET ";
 
-                foreach (JProperty property in jObject.Properties()) {
+                foreach (JProperty property in jObject.Properties())
+                {
                     queryString += $"{property.Name} = '{property.Value}',";
                 }
 
@@ -177,27 +195,37 @@ namespace TinderCloneV1 {
 
                 log.LogInformation($"Executing the following query: {queryString}");
 
-                try {
-                    using (SqlConnection connection = new SqlConnection(str)) {
-                        try {
+                try
+                {
+                    using (SqlConnection connection = new SqlConnection(str))
+                    {
+                        try
+                        {
                             connection.Open();
                             SqlCommand commandUpdate = new SqlCommand(queryString, connection);
                             await commandUpdate.ExecuteNonQueryAsync();
-                        } catch (SqlException e) {
+                        }
+                        catch (SqlException e)
+                        {
                             log.LogError(e.Message);
                             return exceptionHandler.ServiceUnavailable(log);
                         }
                     }
-                } catch (SqlException e) {
+                }
+                catch (SqlException e)
+                {
                     log.LogError(e.Message);
                     return exceptionHandler.BadRequest(log);
                 }
                 log.LogInformation($"Changed data of student: {studentID}");
-            } else {
+            }
+            else
+            {
                 log.LogError($"Request body was empty nothing to change for student: {studentID}");
             }
 
-            return new HttpResponseMessage(HttpStatusCode.OK) {
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
                 Content = new StringContent($" Changed data of student: {studentID}")
             };
         }
