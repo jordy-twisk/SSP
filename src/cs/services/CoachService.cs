@@ -8,7 +8,6 @@ using System.Data.SqlClient;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
-using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -32,10 +31,14 @@ namespace TinderCloneV1 {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             List<CoachProfile> listOfCoachProfiles = new List<CoachProfile>();
 
-            string queryString = $@"SELECT Student.*, Coach.workload
-                                    FROM [dbo].[Student]
-                                    INNER JOIN [dbo].[Coach]
-                                    ON Student.studentID = Coach.studentID";
+            string queryString = $@"SELECT * FROM [dbo].[Student] 
+                                    INNER JOIN [dbo].[Coach] 
+                                    ON Student.studentID = Coach.studentID;";
+
+            // string queryString = $@"SELECT Student.*, Coach.workload
+            //                         FROM [dbo].[Student]
+            //                         INNER JOIN [dbo].[Coach]
+            //                         ON Student.studentID = Coach.studentID";
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
@@ -55,19 +58,19 @@ namespace TinderCloneV1 {
                                         listOfCoachProfiles.Add(new CoachProfile(
                                             new Coach {
                                                 studentID = reader.GetInt32(0),
-                                                workload = reader.GetInt32(10)
+                                                workload = SafeGetInt(reader, 10)
                                             },
                                             new User {
                                                 studentID = reader.GetInt32(0),
-                                                firstName = reader.GetString(1),
-                                                surName = reader.GetString(2),
-                                                phoneNumber = reader.GetString(3),
-                                                photo = reader.GetString(4),
-                                                description = reader.GetString(5),
-                                                degree = reader.GetString(6),
-                                                study = reader.GetString(7),
-                                                studyYear = reader.GetInt32(8),
-                                                interests = reader.GetString(9)
+                                                firstName = SafeGetString(reader, 1),
+                                                surName = SafeGetString(reader, 2),
+                                                phoneNumber = SafeGetString(reader, 3),
+                                                photo = SafeGetString(reader, 4),
+                                                description = SafeGetString(reader, 5),
+                                                degree = SafeGetString(reader, 6),
+                                                study = SafeGetString(reader, 7),
+                                                studyYear = SafeGetInt(reader, 8),
+                                                interests = SafeGetString(reader, 9)
                                             }
                                         ));
                                     }
@@ -234,19 +237,19 @@ namespace TinderCloneV1 {
                                         newCoachProfile = new CoachProfile(
                                             new Coach {
                                                 studentID = reader.GetInt32(0),
-                                                workload = reader.GetInt32(10)
+                                                workload = SafeGetInt(reader, 10)
                                             },
                                             new User {
                                                 studentID = reader.GetInt32(0),
-                                                firstName = reader.GetString(1),
-                                                surName = reader.GetString(2),
-                                                phoneNumber = reader.GetString(3),
-                                                photo = reader.GetString(4),
-                                                description = reader.GetString(5),
-                                                degree = reader.GetString(6),
-                                                study = reader.GetString(7),
-                                                studyYear = reader.GetInt32(8),
-                                                interests = reader.GetString(9)
+                                                firstName = SafeGetString(reader, 1),
+                                                surName = SafeGetString(reader, 2),
+                                                phoneNumber = SafeGetString(reader, 3),
+                                                photo = SafeGetString(reader, 4),
+                                                description = SafeGetString(reader, 5),
+                                                degree = SafeGetString(reader, 6),
+                                                study = SafeGetString(reader, 7),
+                                                studyYear = SafeGetInt(reader, 8),
+                                                interests = SafeGetString(reader, 9)
                                             }
                                         );
                                     }
@@ -358,7 +361,7 @@ namespace TinderCloneV1 {
                                     while (reader.Read()) {
                                         newCoach = new Coach {
                                             studentID = reader.GetInt32(0),
-                                            workload = reader.GetInt32(1)
+                                            workload = SafeGetInt(reader, 10)
                                         };
                                     }
                                 }
@@ -445,6 +448,18 @@ namespace TinderCloneV1 {
 
             //Return response code 204
             return new HttpResponseMessage(HttpStatusCode.NoContent);
+        }
+
+        public string SafeGetString(SqlDataReader reader, int index) {
+            if (!reader.IsDBNull(index))
+                return reader.GetString(index);
+            return string.Empty;
+        }
+
+        public int SafeGetInt(SqlDataReader reader, int index) {
+            if (!reader.IsDBNull(index))
+                return reader.GetInt32(index);
+            return 0;
         }
     }
 }
