@@ -17,8 +17,6 @@ namespace TinderCloneV1 {
 
         private readonly string str = Environment.GetEnvironmentVariable("sqldb_connection");
 
-        private ExceptionHandler exceptionHandler;
-
         private readonly HttpRequestMessage req;
         private readonly HttpRequest request;
         private readonly ILogger log;
@@ -30,9 +28,10 @@ namespace TinderCloneV1 {
         }
 
         private string queryString = null;
+
         public async Task<HttpResponseMessage> GetAll() {
 
-            exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
 
             List<User> listOfUsers = new List<User>();
             PropertyInfo[] properties = typeof(User).GetProperties();
@@ -70,17 +69,17 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     listOfUsers.Add(new User {
                                         studentID = reader.GetInt32(0),
-                                        firstName = reader.GetString(1),
-                                        surName = reader.GetString(2),
-                                        phoneNumber = reader.GetString(3),
-                                        photo = reader.GetString(4),
-                                        description = reader.GetString(5),
-                                        degree = reader.GetString(6),
-                                        study = reader.GetString(7),
-                                        studyYear = reader.GetInt32(8),
-                                        interests = reader.GetString(9)
+                                        firstName = SafeGetString(reader, 1), 
+                                        surName = SafeGetString(reader, 2),
+                                        phoneNumber = SafeGetString(reader, 3),
+                                        photo = SafeGetString(reader, 4),
+                                        description = SafeGetString(reader, 5),
+                                        degree = SafeGetString(reader, 6),
+                                        study = SafeGetString(reader, 7),
+                                        studyYear = SafeGetInt(reader, 8),
+                                        interests = SafeGetString(reader, 9)
                                     });
-                                }
+                                  }
                             }
                         }
                     }
@@ -104,7 +103,7 @@ namespace TinderCloneV1 {
         }
 
         public async Task<HttpResponseMessage> GetStudentByID(int studentID) {
-            exceptionHandler = new ExceptionHandler(studentID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(studentID);
 
             User newUser = new User();
             queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = @studentID;";
@@ -117,43 +116,36 @@ namespace TinderCloneV1 {
                         connection.Open();
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = studentID;
-                            using (SqlDataReader reader = command.ExecuteReader())
-                            {
-                                if (!reader.HasRows)
-                                {
+                            using (SqlDataReader reader = command.ExecuteReader()) {
+                                if (!reader.HasRows) {
                                     return exceptionHandler.NotFoundException(log);
                                 }
-                                else
-                                {
-                                    while (reader.Read())
-                                    {
-                                        newUser = new User
-                                        {
+                                else {
+                                    while (reader.Read()) {
+                                        newUser = new User {
                                             studentID = reader.GetInt32(0),
-                                            firstName = reader.GetString(1),
-                                            surName = reader.GetString(2),
-                                            phoneNumber = reader.GetString(3),
-                                            photo = reader.GetString(4),
-                                            description = reader.GetString(5),
-                                            degree = reader.GetString(6),
-                                            study = reader.GetString(7),
-                                            studyYear = reader.GetInt32(8),
-                                            interests = reader.GetString(9)
+                                            firstName = SafeGetString(reader, 1),
+                                            surName = SafeGetString(reader, 2),
+                                            phoneNumber = SafeGetString(reader, 3),
+                                            photo = SafeGetString(reader, 4),
+                                            description = SafeGetString(reader, 5),
+                                            degree = SafeGetString(reader, 6),
+                                            study = SafeGetString(reader, 7),
+                                            studyYear = SafeGetInt(reader, 8),
+                                            interests = SafeGetString(reader, 9)
                                         };
                                     }
                                 }
                             }
                         }
                     }
-                    catch (SqlException e)
-                    {
+                    catch (SqlException e) {
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
                     }
                 }
             }
-            catch (SqlException e)
-            {
+            catch (SqlException e) {
                 log.LogError(e.Message);
                 return exceptionHandler.BadRequest(log);
             }
@@ -161,32 +153,27 @@ namespace TinderCloneV1 {
             var jsonToReturn = JsonConvert.SerializeObject(newUser);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
 
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
+            return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
         }
 
-        public async Task<HttpResponseMessage> UpdateUserByID(int studentID)
-        {
-            exceptionHandler = new ExceptionHandler(studentID);
+        public async Task<HttpResponseMessage> UpdateUserByID(int studentID) {
+            ExceptionHandler exceptionHandler = new ExceptionHandler(studentID);
 
             User newUser;
             string body = await req.Content.ReadAsStringAsync();
             JObject jObject = new JObject();
 
-            using (StringReader reader = new StringReader(body))
-            {
+            using (StringReader reader = new StringReader(body)) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 newUser = jObject.ToObject<User>();
             }
 
-            if (jObject.Properties() != null)
-            {
+            if (jObject.Properties() != null) {
                 queryString = $"UPDATE [dbo].[Student] SET ";
 
-                foreach (JProperty property in jObject.Properties())
-                {
+                foreach (JProperty property in jObject.Properties()) {
                     queryString += $"{property.Name} = '{property.Value}',";
                 }
 
@@ -195,39 +182,43 @@ namespace TinderCloneV1 {
 
                 log.LogInformation($"Executing the following query: {queryString}");
 
-                try
-                {
-                    using (SqlConnection connection = new SqlConnection(str))
-                    {
-                        try
-                        {
+                try {
+                    using (SqlConnection connection = new SqlConnection(str)) {
+                        try {
                             connection.Open();
                             SqlCommand commandUpdate = new SqlCommand(queryString, connection);
                             await commandUpdate.ExecuteNonQueryAsync();
                         }
-                        catch (SqlException e)
-                        {
+                        catch (SqlException e) {
                             log.LogError(e.Message);
                             return exceptionHandler.ServiceUnavailable(log);
                         }
                     }
                 }
-                catch (SqlException e)
-                {
+                catch (SqlException e) {
                     log.LogError(e.Message);
                     return exceptionHandler.BadRequest(log);
                 }
                 log.LogInformation($"Changed data of student: {studentID}");
             }
-            else
-            {
+            else {
                 log.LogError($"Request body was empty nothing to change for student: {studentID}");
             }
 
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
+            return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent($" Changed data of student: {studentID}")
             };
+        }
+        public string SafeGetString(SqlDataReader reader, int index) {
+            if (!reader.IsDBNull(index))
+                return reader.GetString(index);
+            return string.Empty;
+        }
+
+        public int SafeGetInt(SqlDataReader reader, int index) {
+            if (!reader.IsDBNull(index))
+                return reader.GetInt32(index);
+            return 0;
         }
     }
 }
