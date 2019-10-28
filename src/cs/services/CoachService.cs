@@ -462,4 +462,3 @@ namespace TinderCloneV1 {
         }
     }
 }
->>>>>>> master
