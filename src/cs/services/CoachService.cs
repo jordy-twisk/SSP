@@ -31,14 +31,10 @@ namespace TinderCloneV1 {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             List<CoachProfile> listOfCoachProfiles = new List<CoachProfile>();
 
-            string queryString = $@"SELECT * FROM [dbo].[Student] 
-                                    INNER JOIN [dbo].[Coach] 
-                                    ON Student.studentID = Coach.studentID;";
-
-            // string queryString = $@"SELECT Student.*, Coach.workload
-            //                         FROM [dbo].[Student]
-            //                         INNER JOIN [dbo].[Coach]
-            //                         ON Student.studentID = Coach.studentID";
+            string queryString = $@"SELECT Student.*, Coach.workload
+                                    FROM [dbo].[Student]
+                                    INNER JOIN [dbo].[Coach]
+                                    ON Student.studentID = Coach.studentID";
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
@@ -127,6 +123,12 @@ namespace TinderCloneV1 {
                 log.LogError("Requestbody is missing data for the student table!");
                 return exceptionHandler.BadRequest(log);
             }
+            
+            if(coachProfile.coach.studentID != coachProfile.user.studentID){
+                log.LogError("Coach studentID must be the same as User StudentID!");
+                return exceptionHandler.BadRequest(log);
+            }
+
 
             //All fields for the Coach table are required
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
@@ -141,17 +143,8 @@ namespace TinderCloneV1 {
                     queryString_Student += $", {property.Name}";
                 }
             }
-            // if (jObject["user"]["firstName"] != null)       queryString_Student += ", firstName";
-            // if (jObject["user"]["surName"] != null)         queryString_Student += ", surName";
-            // if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", phoneNumber";
-            // if (jObject["user"]["photo"] != null)           queryString_Student += ", photo";
-            // if (jObject["user"]["description"] != null)     queryString_Student += ", description";
-            // if (jObject["user"]["degree"] != null)          queryString_Student += ", degree";
-            // if (jObject["user"]["study"] != null)           queryString_Student += ", study";
-            // if (jObject["user"]["studyYear"] != null)       queryString_Student += ", studyYear";
-            // if (jObject["user"]["interests"] != null)       queryString_Student += ", interests";
             queryString_Student += ") ";
-                
+
             //Dynamically create the VALUES line of the SQL statement:
             queryString_Student += "VALUES (@studentID";
             foreach (JProperty property in userDataJson.Properties()) {
@@ -159,15 +152,6 @@ namespace TinderCloneV1 {
                     queryString_Student += $", @{property.Name}";
                 }
             }
-            // if (jObject["user"]["firstName"] != null)       queryString_Student += ", @firstName";
-            // if (jObject["user"]["surName"] != null)         queryString_Student += ", @surName";
-            // if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", @phoneNumber";
-            // if (jObject["user"]["photo"] != null)           queryString_Student += ", @photo";
-            // if (jObject["user"]["description"] != null)     queryString_Student += ", @description";
-            // if (jObject["user"]["degree"] != null)          queryString_Student += ", @degree";
-            // if (jObject["user"]["study"] != null)           queryString_Student += ", @study";
-            // if (jObject["user"]["studyYear"] != null)       queryString_Student += ", @studyYear";
-            // if (jObject["user"]["interests"] != null)       queryString_Student += ", @interests";
             queryString_Student += ");";
 
             try {
@@ -377,7 +361,7 @@ namespace TinderCloneV1 {
                                     while (reader.Read()) {
                                         newCoach = new Coach {
                                             studentID = reader.GetInt32(0),
-                                            workload = SafeGetInt(reader, 10)
+                                            workload = SafeGetInt(reader, 1)
                                         };
                                     }
                                 }
