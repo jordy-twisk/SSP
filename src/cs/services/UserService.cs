@@ -185,8 +185,7 @@ namespace TinderCloneV1 {
             {
                 queryString = $"UPDATE [dbo].[Student] SET ";
 
-                foreach (JProperty property in jObject.Properties())
-                {
+                foreach (JProperty property in jObject.Properties()) {
                     queryString += $"{property.Name} = '{property.Value}',";
                 }
 
