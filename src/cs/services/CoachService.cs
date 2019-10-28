@@ -8,7 +8,6 @@ using System.Data.SqlClient;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
-using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -55,19 +54,19 @@ namespace TinderCloneV1 {
                                         listOfCoachProfiles.Add(new CoachProfile(
                                             new Coach {
                                                 studentID = reader.GetInt32(0),
-                                                workload = reader.GetInt32(10)
+                                                workload = SafeGetInt(reader, 10)
                                             },
                                             new User {
                                                 studentID = reader.GetInt32(0),
-                                                firstName = reader.GetString(1),
-                                                surName = reader.GetString(2),
-                                                phoneNumber = reader.GetString(3),
-                                                photo = reader.GetString(4),
-                                                description = reader.GetString(5),
-                                                degree = reader.GetString(6),
-                                                study = reader.GetString(7),
-                                                studyYear = reader.GetInt32(8),
-                                                interests = reader.GetString(9)
+                                                firstName = SafeGetString(reader, 1),
+                                                surName = SafeGetString(reader, 2),
+                                                phoneNumber = SafeGetString(reader, 3),
+                                                photo = SafeGetString(reader, 4),
+                                                description = SafeGetString(reader, 5),
+                                                degree = SafeGetString(reader, 6),
+                                                study = SafeGetString(reader, 7),
+                                                studyYear = SafeGetInt(reader, 8),
+                                                interests = SafeGetString(reader, 9)
                                             }
                                         ));
                                     }
@@ -99,13 +98,18 @@ namespace TinderCloneV1 {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             CoachProfile coachProfile;
             JObject jObject = new JObject();
+            JObject userDataJson = new JObject();
 
             //Read from the requestBody
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 coachProfile = jObject.ToObject<CoachProfile>();
             }
-
+            foreach (JProperty property in jObject.Properties()) {
+                using (StringReader reader = new StringReader(property.Value.ToString())) {
+                    userDataJson = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                }
+            }
             //Verify if all parameters for the Coach table exist,
             //return response code 400 if one or more is missing
             if (jObject["coach"]["studentID"] == null || jObject["coach"]["workload"] == null) {
@@ -119,41 +123,34 @@ namespace TinderCloneV1 {
                 log.LogError("Requestbody is missing data for the student table!");
                 return exceptionHandler.BadRequest(log);
             }
-
+            
+            if(coachProfile.coach.studentID != coachProfile.user.studentID){
+                log.LogError("Coach studentID must be the same as User StudentID!");
+                return exceptionHandler.BadRequest(log);
+            }
+            
             //All fields for the Coach table are required
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
                                             VALUES (@studentID, @workload);";
 
             //Since the query string for the Student table contains many optional fields it needs to be dynamically created
             //Dynamically create the INSERT INTO line of the SQL statement:
-            foreach (JProperty property in jObject.Properties()) {
-                log.LogInformation($"{property.Name} | {property.Value}");
-                // queryString_Student += $", '{property.Name}'";
-                JObject propValueJSON = JsonConvert.DeserializeObject<JObject>(property.Value);
-            }
+
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
-            if (jObject["user"]["firstName"] != null)       queryString_Student += ", firstName";
-            if (jObject["user"]["surName"] != null)         queryString_Student += ", surName";
-            if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", phoneNumber";
-            if (jObject["user"]["photo"] != null)           queryString_Student += ", photo";
-            if (jObject["user"]["description"] != null)     queryString_Student += ", description";
-            if (jObject["user"]["degree"] != null)          queryString_Student += ", degree";
-            if (jObject["user"]["study"] != null)           queryString_Student += ", study";
-            if (jObject["user"]["studyYear"] != null)       queryString_Student += ", studyYear";
-            if (jObject["user"]["interests"] != null)       queryString_Student += ", interests";
+            foreach (JProperty property in userDataJson.Properties()) {
+                if(property.Name != "studentID"){
+                    queryString_Student += $", {property.Name}";
+                }
+            }
             queryString_Student += ") ";
-                
+
             //Dynamically create the VALUES line of the SQL statement:
             queryString_Student += "VALUES (@studentID";
-            if (jObject["user"]["firstName"] != null)       queryString_Student += ", @firstName";
-            if (jObject["user"]["surName"] != null)         queryString_Student += ", @surName";
-            if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", @phoneNumber";
-            if (jObject["user"]["photo"] != null)           queryString_Student += ", @photo";
-            if (jObject["user"]["description"] != null)     queryString_Student += ", @description";
-            if (jObject["user"]["degree"] != null)          queryString_Student += ", @degree";
-            if (jObject["user"]["study"] != null)           queryString_Student += ", @study";
-            if (jObject["user"]["studyYear"] != null)       queryString_Student += ", @studyYear";
-            if (jObject["user"]["interests"] != null)       queryString_Student += ", @interests";
+            foreach (JProperty property in userDataJson.Properties()) {
+                if(property.Name != "studentID"){
+                    queryString_Student += $", @{property.Name}";
+                }
+            }
             queryString_Student += ");";
 
             try {
@@ -239,19 +236,19 @@ namespace TinderCloneV1 {
                                         newCoachProfile = new CoachProfile(
                                             new Coach {
                                                 studentID = reader.GetInt32(0),
-                                                workload = reader.GetInt32(10)
+                                                workload = SafeGetInt(reader, 10)
                                             },
                                             new User {
                                                 studentID = reader.GetInt32(0),
-                                                firstName = reader.GetString(1),
-                                                surName = reader.GetString(2),
-                                                phoneNumber = reader.GetString(3),
-                                                photo = reader.GetString(4),
-                                                description = reader.GetString(5),
-                                                degree = reader.GetString(6),
-                                                study = reader.GetString(7),
-                                                studyYear = reader.GetInt32(8),
-                                                interests = reader.GetString(9)
+                                                firstName = SafeGetString(reader, 1),
+                                                surName = SafeGetString(reader, 2),
+                                                phoneNumber = SafeGetString(reader, 3),
+                                                photo = SafeGetString(reader, 4),
+                                                description = SafeGetString(reader, 5),
+                                                degree = SafeGetString(reader, 6),
+                                                study = SafeGetString(reader, 7),
+                                                studyYear = SafeGetInt(reader, 8),
+                                                interests = SafeGetString(reader, 9)
                                             }
                                         );
                                     }
@@ -363,7 +360,7 @@ namespace TinderCloneV1 {
                                     while (reader.Read()) {
                                         newCoach = new Coach {
                                             studentID = reader.GetInt32(0),
-                                            workload = reader.GetInt32(1)
+                                            workload = SafeGetInt(reader, 1)
                                         };
                                     }
                                 }
@@ -450,6 +447,18 @@ namespace TinderCloneV1 {
 
             //Return response code 204
             return new HttpResponseMessage(HttpStatusCode.NoContent);
+        }
+
+        public string SafeGetString(SqlDataReader reader, int index) {
+            if (!reader.IsDBNull(index))
+                return reader.GetString(index);
+            return string.Empty;
+        }
+
+        public int SafeGetInt(SqlDataReader reader, int index) {
+            if (!reader.IsDBNull(index))
+                return reader.GetInt32(index);
+            return 0;
         }
     }
 }

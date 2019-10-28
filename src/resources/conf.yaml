@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 openapi: 3.0.2
 # Coach == Tutor
 # Tutorant == student of the Tutor
@@ -1409,7 +1408,7 @@ paths:
       tags:
         - CoachTutorant
       summary: create coach tutorant connection
-      operationId: coachTutorantCreate
+      operationId: CreateConnection
       description: Creates a new coach with tutorant connection.
       requestBody:
         description: all info that is needed to create the coach tutorant conenction.
@@ -1436,7 +1435,7 @@ paths:
       tags:
         - CoachTutorant
       summary: get all coach connections with their tutorants.
-      operationId: coachTutorantConnectionsGet
+      operationId: GetAllCoachConnections
       description: get all coach connections with their tutorants.
       parameters:        
         - in: path
@@ -1467,7 +1466,7 @@ paths:
     delete:
       tags:
         - CoachTutorant
-      operationId: coachTutorantConnectionDelete
+      operationId: DeleteCoachConnection
       description: Delete all connections to coach.
       parameters: 
         - in: path
@@ -1492,7 +1491,7 @@ paths:
       tags:
         - CoachTutorant
       summary: get tutorant connection with his coach.
-      operationId: tutorantCoachConnectionGet
+      operationId: GetTutorantConnectionByID
       description: Get the connection the tutorant has with his coach, to find out who his coach is.
       parameters:        
         - in: path
@@ -1524,7 +1523,7 @@ paths:
       tags:
         - CoachTutorant
       summary: modify coachTutorant connection
-      operationId: coachTutorantConnectionUpdate
+      operationId: UpdateConnectionByID
       description: Modify the info in the coachTutorant connection, used to change the status.
       parameters:
         - in: path
@@ -1556,7 +1555,7 @@ paths:
     delete:
       tags:
         - CoachTutorant
-      operationId: tutorantCoachConnectionDelete
+      operationId: DeleteTutorantConnection
       description: Delete tutorant connection to coach.
       parameters: 
         - in: path
@@ -1902,5 +1901,4 @@ components:
           properties:
               Message:
                   type: string
->>>>>>> mike
                   example: "Failed to do things."
