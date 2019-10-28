@@ -97,13 +97,14 @@ namespace TinderCloneV1 {
 
         public async Task<HttpResponseMessage> DeleteMessageByID(int messageID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            string queryString = $"DELETE FROM [dbo].[Message] WHERE MessageID = {messageID}";
+            queryString = $@"DELETE FROM [dbo].[Message] WHERE MessageID = @MessageID";
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
                     try {
                         connection.Open();
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                            command.Parameters.Add("@MessageID", System.Data.SqlDbType.DateTime).Value = messageID;
                             log.LogInformation($"Executing the following query: {queryString}");
                             command.ExecuteNonQuery();
                         }
@@ -136,9 +137,9 @@ namespace TinderCloneV1 {
             // Either the senderID is that of the coachID and the receiverID is that of the tutorantID
             // or
             // the senderID is that of the tutorantID and the receiverID is that of the coachID.
-            queryString = $"SELECT * FROM [dbo].[Conversation] WHERE" +
-                "(senderID = {coachID} AND receiverID = {tutorantID}) OR +" +
-                "(senderID = {tutorantID} AND receiverID = {coachID})";
+            queryString = $@"SELECT * FROM [dbo].[Conversation] WHERE" +
+                "(senderID = @coachID AND receiverID = @tutorantID) OR +" +
+                "(senderID = @tutorantID AND receiverID = @coachID)";
 
             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -153,6 +154,8 @@ namespace TinderCloneV1 {
                     }
 
                     using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                        command.Parameters.Add("@coachID", System.Data.SqlDbType.DateTime).Value = coachID;
+                        command.Parameters.Add("@tutorantID", System.Data.SqlDbType.DateTime).Value = tutorantID;
                         using (SqlDataReader reader = command.ExecuteReader()) {
                             while (reader.Read()) {
                                 listOfMessages.Add(new Message
@@ -187,7 +190,7 @@ namespace TinderCloneV1 {
             exceptionHandler = new ExceptionHandler(messageID);
 
             Message newMessage = new Message();
-            queryString = $"SELECT * FROM [dbo].[Message] WHERE MessageID = {messageID};";
+            queryString = $@"SELECT * FROM [dbo].[Message] WHERE MessageID = @messageID;";
 
             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -202,6 +205,7 @@ namespace TinderCloneV1 {
                     }
 
                     using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                        command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
                         using (SqlDataReader reader = command.ExecuteReader()) {
                             if (!reader.HasRows) {
                                 return exceptionHandler.NotFoundException(log);
@@ -258,41 +262,42 @@ namespace TinderCloneV1 {
                 }
 
                 queryString = queryString.Remove(queryString.Length - 1);
-                queryString += $" WHERE MessageID = {messageID};";
+                queryString += $@" WHERE MessageID = @messageID;";
 
                 log.LogInformation($"Executing the following query: {queryString}");
+
+
 
                 try {
                     using (SqlConnection connection = new SqlConnection(environmentString)) {
                         try {
+                            // The connection is automatically closed when going out of scope of the using block
                             connection.Open();
+
+                            using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                                // Parameters are used to ensure no SQL injection can take place.
+                                command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
+                                log.LogInformation($"Executing the following query: {queryString}");
+                                command.ExecuteNonQuery();
+                            }
                         }
                         catch (SqlException e) {
+                            // Return response code 503
                             log.LogError(e.Message);
                             return exceptionHandler.ServiceUnavailable(log);
                         }
-
-                        SqlCommand commandUpdate = new SqlCommand(queryString, connection);
-                        await commandUpdate.ExecuteNonQueryAsync();
-
-                        connection.Close();
                     }
                 }
                 catch (SqlException e) {
+                    // Return response code 400.
                     log.LogError(e.Message);
                     return exceptionHandler.BadRequest(log);
                 }
-                log.LogInformation($"Changed data of message: {messageID}");
-            }
-            // No data to update given in the request body.
-            else {
-                log.LogError($"Request body was empty nothing to change for message: {messageID}");
-            }
 
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent($"Changed data of message: {messageID}")
-            };
+                log.LogInformation($"{HttpStatusCode.NoContent} | Data updated succesfully");
+            }
+            // Return response code 204.
+            return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
     }
 }

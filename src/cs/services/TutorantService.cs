@@ -82,7 +82,7 @@ namespace TinderCloneV1 {
         // Delete tutorant from the Tutorant table.
         public async Task<HttpResponseMessage> DeleteTutorantByID(int tutorantID) {
             // Query string used to delete the tutorant from the tutorant table.
-            queryString = $"DELETE FROM [dbo].[Tutorant] WHERE studentID = {tutorantID}";
+            queryString = $@"DELETE FROM [dbo].[Tutorant] WHERE studentID = @tutorantID";
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
@@ -92,6 +92,7 @@ namespace TinderCloneV1 {
 
                         // Delete the tutorant from the Tutorant table.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                            command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
                             log.LogInformation($"Executing the following query: {queryString}");
                             command.ExecuteNonQuery();
                         }
@@ -135,7 +136,7 @@ namespace TinderCloneV1 {
                                 }
                                 else {
                                     while (reader.Read()) {
-                                        listOfTutorants.Add(new Tutorant { studentID = reader.GetInt32(0) });
+                                        listOfTutorants.Add(new Tutorant {studentID = reader.GetInt32(0)});
                                     }
                                 }
                             }
