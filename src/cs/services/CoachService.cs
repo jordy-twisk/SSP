@@ -136,7 +136,7 @@ namespace TinderCloneV1 {
 
             //Since the query string for the Student table contains many optional fields it needs to be dynamically created
             //Dynamically create the INSERT INTO line of the SQL statement:
-  
+
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
             foreach (JProperty property in userDataJson.Properties()) {
                 if(property.Name != "studentID"){
