@@ -17,7 +17,7 @@ def test_post_coaches():
 def test_get_coachProfile_byId():
   r = requests.get(a.api_link() + "profile/coach/" + a.coachId())
   assert r.status_code == 200, r.status_code
-def test_put_coachProfile_byId():
+def test_delete_coachProfile_byId():
   r = requests.delete(a.api_link() + "profile/coach/" + a.coachId())
   if r.status_code is not 204:
     a.create_coach()
