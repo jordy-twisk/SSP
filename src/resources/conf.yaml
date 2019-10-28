@@ -1,16 +1,19 @@
 openapi: 3.0.2
 # Coach == Tutor
 # Tutorant == student of the Tutor
-
+# CoachProfile == Data of a Coach in the Coach AND Student table
+#   This means deleting a CoachProfile deletes the Coach from the Coach table and the Student table
+#   Note the only field that may be changed from the Coach table is the workload
+ 
 #to be done
 #authentication
-
+ 
 servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/barendmosch/TinderClone/1.0.0
   - description: Server URL
     url: https://tinderclonev120190930031733.azurewebsites.net
-
+ 
 info:
   description: This is the MBO-HBO Tinder Clone API
   version: "1.0.0"
@@ -20,10 +23,10 @@ info:
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-
+ 
 security:
   - BasicAuth: [] #username:password -> base64encoded string
-
+ 
 paths:
   /api/student/{studentID}:
     get:
@@ -32,7 +35,7 @@ paths:
       summary: get data call
       operationId: dataCall
       description: Returns the student data based on the student number.
-      parameters: 
+      parameters:
         - in: path
           name: studentID
           description: The student's personal id.
@@ -170,7 +173,7 @@ paths:
       tags:
         - Coach profile
       summary: get all coach profiles.
-      operationId: coachProfileGet
+      operationId: GetAllCoachProfiles
       description: Get all coach profiles.
       responses:
         '200':
@@ -193,7 +196,7 @@ paths:
       tags:
         - Coach profile
       summary: create user profile for a coach
-      operationId: coachProfileCreate
+      operationId: CreateCoachProfile
       description: Creates a new coach profile.
       requestBody:
         description: all info that is needed to create the coach + profile
@@ -220,9 +223,8 @@ paths:
       tags:
       - Coach profile
       summary: get coach and his profile
-      operationId: coachProfileCall
+      operationId: GetCoachProfileByID
       description: Returns requested coach.
-      # No parameters returns back every profile.
       parameters:
         - in: path
           name: studentID
@@ -253,7 +255,7 @@ paths:
       tags:
       - Coach profile
       summary: delete coach profile information
-      operationId: coachProfileDelete
+      operationId: DeleteCoachProfileByID
       description: Delete a coach profile.
       parameters:
         - in: path
@@ -334,7 +336,6 @@ paths:
       summary: get tutorant and his profile.
       operationId: tutorantProfileCall
       description: Returns requested coach.
-      # No parameters returns back every profile.
       parameters:
         - in: path
           name: studentID
@@ -391,10 +392,9 @@ paths:
     get:
       tags:
       - Coach profile
-      summary: get coach and workload.
-      operationId: coachCall
+      summary: get coach and workload
+      operationId: GetCoachByID
       description: Returns requested coach and his maximum workload.
-      # No parameters returns back every profile.
       parameters:
         - in: path
           name: studentID
@@ -425,9 +425,8 @@ paths:
       tags:
       - Coach profile
       summary: update coach and workload
-      operationId: coachModify
+      operationId: UpdateCoachByID
       description: Returns requested coach and his maximum workload.
-      # No parameters returns back every profile.
       parameters:
         - in: path
           name: studentID
@@ -435,15 +434,16 @@ paths:
           required: true
           schema:
             type: integer
+      requestBody:
+        description: studentID (ignored) and workload of the coach (studentID of the path is used)
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Coach'
       responses:
-          '200':
-            description: Return coach profile.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Coach'
+          '204':
+            description: Update was successful.
           '400':
             description: Undocumented filter parameter.
           '401':
@@ -519,7 +519,7 @@ paths:
         - CoachTutorant
       operationId: coachTutorantConnectionDelete
       description: Delete all connections to coach.
-      parameters: 
+      parameters:
         - in: path
           name: studentID
           schema:
@@ -608,7 +608,7 @@ paths:
         - CoachTutorant
       operationId: tutorantCoachConnectionDelete
       description: Delete tutorant connection to coach.
-      parameters: 
+      parameters:
         - in: path
           name: studentID
           schema:
@@ -621,17 +621,17 @@ paths:
         '401':
           description: Student password is not accepted.
         '429':
-          description: Too many request on the database. 
+          description: Too many request on the database.
         '503':
           description: External component or service is unavailable at the moment.
   /api/messages/{coachID}/{tutorantID}:
     get:
-      tags: 
+      tags:
       - Messages
       summary: get messages
       operationId: messagesCall
       description: Returns some messages, default number of last messages is 20 that will be returned.
-      parameters: 
+      parameters:
         - in: path
           name: coachID
           schema:
@@ -675,7 +675,7 @@ paths:
       summary: get message
       operationId: messageCall
       description: Returns a specific message.
-      parameters: 
+      parameters:
         - in: path
           name: messageID
           schema:
@@ -705,7 +705,7 @@ paths:
       summary: modify message
       operationId: messageUpdate
       description: Changes the messages by the user's choice.
-      parameters: 
+      parameters:
         - in: path
           name: messageID
           schema:
@@ -753,7 +753,7 @@ paths:
       summary: delete a message
       operationId: messageDelete
       description: Delete a specific message.
-      parameters: 
+      parameters:
         - in: path
           name: messageID
           schema:
@@ -796,7 +796,7 @@ paths:
           description: Too many request on the database.
         '503':
           description: External component or service is unavailable at the moment.
-
+ 
 components:
     securitySchemes:
       BasicAuth:
@@ -806,7 +806,7 @@ components:
       # Is a profile.
       Student:
           type: object
-          required: 
+          required:
               - studentID
           properties:
               studentID:
@@ -843,6 +843,9 @@ components:
                   example: 2
       TutorantProfile:
         type: object
+        required:
+          - profile
+          - student
         properties:
           profile:
             type: object
@@ -861,6 +864,9 @@ components:
       # User profile of the coach and coach object.
       CoachProfile:
         type: object
+        required:
+          - profile
+          - coach
         properties:
           profile:
             type: object
