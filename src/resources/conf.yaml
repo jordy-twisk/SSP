@@ -844,8 +844,8 @@ components:
       TutorantProfile:
         type: object
 	required:
-	  - profile
-	  - student
+	- profile
+	- student
         properties:
           profile:
             type: object
@@ -865,8 +865,8 @@ components:
       CoachProfile:
         type: object
 	required:
-	  - profile
-	  - coach
+	- profile
+	- coach
         properties:
           profile:
             type: object
