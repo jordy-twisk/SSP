@@ -434,7 +434,7 @@ paths:
           required: true
           schema:
             type: integer
-	  requestBody:
+      requestBody:
         description: studentID (ignored) and workload of the coach (studentID of the path is used) 
         required: true
         content:
