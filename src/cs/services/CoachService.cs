@@ -128,8 +128,7 @@ namespace TinderCloneV1 {
                 log.LogError("Coach studentID must be the same as User StudentID!");
                 return exceptionHandler.BadRequest(log);
             }
-
-
+            
             //All fields for the Coach table are required
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
                                             VALUES (@studentID, @workload);";
