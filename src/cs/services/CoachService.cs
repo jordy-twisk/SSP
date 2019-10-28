@@ -102,13 +102,18 @@ namespace TinderCloneV1 {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             CoachProfile coachProfile;
             JObject jObject = new JObject();
+            JObject userDataJson = new JObject();
 
             //Read from the requestBody
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 coachProfile = jObject.ToObject<CoachProfile>();
             }
-
+            foreach (JProperty property in jObject.Properties()) {
+                using (StringReader reader = new StringReader(property.Value.ToString())) {
+                    userDataJson = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                }
+            }
             //Verify if all parameters for the Coach table exist,
             //return response code 400 if one or more is missing
             if (jObject["coach"]["studentID"] == null || jObject["coach"]["workload"] == null) {
@@ -129,34 +134,40 @@ namespace TinderCloneV1 {
 
             //Since the query string for the Student table contains many optional fields it needs to be dynamically created
             //Dynamically create the INSERT INTO line of the SQL statement:
-            foreach (JProperty property in jObject.Properties()) {
-                log.LogInformation($"{property.Name} | {property.Value}");
-                // queryString_Student += $", '{property.Name}'";
-                JObject propValueJSON = JsonConvert.DeserializeObject<JObject>(property.Value);
-            }
+  
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
-            if (jObject["user"]["firstName"] != null)       queryString_Student += ", firstName";
-            if (jObject["user"]["surName"] != null)         queryString_Student += ", surName";
-            if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", phoneNumber";
-            if (jObject["user"]["photo"] != null)           queryString_Student += ", photo";
-            if (jObject["user"]["description"] != null)     queryString_Student += ", description";
-            if (jObject["user"]["degree"] != null)          queryString_Student += ", degree";
-            if (jObject["user"]["study"] != null)           queryString_Student += ", study";
-            if (jObject["user"]["studyYear"] != null)       queryString_Student += ", studyYear";
-            if (jObject["user"]["interests"] != null)       queryString_Student += ", interests";
+            foreach (JProperty property in userDataJson.Properties()) {
+                if(property.Name != "studentID"){
+                    queryString_Student += $", {property.Name}";
+                }
+            }
+            // if (jObject["user"]["firstName"] != null)       queryString_Student += ", firstName";
+            // if (jObject["user"]["surName"] != null)         queryString_Student += ", surName";
+            // if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", phoneNumber";
+            // if (jObject["user"]["photo"] != null)           queryString_Student += ", photo";
+            // if (jObject["user"]["description"] != null)     queryString_Student += ", description";
+            // if (jObject["user"]["degree"] != null)          queryString_Student += ", degree";
+            // if (jObject["user"]["study"] != null)           queryString_Student += ", study";
+            // if (jObject["user"]["studyYear"] != null)       queryString_Student += ", studyYear";
+            // if (jObject["user"]["interests"] != null)       queryString_Student += ", interests";
             queryString_Student += ") ";
                 
             //Dynamically create the VALUES line of the SQL statement:
             queryString_Student += "VALUES (@studentID";
-            if (jObject["user"]["firstName"] != null)       queryString_Student += ", @firstName";
-            if (jObject["user"]["surName"] != null)         queryString_Student += ", @surName";
-            if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", @phoneNumber";
-            if (jObject["user"]["photo"] != null)           queryString_Student += ", @photo";
-            if (jObject["user"]["description"] != null)     queryString_Student += ", @description";
-            if (jObject["user"]["degree"] != null)          queryString_Student += ", @degree";
-            if (jObject["user"]["study"] != null)           queryString_Student += ", @study";
-            if (jObject["user"]["studyYear"] != null)       queryString_Student += ", @studyYear";
-            if (jObject["user"]["interests"] != null)       queryString_Student += ", @interests";
+            foreach (JProperty property in userDataJson.Properties()) {
+                if(property.Name != "studentID"){
+                    queryString_Student += $", @{property.Name}";
+                }
+            }
+            // if (jObject["user"]["firstName"] != null)       queryString_Student += ", @firstName";
+            // if (jObject["user"]["surName"] != null)         queryString_Student += ", @surName";
+            // if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", @phoneNumber";
+            // if (jObject["user"]["photo"] != null)           queryString_Student += ", @photo";
+            // if (jObject["user"]["description"] != null)     queryString_Student += ", @description";
+            // if (jObject["user"]["degree"] != null)          queryString_Student += ", @degree";
+            // if (jObject["user"]["study"] != null)           queryString_Student += ", @study";
+            // if (jObject["user"]["studyYear"] != null)       queryString_Student += ", @studyYear";
+            // if (jObject["user"]["interests"] != null)       queryString_Student += ", @interests";
             queryString_Student += ");";
 
             try {
