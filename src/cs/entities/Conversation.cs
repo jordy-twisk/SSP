@@ -15,15 +15,5 @@ namespace TinderCloneV1 {
             get;
             set;
         }
-        [JsonProperty("SenderID")]
-        public int SenderID {
-            get;
-            set;
-        }
-        [JsonProperty("ReceiverID")]
-        public int ReceiverID {
-            get;
-            set;
-        }
     }
 }

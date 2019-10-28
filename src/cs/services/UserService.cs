@@ -79,7 +79,7 @@ namespace TinderCloneV1 {
                                         studyYear = SafeGetInt(reader, 8),
                                         interests = SafeGetString(reader, 9)
                                     });
-                                  }
+                                }
                             }
                         }
                     }

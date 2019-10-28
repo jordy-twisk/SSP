@@ -391,7 +391,6 @@ namespace TinderCloneV1 {
         /*
          * Example requestbody for use in Postman (testing):
             {
-                "studentID": 500000, 
                 "workload": 5
             } 
         */
