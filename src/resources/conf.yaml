@@ -459,7 +459,7 @@ paths:
       tags:
         - CoachTutorant
       summary: create coach tutorant connection
-      operationId: CreateConnection
+      operationId: coachTutorantCreate
       description: Creates a new coach with tutorant connection.
       requestBody:
         description: all info that is needed to create the coach tutorant conenction.
@@ -486,7 +486,7 @@ paths:
       tags:
         - CoachTutorant
       summary: get all coach connections with their tutorants.
-      operationId: GetAllCoachConnections
+      operationId: coachTutorantConnectionsGet
       description: get all coach connections with their tutorants.
       parameters:        
         - in: path
@@ -517,7 +517,7 @@ paths:
     delete:
       tags:
         - CoachTutorant
-      operationId: DeleteCoachConnection
+      operationId: coachTutorantConnectionDelete
       description: Delete all connections to coach.
       parameters: 
         - in: path
@@ -542,7 +542,7 @@ paths:
       tags:
         - CoachTutorant
       summary: get tutorant connection with his coach.
-      operationId: GetTutorantConnectionByID
+      operationId: tutorantCoachConnectionGet
       description: Get the connection the tutorant has with his coach, to find out who his coach is.
       parameters:        
         - in: path
@@ -574,7 +574,7 @@ paths:
       tags:
         - CoachTutorant
       summary: modify coachTutorant connection
-      operationId: UpdateConnectionByID
+      operationId: coachTutorantConnectionUpdate
       description: Modify the info in the coachTutorant connection, used to change the status.
       parameters:
         - in: path
@@ -606,7 +606,7 @@ paths:
     delete:
       tags:
         - CoachTutorant
-      operationId: DeleteTutorantConnection
+      operationId: tutorantCoachConnectionDelete
       description: Delete tutorant connection to coach.
       parameters: 
         - in: path
@@ -952,5 +952,4 @@ components:
           properties:
               Message:
                   type: string
->>>>>>> mike
                   example: "Failed to do things."

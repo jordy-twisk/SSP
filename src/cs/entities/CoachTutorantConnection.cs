@@ -10,11 +10,13 @@ namespace TinderCloneV1 {
             get;
             set;
         }
+
         [JsonProperty("studentIDCoach")]
         public int studentIDCoach {
             get;
             set;
         }
+
         [JsonProperty("status")]
         public string status {
             get;
