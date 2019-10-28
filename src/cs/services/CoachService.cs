@@ -126,11 +126,11 @@ namespace TinderCloneV1 {
 
             //Since the query string for the Student table contains many optional fields it needs to be dynamically created
             //Dynamically create the INSERT INTO line of the SQL statement:
-            foreach (JProperty property in jObject.Properties()) {
-                log.LogInformation($"{property.Name} | {property.Value}");
-                // queryString_Student += $", '{property.Name}'";
-                JObject propValueJSON = JsonConvert.DeserializeObject<JObject>(property.Value);
-            }
+            //foreach (JProperty property in jObject.Properties()) {
+            //    log.LogInformation($"{property.Name} | {property.Value}");
+            //    // queryString_Student += $", '{property.Name}'";
+            //    JObject propValueJSON = JsonConvert.DeserializeObject<JObject>(property.Value);
+            //}
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
             if (jObject["user"]["firstName"] != null)       queryString_Student += ", firstName";
             if (jObject["user"]["surName"] != null)         queryString_Student += ", surName";

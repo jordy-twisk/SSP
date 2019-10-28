@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 namespace TinderCloneV1 {
     class MessageService : IMessageService {
 
-        private readonly string str = Environment.GetEnvironmentVariable("sqldb_connection");
+        private readonly string environmentString = Environment.GetEnvironmentVariable("sqldb_connection");
 
         private ExceptionHandler exceptionHandler;
 
@@ -44,11 +44,11 @@ namespace TinderCloneV1 {
 
             // Verify if all parameters for the Message table exist,
             // return response code 400 if one or more of the parameters are missing.
-            if (jObject["Message"]["MessageID"] == null ||
-                jObject["Message"]["type"] == null ||
-                jObject["Message"]["payload"] == null ||
-                jObject["Message"]["created"] == null ||
-                jObject["Message"]["lastModified"] == null) {
+            if (jObject["message"]["MessageID"] == null ||
+                jObject["message"]["type"] == null ||
+                jObject["message"]["payload"] == null ||
+                jObject["message"]["created"] == null ||
+                jObject["message"]["lastModified"] == null) {
                 log.LogError("Requestbody is missing data for the Message table!");
                 return exceptionHandler.BadRequest(log);
             }
@@ -58,7 +58,7 @@ namespace TinderCloneV1 {
                 $"VALUES (@MessageID, @type, @payload, @created, @lastModified);";
 
             try {
-                using (SqlConnection connection = new SqlConnection(str)) {
+                using (SqlConnection connection = new SqlConnection(environmentString)) {
                     try {
                         // The connection is automatically closed when going out of scope of the using block
                         connection.Open();
@@ -100,7 +100,7 @@ namespace TinderCloneV1 {
             string queryString = $"DELETE FROM [dbo].[Message] WHERE MessageID = {messageID}";
 
             try {
-                using (SqlConnection connection = new SqlConnection(str)) {
+                using (SqlConnection connection = new SqlConnection(environmentString)) {
                     try {
                         connection.Open();
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
@@ -143,7 +143,7 @@ namespace TinderCloneV1 {
             log.LogInformation($"Executing the following query: {queryString}");
 
             try {
-                using (SqlConnection connection = new SqlConnection(str)) {
+                using (SqlConnection connection = new SqlConnection(environmentString)) {
                     try {
                         connection.Open();
                     }
@@ -192,7 +192,7 @@ namespace TinderCloneV1 {
             log.LogInformation($"Executing the following query: {queryString}");
 
             try {
-                using (SqlConnection connection = new SqlConnection(str)) {
+                using (SqlConnection connection = new SqlConnection(environmentString)) {
                     try {
                         connection.Open();
                     }
@@ -263,7 +263,7 @@ namespace TinderCloneV1 {
                 log.LogInformation($"Executing the following query: {queryString}");
 
                 try {
-                    using (SqlConnection connection = new SqlConnection(str)) {
+                    using (SqlConnection connection = new SqlConnection(environmentString)) {
                         try {
                             connection.Open();
                         }
