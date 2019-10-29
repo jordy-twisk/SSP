@@ -7,23 +7,18 @@ from cerberus import Validator
 def test_get_student_byId():
   r = requests.get(a.api_link() + "student/" + a.studentId())
   assert r.status_code == 200, r.status_code
-  studentData = {	
-    'studentID': 	{'type': 'integer'},
-    'firstName': 	{'type': 'string'},
-    'surName':	{'type': 'string'},
-    'phoneNumber':	{'type': 'string'},
-    'photo':	{'type': 'string'},
-    'description':	{'type': 'string'},
-    'degree':	{'type': 'string'},
-    'study':	{'type': 'string'},
-    'studyYear':	{'type': 'integer'},
-    'interests':	{'type': 'string'}
-  }
-  v = Validator(studentData)
+  v = Validator(a.s_studentData())
   assert v.validate(r.json()) == True, v.errors
 def test_put_student_byId():
-  r = requests.put(a.api_link() + "student/" + a.studentId())
-  assert r.status_code == 200, r.status_code
+  payload = "{\n\"studentID\": \""+ a.coachId() + "\",\n      \"firstName\": \"TestCoach\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a coach\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n}"  
+  headers = {
+    'Content-Type': "application/json",
+    'cache-control': "no-cache"}
+  r = requests.put(a.api_link() + "student/" + a.coachId(), data=payload, headers=headers)
+  assert r.status_code == 204, r.status_code
 def test_get_student():
-  r = requests.get(a.api_link() + "students/search?studentId=" + a.studentId())
+  r = requests.get(a.api_link() + "students/search")
   assert r.status_code == 200, r.status_code
+  assert len(r.json()) > 1, len(r.json())
+  v = Validator(a.s_studentData())
+  assert v.validate(r.json()[0]) == True, v.errors

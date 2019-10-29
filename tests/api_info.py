@@ -34,15 +34,15 @@ def delete_tutorant():
 
 def s_studentData():
   studentData = {	
-    'studentID': 	{'type': 'integer'},
-    'firstName': 	{'type': 'string'},
-    'surName':	{'type': 'string'},
+    'studentID': 	  {'type': 'integer'},
+    'firstName': 	  {'type': 'string'},
+    'surName':	    {'type': 'string'},
     'phoneNumber':	{'type': 'string'},
-    'photo':	{'type': 'string'},
+    'photo':	      {'type': 'string'},
     'description':	{'type': 'string'},
-    'degree':	{'type': 'string'},
-    'study':	{'type': 'string'},
-    'studyYear':	{'type': 'integer'},
-    'interests':	{'type': 'string'}
+    'degree':	      {'type': 'string'},
+    'study':	      {'type': 'string'},
+    'studyYear':	  {'type': 'integer'},
+    'interests':	  {'type': 'string'}
   }
   return studentData
