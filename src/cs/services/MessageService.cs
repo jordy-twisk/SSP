@@ -22,7 +22,8 @@ namespace TinderCloneV1 {
         private readonly HttpRequestMessage req;
         private readonly HttpRequest request;
         private readonly ILogger log;
-        private string queryString;
+
+        private string queryString = null;
 
         public MessageService(HttpRequestMessage req, HttpRequest request, ILogger log) {
             this.req = req;
@@ -36,7 +37,7 @@ namespace TinderCloneV1 {
             Message message;
             JObject jObject;
 
-            // Read from the requestBody.
+            // Read from the request body.
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 message = jObject.ToObject<Message>();
@@ -48,9 +49,11 @@ namespace TinderCloneV1 {
                 jObject["message"]["type"] == null ||
                 jObject["message"]["payload"] == null ||
                 jObject["message"]["created"] == null ||
-                jObject["message"]["lastModified"] == null) {
-                log.LogError("Requestbody is missing data for the Message table!");
-                return exceptionHandler.BadRequest(log);
+                jObject["message"]["lastModified"] == null ||
+                jObject["message"]["senderID"] == null ||
+                jObject["message"]["receiverID"] == null) {
+                    log.LogError("Requestbody is missing data for the Message table!");
+                    return exceptionHandler.BadRequest(log);
             }
 
             // All fields for the Message table are required.
@@ -127,7 +130,7 @@ namespace TinderCloneV1 {
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
-        // Get all messages between a coach and a tutorant (a conversation).
+        // Get all messages between a coach and a tutorant (a conversation between a coach and a tutorant).
         public async Task<HttpResponseMessage> GetAllMessages(int coachID, int tutorantID) {
             exceptionHandler = new ExceptionHandler(0);
 
@@ -137,39 +140,44 @@ namespace TinderCloneV1 {
             // Either the senderID is that of the coachID and the receiverID is that of the tutorantID
             // or
             // the senderID is that of the tutorantID and the receiverID is that of the coachID.
-            queryString = $@"SELECT * FROM [dbo].[Conversation] WHERE" +
-                "(senderID = @coachID AND receiverID = @tutorantID) OR +" +
-                "(senderID = @tutorantID AND receiverID = @coachID)";
 
-            log.LogInformation($"Executing the following query: {queryString}");
+            queryString = $@"SELECT * FROM [dbo].[Message]
+                            WHERE (senderID = @coachID AND receiverID = @tutorantID) OR  
+                            (senderID = @tutorantID AND receiverID = @coachID);";
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
                     try {
                         connection.Open();
+
+                        using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+                            log.LogInformation($"Executing the following query: {queryString}");
+                            using (SqlDataReader reader = command.ExecuteReader()) {
+                                if (!reader.HasRows) {
+                                    // Return response code 404
+                                    return exceptionHandler.NotFoundException(log);
+                                } else {
+                                    while (reader.Read()) {
+                                        listOfMessages.Add(new Message {
+                                            MessageID = reader.GetInt64(0),
+                                            type = reader.GetString(1),
+                                            payload = reader.GetString(2),
+                                            created = reader.GetDateTime(3),
+                                            lastModified = reader.GetDateTime(4),
+                                            senderID = reader.GetInt32(5),
+                                            receiverID = reader.GetInt32(6)
+                                        });
+                                    }
+                                }
+                            }
+                        }
                     }
                     catch (SqlException e) {
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
                     }
-
-                    using (SqlCommand command = new SqlCommand(queryString, connection)) {
-                        command.Parameters.Add("@coachID", System.Data.SqlDbType.DateTime).Value = coachID;
-                        command.Parameters.Add("@tutorantID", System.Data.SqlDbType.DateTime).Value = tutorantID;
-                        using (SqlDataReader reader = command.ExecuteReader()) {
-                            while (reader.Read()) {
-                                listOfMessages.Add(new Message
-                                {
-                                    MessageID = reader.GetInt32(0),
-                                    type = reader.GetString(2),
-                                    payload = reader.GetString(3),
-                                    created = reader.GetDateTime(4),
-                                    lastModified = reader.GetDateTime(5)
-                                });
-                            }
-                        }
-                    }
-                    connection.Close();
                 }
             }
             catch (SqlException e) {
@@ -180,8 +188,7 @@ namespace TinderCloneV1 {
             var jsonToReturn = JsonConvert.SerializeObject(listOfMessages);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
 
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
+            return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
         }
@@ -214,11 +221,13 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     newMessage = new Message
                                     {
-                                        MessageID = reader.GetInt32(0),
-                                        type = reader.GetString(2),
-                                        payload = reader.GetString(3),
-                                        created = reader.GetDateTime(4),
-                                        lastModified = reader.GetDateTime(5)
+                                        MessageID = reader.GetInt64(0),
+                                        type = reader.GetString(1),
+                                        payload = reader.GetString(2),
+                                        created = reader.GetDateTime(3),
+                                        lastModified = reader.GetDateTime(4),
+                                        senderID = reader.GetInt32(5),
+                                        receiverID = reader.GetInt32(6)
                                     };
                                 }
                             }
@@ -266,8 +275,6 @@ namespace TinderCloneV1 {
 
                 log.LogInformation($"Executing the following query: {queryString}");
 
-
-
                 try {
                     using (SqlConnection connection = new SqlConnection(environmentString)) {
                         try {
@@ -298,6 +305,18 @@ namespace TinderCloneV1 {
             }
             // Return response code 204.
             return new HttpResponseMessage(HttpStatusCode.NoContent);
+        }
+
+        public string SafeGetString(SqlDataReader reader, int index) {
+            if (!reader.IsDBNull(index))
+                return reader.GetString(index);
+            return string.Empty;
+        }
+
+        public int SafeGetInt(SqlDataReader reader, int index) {
+            if (!reader.IsDBNull(index))
+                return reader.GetInt32(index);
+            return 0;
         }
     }
 }

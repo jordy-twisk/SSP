@@ -1,14 +1,18 @@
 def api_link():
-  return "https://dev-tinderfunv2.azurewebsites.net/api/"
+  return "https://dev-tinderfunv2-test.azurewebsites.net/api/"
 def studentId():
   return "581433"
 def coachId():
-  return "000701"
+  return "701"
+def tutorantId():
+  return "702"
+def messageId():
+  return (coachId() + tutorantId())
 
 def create_coach():
   import requests
   url = api_link() + "profile/coach"
-  payload = "{\n    \"user\": {\n      \"studentID\": \"000701\",\n      \"firstName\": \"TestCoach\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"My name is Thomas Jansema and I am a student\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n    },\n    \"coach\": {\n      \"studentID\": \"000701\",\n      \"workload\": 10\n    }\n  }"  
+  payload = "{\n    \"coach\": {\n      \"studentID\": \""+ coachId() + "\",\n      \"workload\": 10\n    },\n  \n    \"user\": {\n      \"studentID\": \""+ coachId() + "\",\n      \"firstName\": \"TestCoach\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a coach\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n    }}"  
   headers = {
     'Content-Type': "application/json",
     'cache-control': "no-cache"}
@@ -16,3 +20,14 @@ def create_coach():
 def delete_coach():
   import requests
   r = requests.delete(api_link() + "profile/coach/" + coachId())
+def create_tutorant():
+  import requests
+  url = api_link() + "profile/tutorant"
+  payload = "{\n   \"user\": {\n      \"studentID\": \""+ tutorantId() + "\",\n      \"firstName\": \"TestTutorant\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a student\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n    }, \n  \"student\": {\n      \"studentID\": \""+ tutorantId() + "\"\n } \n}"  
+  headers = {
+    'Content-Type': "application/json",
+    'cache-control': "no-cache"}
+  response = requests.request("POST", url, data=payload, headers=headers)
+def delete_tutorant():
+  import requests
+  r = requests.delete(api_link() + "profile/tutorant/" + tutorantId())  
