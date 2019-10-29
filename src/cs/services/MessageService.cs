@@ -37,7 +37,7 @@ namespace TinderCloneV1 {
             Message message;
             JObject jObject;
 
-            // Read from the requestBody.
+            // Read from the request body.
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 message = jObject.ToObject<Message>();
@@ -130,7 +130,7 @@ namespace TinderCloneV1 {
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
-        // Get all messages between a coach and a tutorant (a conversation).
+        // Get all messages between a coach and a tutorant (a conversation between a coach and a tutorant).
         public async Task<HttpResponseMessage> GetAllMessages(int coachID, int tutorantID) {
             exceptionHandler = new ExceptionHandler(0);
 
@@ -145,8 +145,6 @@ namespace TinderCloneV1 {
                             WHERE (senderID = @coachID AND receiverID = @tutorantID) OR  
                             (senderID = @tutorantID AND receiverID = @coachID);";
 
-            log.LogInformation($"Executing the following query: {queryString}");
-
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
                     try {
@@ -155,9 +153,10 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+                            log.LogInformation($"Executing the following query: {queryString}");
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
-                                    //Return response code 404
+                                    // Return response code 404
                                     return exceptionHandler.NotFoundException(log);
                                 } else {
                                     while (reader.Read()) {
