@@ -141,6 +141,7 @@ namespace TinderCloneV1 {
 
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
             foreach (JProperty property in userDataJson.Properties()) {
+                log.LogInformation($"{property.Name}");
                 if(property.Name != "studentID"){
                     queryString_Student += $", {property.Name}";
                 }
@@ -153,6 +154,7 @@ namespace TinderCloneV1 {
                 log.LogInformation($"{property.Name}");
                 if(property.Name != "studentID"){
                     queryString_Student += $", @{property.Name}";
+                    
                 }
             }
             queryString_Student += ");";
@@ -178,7 +180,7 @@ namespace TinderCloneV1 {
                             if (jObject["user"]["interests"] != null)   command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value =      coachProfile.user.interests;
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            command.ExecuteNonQuery();
+                            // command.ExecuteNonQuery();
                         }
                         //Insert profile into the Coach table
                         using (SqlCommand command = new SqlCommand(queryString_Coach, connection)) {
@@ -188,7 +190,7 @@ namespace TinderCloneV1 {
                             log.LogInformation($"{ coachProfile.coach.workload}");
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
-                            command.ExecuteNonQuery();
+                            // command.ExecuteNonQuery();
                         }
 
             
