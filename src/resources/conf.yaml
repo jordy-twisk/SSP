@@ -33,7 +33,7 @@ paths:
       tags:
       - Studentdata
       summary: get data call
-      operationId: dataCall
+      operationId: GetStudentByID
       description: Returns the student data based on the student number.
       parameters: 
         - in: path
@@ -63,7 +63,7 @@ paths:
       tags:
       - Studentdata
       summary: update data information
-      operationId: dataUpdate
+      operationId: UpdateUserByID
       description: Update a student data based on filters.
       parameters:
         - in: path
@@ -97,7 +97,7 @@ paths:
       tags:
       - Studentdata
       summary: search for student profiles
-      operationId: searchCall
+      operationId: GetAll
       description: Returns a list of student profiles from the database filtered by filters.
       # No parameters returns back every profile.
       parameters:
@@ -282,7 +282,7 @@ paths:
       tags:
         - Tutorant profile
       summary: get all tutorant profiles
-      operationId: tutorantProfileGet
+      operationId: GetAllTutorants
       description: Get all tutorant profiles.
       responses:
         '200':
@@ -307,7 +307,7 @@ paths:
       tags:
         - Tutorant profile
       summary: create user profile for a tutorant
-      operationId: tutorantProfileCreate
+      operationId: CreateTutorant
       description: Creates a new tutorant profile.
       requestBody:
         description: all info that is needed to create the tutorant + profile
@@ -334,7 +334,7 @@ paths:
       tags:
       - Tutorant profile
       summary: get tutorant and his profile.
-      operationId: tutorantProfileCall
+      operationId: GetTutorantByID
       description: Returns requested coach.
       parameters:
         - in: path
@@ -366,7 +366,7 @@ paths:
       tags:
       - Tutorant profile
       summary: delete tutorant profile information
-      operationId: tutorantProfileDelete
+      operationId: DeleteTutorantByID
       description: Delete a tutorant profile.
       parameters:
         - in: path
@@ -459,7 +459,7 @@ paths:
       tags:
         - CoachTutorant
       summary: create coach tutorant connection
-      operationId: coachTutorantCreate
+      operationId: CreateConnection
       description: Creates a new coach with tutorant connection.
       requestBody:
         description: all info that is needed to create the coach tutorant conenction.
@@ -486,7 +486,7 @@ paths:
       tags:
         - CoachTutorant
       summary: get all coach connections with their tutorants.
-      operationId: coachTutorantConnectionsGet
+      operationId: GetAllCoachConnections
       description: get all coach connections with their tutorants.
       parameters:        
         - in: path
@@ -517,15 +517,15 @@ paths:
     delete:
       tags:
         - CoachTutorant
-      operationId: coachTutorantConnectionDelete
+      operationId: DeleteCoachConnection
       description: Delete all connections to coach.
       parameters: 
         - in: path
           name: studentID
-          schema:
-            type: integer
           description: ID of the student.
           required: true
+          schema:
+            type: integer
       responses:
         '204':
           description: Deleted connections
@@ -542,7 +542,7 @@ paths:
       tags:
         - CoachTutorant
       summary: get tutorant connection with his coach.
-      operationId: tutorantCoachConnectionGet
+      operationId: GetTutorantConnectionByID
       description: Get the connection the tutorant has with his coach, to find out who his coach is.
       parameters:        
         - in: path
@@ -574,7 +574,7 @@ paths:
       tags:
         - CoachTutorant
       summary: modify coachTutorant connection
-      operationId: coachTutorantConnectionUpdate
+      operationId: UpdateConnectionByID
       description: Modify the info in the coachTutorant connection, used to change the status.
       parameters:
         - in: path
@@ -592,7 +592,7 @@ paths:
               $ref: '#/components/schemas/CoachTutorantConnection'
       responses:
           '200':
-            description: modified.
+            description: Modified.
           '400':
             description: Undocumented filter parameter.
           '401':
@@ -606,7 +606,7 @@ paths:
     delete:
       tags:
         - CoachTutorant
-      operationId: tutorantCoachConnectionDelete
+      operationId: DeleteTutorantConnection
       description: Delete tutorant connection to coach.
       parameters: 
         - in: path
@@ -629,7 +629,7 @@ paths:
       tags: 
       - Messages
       summary: get messages
-      operationId: messagesCall
+      operationId: GetAllMessages
       description: Returns some messages, default number of last messages is 20 that will be returned.
       parameters: 
         - in: path
@@ -673,7 +673,7 @@ paths:
       tags:
         - Message
       summary: get message
-      operationId: messageCall
+      operationId: GetMessageByID
       description: Returns a specific message.
       parameters: 
         - in: path
@@ -703,7 +703,7 @@ paths:
       tags:
         - Message
       summary: modify message
-      operationId: messageUpdate
+      operationId: UpdateMessageByID
       description: Changes the messages by the user's choice.
       parameters: 
         - in: path
@@ -751,7 +751,7 @@ paths:
       tags:
         - Message
       summary: delete a message
-      operationId: messageDelete
+      operationId: DeleteMessageByID
       description: Delete a specific message.
       parameters: 
         - in: path
@@ -776,7 +776,7 @@ paths:
       tags:
       - Message
       summary: post message
-      operationId: messagePost
+      operationId: CreateMessage
       description: post a message to the API.
       requestBody:
         description: all info needed to create message.
@@ -844,10 +844,10 @@ components:
       TutorantProfile:
         type: object
         required:
-          - profile
+          - user
           - student
         properties:
-          profile:
+          user:
             type: object
             $ref: '#/components/schemas/Student'
           student:
@@ -865,10 +865,10 @@ components:
       CoachProfile:
         type: object
         required:
-          - profile
+          - user
           - coach
         properties:
-          profile:
+          user:
             type: object
             $ref: '#/components/schemas/Student'
           coach:
@@ -925,7 +925,7 @@ components:
             type: integer
             # couchStudentNumber + tutorantStudentNumber + increment creates a unique id.
             # Saved as separate fields.
-            example: 590539510539
+            example: 59053939
           #coachStudentID:
           #  type: integer
           #  example: 590539
