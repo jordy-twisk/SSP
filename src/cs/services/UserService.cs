@@ -205,9 +205,7 @@ namespace TinderCloneV1 {
                 log.LogError($"Request body was empty nothing to change for student: {studentID}");
             }
 
-            return new HttpResponseMessage(HttpStatusCode.OK) {
-                Content = new StringContent($" Changed data of student: {studentID}")
-            };
+            return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
         public string SafeGetString(SqlDataReader reader, int index) {
             if (!reader.IsDBNull(index))
