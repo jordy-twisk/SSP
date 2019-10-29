@@ -46,3 +46,9 @@ def s_studentData():
     'interests':	  {'type': 'string'}
   }
   return studentData
+def s_coach():
+  coach = {
+	  'studentID': 	{'type': 'integer'},
+	  'workload':	{'type': 'integer'}
+  }
+  return coach

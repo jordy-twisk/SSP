@@ -2,10 +2,15 @@ import pytest
 import requests
 import os
 import api_info as a
+from cerberus import Validator
 
 def test_get_coaches():
   r = requests.get(a.api_link() + "profile/coach")
   assert r.status_code == 200, r.status_code
+  v = Validator(a.s_coach())
+  assert v.validate(r.json()[0]['coach']) == True, v.errors
+  v = Validator(a.s_studentData())
+  assert v.validate(r.json()[0]['user']) == True, v.errors
 def test_post_coach():
   a.delete_coach()
   payload = "{\n    \"coach\": {\n      \"studentID\": \""+ a.coachId() + "\",\n      \"workload\": 10\n    },\n  \n    \"user\": {\n      \"studentID\": \""+ a.coachId() + "\",\n      \"firstName\": \"TestCoach\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a coach\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n    }}"  
