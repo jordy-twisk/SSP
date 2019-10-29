@@ -141,10 +141,7 @@ namespace TinderCloneV1 {
             // or
             // the senderID is that of the tutorantID and the receiverID is that of the coachID.
 
-            queryString = $@"SELECT [dbo].[Message].*
-                            FROM [dbo].[Message]
-                            INNER JOIN [dbo].[Conversation] 
-                            ON [dbo].[Conversation].MessageID = [dbo].[Message].MessageID
+            queryString = $@"SELECT * FROM [dbo].[Message]
                             WHERE (senderID = @coachID AND receiverID = @tutorantID) OR  
                             (senderID = @tutorantID AND receiverID = @coachID);";
 
