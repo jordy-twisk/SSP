@@ -18,7 +18,7 @@ API for MBO &amp; HBO students
 
 - [] Verify YAML matches CoachService
 
-- [] Verify YAML matches CoachTutorantService
+- [x] Verify YAML matches CoachTutorantService
 
 - [] Verify YAML matches MessageService
 
@@ -40,7 +40,7 @@ A list of all files which are completed, tested and (if needed) match their API 
 
 | File                  | Checked by | Checked on (dd/mm/yyyy) | Latest Version |
 |-----------------------|------------|-------------------------| -------------- |
-|                       |            | dd/mm/yyyy              | yes/no         |
+| CoachTutorantServices | Mike       | 31/10/2019              | yes            |
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |

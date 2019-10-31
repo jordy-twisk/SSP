@@ -95,7 +95,7 @@ namespace TinderCloneV1 {
             var jsonToReturn = JsonConvert.SerializeObject(listOfCoachProfiles);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully.");
 
-            //Return response code [200 OK].
+            //Return response code [200 OK] and the requested data.
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
@@ -209,14 +209,14 @@ namespace TinderCloneV1 {
                         //Reasons for this failure may include a PK violation (entering an already existing studentID).
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log); 
             }
 
             log.LogInformation($"{HttpStatusCode.Created} | Profile created succesfully.");
@@ -285,20 +285,20 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.BadRequest(log);
+                        return exceptionHandler.BadRequest(log); 
                     }
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.ServiceUnavailable(log);
+                return exceptionHandler.ServiceUnavailable(log); 
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(newCoachProfile);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully.");
 
-            //Return response code [201 Created] and the requested data.
+            //Return response code [200 OK] and the requested data.
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
@@ -333,7 +333,13 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
-                            command.ExecuteNonQuery();
+                             int affectedRows = command.ExecuteNonQuery();
+
+                            //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
+                            if (affectedRows == 0) {
+                                log.LogError("Zero rows were affected while deleting from the Coach table.");
+                                return exceptionHandler.NotFoundException(log);
+                            }
                         }
 
                         //Delete the profile from the Students table
@@ -343,20 +349,26 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            command.ExecuteNonQuery();
+                            int affectedRows = command.ExecuteNonQuery();
+
+                            //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
+                            if (affectedRows == 0) {
+                                log.LogError("Zero rows were affected while deleting from the Student table.");
+                                return exceptionHandler.NotFoundException(log);
+                            }
                         }
                     } catch (SqlException e) {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log); 
             }
 
             log.LogInformation($"{HttpStatusCode.NoContent} | Data deleted succesfully.");
@@ -408,14 +420,14 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log); 
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(newCoach);
@@ -465,7 +477,13 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            command.ExecuteNonQuery();
+                            int affectedRows = command.ExecuteNonQuery();
+
+                            //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
+                            if (affectedRows == 0) {
+                                log.LogError("Zero rows were affected.");
+                                return exceptionHandler.NotFoundException(log);
+                            }
                         }
                     } catch (SqlException e) {
                         //The Query may fail, in which case a [400 Bad Request] is returned.

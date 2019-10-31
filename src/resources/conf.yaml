@@ -58,7 +58,7 @@ paths:
         '429':
           description: Too many request on the database.
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
     put:
       tags:
       - Studentdata
@@ -91,7 +91,7 @@ paths:
         '429':
           description: Too many request on the database.
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
   /api/students/search:
     get:
       tags:
@@ -167,17 +167,16 @@ paths:
         '429':
           description: Too many requests
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
   /api/profile/coach:
     get:
       tags:
         - Coach profile
-      summary: get all coach profiles.
       operationId: GetAllCoachProfiles
       description: Get all coach profiles.
       responses:
         '200':
-          description: Returned profiles
+          description: Returns all coachprofiles
           content:
             application/json:
               schema:
@@ -185,21 +184,22 @@ paths:
                 items:
                   $ref: '#/components/schemas/CoachProfile'
         '400':
-          description: Undocumented filter parameter.
+          description: Query has failed.
         '401':
           description: Student password is not accepted.
+        '404':
+          description: No coachprofiles available.
         '429':
-          description: Too many requests
+          description: Too many requests.
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
     post:
       tags:
         - Coach profile
-      summary: create user profile for a coach
       operationId: CreateCoachProfile
       description: Creates a new coach profile.
       requestBody:
-        description: all info that is needed to create the coach + profile
+        description: CoachProfile containing at least a studentID and workload
         required: true
         content:
           application/json:
@@ -208,33 +208,30 @@ paths:
       responses:
         '201':
           description: Has been created.
+        '400':
+          description: Requestbody missing data and/or studentID mismatching between student and coach object and/or query failing.
         '401':
           description: Student password is not accepted.
-        '404':
-          description: Student number not in database.
-        '409':
-          description: Student number already exists.
         '429':
           description: Too many request on the database
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
   /api/profile/coach/{studentID}:
     get:
       tags:
       - Coach profile
-      summary: get coach and his profile
       operationId: GetCoachProfileByID
-      description: Returns requested coach.
+      description: Returns coachprofile of coach.
       parameters:
         - in: path
           name: studentID
-          description: The student number is the students personal id.
+          description: The studentID of the coach.
           required: true
           schema:
             type: integer
       responses:
           '200':
-            description: Return coach + his student profile.
+            description: Return CoachProfile of the requested coach.
             content:
                 application/json:
                     schema:
@@ -242,19 +239,18 @@ paths:
                         items:
                             $ref: '#/components/schemas/CoachProfile'
           '400':
-            description: Undocumented filter parameter.
+            description: Query has failed.
           '401':
             description: Student password is not accepted.
           '404':
-            description: Student number not in database.
+            description: No CoachProfile found for requested studentID.
           '429':
             description: Too many requests
           '503':
-            description: External component or database or service is unavailable at the moment.
+            description: Database or other services are unavailable at the moment.
     delete:
       tags:
       - Coach profile
-      summary: delete coach profile information
       operationId: DeleteCoachProfileByID
       description: Delete a coach profile.
       parameters:
@@ -268,15 +264,15 @@ paths:
             '204':
               description: Delete was successful.
             '400':
-               description: Delete has failed.
+              description: Query failed. 
             '401':
               description: Student password is not accepted.
             '404':
-              description: Delete has failed no studentnumber exists.
+              description: Query was succesful but affected zero rows.
             '429':
               description: Too many request on the database.
             '503':
-              description: External component or database or service is unavailable at the moment.
+              description: Database or other services are unavailable at the moment.
   /api/profile/tutorant:
     get:
       tags:
@@ -302,7 +298,7 @@ paths:
         '429':
           description: Too many request on the database
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
     post:
       tags:
         - Tutorant profile
@@ -330,7 +326,7 @@ paths:
         '429':
           description: Too many request on the database
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
   /api/profile/tutorant/{studentID}:
     get:
       tags:
@@ -363,7 +359,7 @@ paths:
           '429':
             description: Too many requests
           '503':
-            description: External component or database or service is unavailable at the moment.
+            description: Database or other services are unavailable at the moment.
     delete:
       tags:
       - Tutorant profile
@@ -389,12 +385,11 @@ paths:
             '429':
               description: Too many request on the database.
             '503':
-              description: External component or database or service is unavailable at the moment.
+              description: Database or other services are unavailable at the moment.
   /api/coach/{studentID}:
     get:
       tags:
       - Coach profile
-      summary: get coach and workload
       operationId: GetCoachByID
       description: Returns requested coach and his maximum workload.
       parameters:
@@ -414,19 +409,18 @@ paths:
                   items:
                     $ref: '#/components/schemas/Coach'
           '400':
-            description: Undocumented filter parameter.
+            description: Query failed.
           '401':
             description: Student password is not accepted.
           '404':
-            description: Student number not in database.
+            description: No coach found for requested studentID.
           '429':
             description: Too many requests
           '503':
-            description: External component or database or service is unavailable at the moment.
+            description: Database or other services are unavailable at the moment.
     put:
       tags:
       - Coach profile
-      summary: update coach and workload
       operationId: UpdateCoachByID
       description: Returns requested coach and his maximum workload.
       parameters:
@@ -447,15 +441,15 @@ paths:
           '204':
             description: Update was successful.
           '400':
-            description: Undocumented filter parameter.
+            description: Query failed.
           '401':
             description: Student password is not accepted.
           '404':
-            description: Student number not in database.
+            description: Query was succesful but affected zero rows.
           '429':
             description: Too many requests
           '503':
-            description: External component or database or service is unavailable at the moment.
+            description: Database or other services are unavailable at the moment.
   /api/coachTutorant:
     put:
       tags:
@@ -473,9 +467,11 @@ paths:
           '204':
             description: Data updated succesfully.
           '400':
-            description: Incorrect requestbody and/or failing query.
+            description: Requestbody was missing data or the query failed.
           '401':
             description: Student password is not accepted.
+          '404':
+            description: Query was succesful but affected zero rows.
           '429':
             description: Too many request on the database.
           '503':
@@ -531,6 +527,8 @@ paths:
           description: Query has failed.
         '401':
           description: Student password is not accepted.
+        '404':
+          description: Query was succesful but affected zero rows.
         '429':
           description: Too many request on the database.
         '503':
@@ -613,9 +611,11 @@ paths:
         '204':
           description: Connection has succesfully been deleted.
         '400':
-          description: No data to delete
+          description: Query has failed.
         '401':
           description: Student password is not accepted.
+        '404':
+          description: Query was succesful but zero rows were affected.
         '429':
           description: Too many request on the database. 
         '503':
@@ -662,7 +662,7 @@ paths:
         '429':
           description: Too many request on the database.
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
   /api/message/{messageID}:
     #think about if we need this one, or remove, because why would we only get one message?
     get:
@@ -694,7 +694,7 @@ paths:
         '429':
           description: Too many request on the database.
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
     put:
       tags:
         - Message
@@ -742,7 +742,7 @@ paths:
         '429':
           description: Too many request on the database.
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
     delete:
       tags:
         - Message
@@ -766,7 +766,7 @@ paths:
         '429':
           description: Too many request on the database.
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
   /api/message:  
     post:
       tags:
@@ -791,7 +791,7 @@ paths:
         '429':
           description: Too many request on the database.
         '503':
-          description: External component or database or service is unavailable at the moment.
+          description: Database or other services are unavailable at the moment.
 
 components:
     securitySchemes:

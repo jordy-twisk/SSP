@@ -67,10 +67,10 @@ namespace TinderCloneV1 {
 
                             int affectedRows = command.ExecuteNonQuery();
 
-                            //The SQL query must have been incorrect if no rows were executed, return a [400 Bad Request].
+                            //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
                             if(affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.BadRequest(log);
+                                return exceptionHandler.NotFoundException(log);
                             }
                         }
                     } catch (SqlException e) {
@@ -181,10 +181,10 @@ namespace TinderCloneV1 {
 
                             int affectedRows = command.ExecuteNonQuery();
 
-                            //The SQL query must have been incorrect if no rows were executed, return a [400 Bad Request].
+                            //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.BadRequest(log);
+                                return exceptionHandler.NotFoundException(log);
                             }
                         }
 
@@ -356,10 +356,10 @@ namespace TinderCloneV1 {
 
                             int affectedRows = command.ExecuteNonQuery();
 
-                            //The SQL query must have been incorrect if no rows were executed, return a [400 Bad Request].
+                            //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.BadRequest(log);
+                                return exceptionHandler.NotFoundException(log);
                             }
                         }
 
