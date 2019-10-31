@@ -1,4 +1,4 @@
-using System;
+﻿﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -106,8 +106,11 @@ namespace TinderCloneV1 {
                 coachProfile = jObject.ToObject<CoachProfile>();
             }
             foreach (JProperty property in jObject.Properties()) {
-                using (StringReader reader = new StringReader(property.Value.ToString())) {
-                    userDataJson = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                if(property.Name == "user"){
+                    using (StringReader reader = new StringReader(property.Value.ToString())) {
+                        userDataJson = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                        log.LogInformation($"{userDataJson}");
+                    }
                 }
             }
             //Verify if all parameters for the Coach table exist,
@@ -138,6 +141,7 @@ namespace TinderCloneV1 {
 
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
             foreach (JProperty property in userDataJson.Properties()) {
+                log.LogInformation($"{property.Name}");
                 if(property.Name != "studentID"){
                     queryString_Student += $", {property.Name}";
                 }
@@ -147,8 +151,10 @@ namespace TinderCloneV1 {
             //Dynamically create the VALUES line of the SQL statement:
             queryString_Student += "VALUES (@studentID";
             foreach (JProperty property in userDataJson.Properties()) {
+                log.LogInformation($"{property.Name}");
                 if(property.Name != "studentID"){
                     queryString_Student += $", @{property.Name}";
+                    
                 }
             }
             queryString_Student += ");";
@@ -174,18 +180,20 @@ namespace TinderCloneV1 {
                             if (jObject["user"]["interests"] != null)   command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value =      coachProfile.user.interests;
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            command.ExecuteNonQuery();
+                            // command.ExecuteNonQuery();
                         }
-
                         //Insert profile into the Coach table
                         using (SqlCommand command = new SqlCommand(queryString_Coach, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = coachProfile.coach.studentID;
                             command.Parameters.Add("@workload", System.Data.SqlDbType.Int).Value = coachProfile.coach.workload;
+                            log.LogInformation($"{ coachProfile.coach.workload}");
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
-                            command.ExecuteNonQuery();
+                            // command.ExecuteNonQuery();
                         }
+
+            
                     } catch (SqlException e) {
                         //Return response code 503
                         log.LogError(e.Message);

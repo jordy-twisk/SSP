@@ -31,3 +31,18 @@ def create_tutorant():
 def delete_tutorant():
   import requests
   r = requests.delete(api_link() + "profile/tutorant/" + tutorantId())  
+
+def s_studentData():
+  studentData = {	
+    'studentID': 	  {'type': 'integer'},
+    'firstName': 	  {'type': 'string'},
+    'surName':	    {'type': 'string'},
+    'phoneNumber':	{'type': 'string'},
+    'photo':	      {'type': 'string'},
+    'description':	{'type': 'string'},
+    'degree':	      {'type': 'string'},
+    'study':	      {'type': 'string'},
+    'studyYear':	  {'type': 'integer'},
+    'interests':	  {'type': 'string'}
+  }
+  return studentData

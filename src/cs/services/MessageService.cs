@@ -35,30 +35,31 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> CreateMessage() {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             Message message;
-            JObject jObject;
+            JObject jObject = new JObject();
 
             // Read from the request body.
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 message = jObject.ToObject<Message>();
+                log.LogInformation($"{message}");
             }
 
             // Verify if all parameters for the Message table exist,
             // return response code 400 if one or more of the parameters are missing.
-            if (jObject["message"]["MessageID"] == null ||
-                jObject["message"]["type"] == null ||
-                jObject["message"]["payload"] == null ||
-                jObject["message"]["created"] == null ||
-                jObject["message"]["lastModified"] == null ||
-                jObject["message"]["senderID"] == null ||
-                jObject["message"]["receiverID"] == null) {
-                    log.LogError("Requestbody is missing data for the Message table!");
+            if (jObject["type"] == null ||
+                jObject["payload"] == null ||
+                jObject["created"] == null ||
+                jObject["lastModified"] == null ||
+                jObject["senderID"] == null ||
+                jObject["receiverID"] == null) {
+                    log.LogError($"Requestbody is missing data for the Message table!");
                     return exceptionHandler.BadRequest(log);
+                   
             }
 
             // All fields for the Message table are required.
-            queryString = $@"INSERT INTO [dbo].[Message] (MessageID, type, payload, created, lastModified)" +
-                $"VALUES (@MessageID, @type, @payload, @created, @lastModified);";
+            queryString = $@"INSERT INTO [dbo].[Message] (type, payload, created, lastModified, senderID, receiverID)" +
+                $"VALUES (@type, @payload, @created, @lastModified, @senderID, @receiverID);";
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
@@ -69,14 +70,17 @@ namespace TinderCloneV1 {
                         // Insert new message into the Message table.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
-                            command.Parameters.Add("@MessageID", System.Data.SqlDbType.Int).Value = message.MessageID;
+                            // command.Parameters.Add("@MessageID", System.Data.SqlDbType.Int).Value = message.MessageID;
                             command.Parameters.Add("@type", System.Data.SqlDbType.VarChar).Value = message.type;
                             command.Parameters.Add("@payload", System.Data.SqlDbType.VarChar).Value = message.payload;
                             command.Parameters.Add("@created", System.Data.SqlDbType.DateTime).Value = message.created;
                             command.Parameters.Add("@lastModified", System.Data.SqlDbType.DateTime).Value = message.lastModified;
+                            command.Parameters.Add("@senderID", System.Data.SqlDbType.Int).Value = message.senderID;
+                            command.Parameters.Add("@receiverID", System.Data.SqlDbType.Int).Value = message.receiverID;
+
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            command.ExecuteNonQuery();
+                            // command.ExecuteNonQuery();
                         }
                     }
                     catch (SqlException e) {
@@ -161,7 +165,7 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         listOfMessages.Add(new Message {
-                                            MessageID = reader.GetInt64(0),
+                                            MessageID = reader.GetInt32(0),
                                             type = reader.GetString(1),
                                             payload = reader.GetString(2),
                                             created = reader.GetDateTime(3),

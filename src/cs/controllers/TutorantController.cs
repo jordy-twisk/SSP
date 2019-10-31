@@ -22,10 +22,10 @@ namespace TinderCloneV1 {
             tutorantService = new TutorantService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
-                return await tutorantService.GetAllTutorants();
+                return await tutorantService.GetAllTutorantProfiles();
             }
             else if (req.Method == HttpMethod.Post) {
-                return await tutorantService.CreateTutorant();
+                return await tutorantService.CreateTutorantProfile();
             }
             else {
                 throw new NotImplementedException();
@@ -39,10 +39,10 @@ namespace TinderCloneV1 {
             tutorantService = new TutorantService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
-                return await tutorantService.GetTutorantByID(tutorantID);
+                return await tutorantService.GetTutorantProfileByID(tutorantID);
             } 
             else if (req.Method == HttpMethod.Delete) {
-                return await tutorantService.DeleteTutorantByID(tutorantID);
+                return await tutorantService.DeleteTutorantProfileByID(tutorantID);
             } 
             else {
                 throw new NotImplementedException();

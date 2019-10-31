@@ -3,9 +3,9 @@ using System.Net.Http;
 
 namespace TinderCloneV1 {
     public interface ITutorantService {
-        Task<HttpResponseMessage> GetAllTutorants();
-        Task<HttpResponseMessage> CreateTutorant();
-        Task<HttpResponseMessage> GetTutorantByID(int tutorantID);
-        Task<HttpResponseMessage> DeleteTutorantByID(int tutorantID);
+        Task<HttpResponseMessage> GetAllTutorantProfiles();
+        Task<HttpResponseMessage> CreateTutorantProfile();
+        Task<HttpResponseMessage> GetTutorantProfileByID(int tutorantID);
+        Task<HttpResponseMessage> DeleteTutorantProfileByID(int tutorantID);
     }
 }
