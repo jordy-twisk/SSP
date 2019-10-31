@@ -4,9 +4,9 @@ using System.Data.SqlClient;
 
 namespace TinderCloneV1 {
     public interface IUserService {
-        Task<HttpResponseMessage> GetAll();
+        Task<HttpResponseMessage> GetAllStudents();
         Task<HttpResponseMessage> GetStudentByID(int studentID);
-        Task<HttpResponseMessage> UpdateUserByID(int studentID);
+        Task<HttpResponseMessage> UpdateStudentByID(int studentID);
 
         // string SafeGetString(this SqlDataReader reader, int index);
 

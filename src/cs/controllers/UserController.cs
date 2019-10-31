@@ -14,17 +14,17 @@ namespace TinderCloneV1 {
             this.userService = userService;
         }
 
-        [FunctionName("Users")]
-        public async Task<HttpResponseMessage> GetUsers([HttpTrigger(AuthorizationLevel.Anonymous,
+        [FunctionName("GetAllStudents")]
+        public async Task<HttpResponseMessage> GetStudents([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
             userService = new UserService(req, request, log);
 
-            return await userService.GetAll();
+            return await userService.GetAllStudents();
         }
 
-        [FunctionName("UserByID")]
-        public async Task<HttpResponseMessage> GetUser([HttpTrigger(AuthorizationLevel.Anonymous, 
+        [FunctionName("StudentByID")]
+        public async Task<HttpResponseMessage> StudentByID([HttpTrigger(AuthorizationLevel.Anonymous, 
         "get", "put", Route = "student/{ID}")] HttpRequestMessage req, HttpRequest request, ILogger log, int ID) {
 
             userService = new UserService(req, request, log);
@@ -33,7 +33,7 @@ namespace TinderCloneV1 {
                 return await userService.GetStudentByID(ID);
             }
             else if (req.Method == HttpMethod.Put) {
-                return await userService.UpdateUserByID(ID);
+                return await userService.UpdateStudentByID(ID);
             } 
             else {
                 throw new NotImplementedException();

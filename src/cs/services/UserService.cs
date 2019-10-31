@@ -29,7 +29,11 @@ namespace TinderCloneV1 {
 
         private string queryString = null;
 
-        public async Task<HttpResponseMessage> GetAll() {
+        /*
+        Returns the data from all the students that were created (Coaches and Tutorants) 
+        based on the filters given by the user through query parameters.
+        */
+        public async Task<HttpResponseMessage> GetAllStudents() {
 
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
 
@@ -62,14 +66,14 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(str)) {
+                    connection.Open();
                     try {
-                        connection.Open();
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 while (reader.Read()) {
                                     listOfUsers.Add(new User {
                                         studentID = reader.GetInt32(0),
-                                        firstName = SafeGetString(reader, 1), 
+                                        firstName = SafeGetString(reader, 1),
                                         surName = SafeGetString(reader, 2),
                                         phoneNumber = SafeGetString(reader, 3),
                                         photo = SafeGetString(reader, 4),
@@ -82,16 +86,17 @@ namespace TinderCloneV1 {
                                 }
                             }
                         }
-                    }
+                    } 
                     catch (SqlException e) {
+                        log.LogError("Could not perform given query on the database");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
-            }
+            } 
             catch (SqlException e) {
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(listOfUsers);
@@ -112,8 +117,8 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(str)) {
+                    connection.Open();
                     try {
-                        connection.Open();
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = studentID;
                             using (SqlDataReader reader = command.ExecuteReader()) {
@@ -138,18 +143,18 @@ namespace TinderCloneV1 {
                                 }
                             }
                         }
-                    }
+                    } 
                     catch (SqlException e) {
+                        log.LogError("Could not perform given query on the database");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
-            }
+            } 
             catch (SqlException e) {
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
-
             var jsonToReturn = JsonConvert.SerializeObject(newUser);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
 
@@ -158,14 +163,13 @@ namespace TinderCloneV1 {
             };
         }
 
-        public async Task<HttpResponseMessage> UpdateUserByID(int studentID) {
+        public async Task<HttpResponseMessage> UpdateStudentByID(int studentID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(studentID);
 
             User newUser;
-            string body = await req.Content.ReadAsStringAsync();
             JObject jObject = new JObject();
 
-            using (StringReader reader = new StringReader(body)) {
+            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 newUser = jObject.ToObject<User>();
             }
