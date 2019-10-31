@@ -39,7 +39,7 @@ namespace TinderCloneV1 {
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
                     //The connection is automatically closed when going out of scope of the using block.
-                    //The connection may fail to open, in which case a [503 Service Unavailable] will be given.
+                    //The connection may fail to open, in which case return a [503 Service Unavailable].
                     connection.Open();
 
                     try {
