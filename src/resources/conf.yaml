@@ -282,7 +282,7 @@ paths:
       tags:
         - Tutorant profile
       summary: get all tutorant profiles
-      operationId: GetAllTutorants
+      operationId: GetAllTutorantProfiles
       description: Get all tutorant profiles.
       responses:
         '200':
@@ -307,7 +307,7 @@ paths:
       tags:
         - Tutorant profile
       summary: create user profile for a tutorant
-      operationId: CreateTutorant
+      operationId: CreateTutorantProfile
       description: Creates a new tutorant profile.
       requestBody:
         description: all info that is needed to create the tutorant + profile
@@ -318,7 +318,9 @@ paths:
               $ref: '#/components/schemas/TutorantProfile'
       responses:
         '201':
-          description: Has been created.
+          description: TutorantProfile has been created.
+        '400':
+          description: Requestbody incomplete or studentIDs do not match
         '401':
           description: Student password is not accepted.
         '404':
@@ -334,7 +336,7 @@ paths:
       tags:
       - Tutorant profile
       summary: get tutorant and his profile.
-      operationId: GetTutorantByID
+      operationId: GetTutorantProfileByID
       description: Returns requested coach.
       parameters:
         - in: path
@@ -366,7 +368,7 @@ paths:
       tags:
       - Tutorant profile
       summary: delete tutorant profile information
-      operationId: DeleteTutorantByID
+      operationId: DeleteTutorantProfileByID
       description: Delete a tutorant profile.
       parameters:
         - in: path

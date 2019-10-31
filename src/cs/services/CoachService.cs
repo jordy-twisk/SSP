@@ -53,20 +53,20 @@ namespace TinderCloneV1 {
                                     while (reader.Read()) {
                                         listOfCoachProfiles.Add(new CoachProfile(
                                             new Coach {
-                                                studentID = reader.GetInt32(0),
-                                                workload = SafeGetInt(reader, 10)
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                                workload = GeneralFunctions.SafeGetInt(reader, 10)
                                             },
                                             new User {
-                                                studentID = reader.GetInt32(0),
-                                                firstName = SafeGetString(reader, 1),
-                                                surName = SafeGetString(reader, 2),
-                                                phoneNumber = SafeGetString(reader, 3),
-                                                photo = SafeGetString(reader, 4),
-                                                description = SafeGetString(reader, 5),
-                                                degree = SafeGetString(reader, 6),
-                                                study = SafeGetString(reader, 7),
-                                                studyYear = SafeGetInt(reader, 8),
-                                                interests = SafeGetString(reader, 9)
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                                firstName = GeneralFunctions.SafeGetString(reader, 1),
+                                                surName = GeneralFunctions.SafeGetString(reader, 2),
+                                                phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
+                                                photo = GeneralFunctions.SafeGetString(reader, 4),
+                                                description = GeneralFunctions.SafeGetString(reader, 5),
+                                                degree = GeneralFunctions.SafeGetString(reader, 6),
+                                                study = GeneralFunctions.SafeGetString(reader, 7),
+                                                studyYear = GeneralFunctions.SafeGetInt(reader, 8),
+                                                interests = GeneralFunctions.SafeGetString(reader, 9)
                                             }
                                         ));
                                     }
@@ -97,22 +97,14 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> CreateCoachProfile() {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             CoachProfile coachProfile;
-            JObject jObject = new JObject();
-            JObject userDataJson = new JObject();
+            JObject jObject;
 
             //Read from the requestBody
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 coachProfile = jObject.ToObject<CoachProfile>();
             }
-            foreach (JProperty property in jObject.Properties()) {
-                if(property.Name == "user"){
-                    using (StringReader reader = new StringReader(property.Value.ToString())) {
-                        userDataJson = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                        log.LogInformation($"{userDataJson}");
-                    }
-                }
-            }
+
             //Verify if all parameters for the Coach table exist,
             //return response code 400 if one or more is missing
             if (jObject["coach"]["studentID"] == null || jObject["coach"]["workload"] == null) {
@@ -126,37 +118,42 @@ namespace TinderCloneV1 {
                 log.LogError("Requestbody is missing data for the student table!");
                 return exceptionHandler.BadRequest(log);
             }
-            
-            if(coachProfile.coach.studentID != coachProfile.user.studentID){
-                log.LogError("Coach studentID must be the same as User StudentID!");
+
+            //Verify if the studentID of the "user" and the "coach" objects match
+            if (coachProfile.user.studentID != coachProfile.coach.studentID) {
+                log.LogError("RequestBody has mismatching studentID for user and coach objects!");
                 return exceptionHandler.BadRequest(log);
             }
-            
+                 
             //All fields for the Coach table are required
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
                                             VALUES (@studentID, @workload);";
 
             //Since the query string for the Student table contains many optional fields it needs to be dynamically created
             //Dynamically create the INSERT INTO line of the SQL statement:
-
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
-            foreach (JProperty property in userDataJson.Properties()) {
-                log.LogInformation($"{property.Name}");
-                if(property.Name != "studentID"){
-                    queryString_Student += $", {property.Name}";
-                }
-            }
+            if (jObject["user"]["firstName"] != null)       queryString_Student += ", firstName";
+            if (jObject["user"]["surName"] != null)         queryString_Student += ", surName";
+            if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", phoneNumber";
+            if (jObject["user"]["photo"] != null)           queryString_Student += ", photo";
+            if (jObject["user"]["description"] != null)     queryString_Student += ", description";
+            if (jObject["user"]["degree"] != null)          queryString_Student += ", degree";
+            if (jObject["user"]["study"] != null)           queryString_Student += ", study";
+            if (jObject["user"]["studyYear"] != null)       queryString_Student += ", studyYear";
+            if (jObject["user"]["interests"] != null)       queryString_Student += ", interests";
             queryString_Student += ") ";
 
             //Dynamically create the VALUES line of the SQL statement:
             queryString_Student += "VALUES (@studentID";
-            foreach (JProperty property in userDataJson.Properties()) {
-                log.LogInformation($"{property.Name}");
-                if(property.Name != "studentID"){
-                    queryString_Student += $", @{property.Name}";
-                    
-                }
-            }
+            if (jObject["user"]["firstName"] != null)       queryString_Student += ", @firstName";
+            if (jObject["user"]["surName"] != null)         queryString_Student += ", @surName";
+            if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", @phoneNumber";
+            if (jObject["user"]["photo"] != null)           queryString_Student += ", @photo";
+            if (jObject["user"]["description"] != null)     queryString_Student += ", @description";
+            if (jObject["user"]["degree"] != null)          queryString_Student += ", @degree";
+            if (jObject["user"]["study"] != null)           queryString_Student += ", @study";
+            if (jObject["user"]["studyYear"] != null)       queryString_Student += ", @studyYear";
+            if (jObject["user"]["interests"] != null)       queryString_Student += ", @interests";
             queryString_Student += ");";
 
             try {
@@ -169,39 +166,40 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = coachProfile.user.studentID;
-                            if (jObject["user"]["firstName"] != null)   command.Parameters.Add("@firstName", System.Data.SqlDbType.NVarChar).Value =     coachProfile.user.firstName;
-                            if (jObject["user"]["surName"] != null)     command.Parameters.Add("@surName", System.Data.SqlDbType.NVarChar).Value =       coachProfile.user.surName;
-                            if (jObject["user"]["phoneNumber"] != null) command.Parameters.Add("@phoneNumber", System.Data.SqlDbType.NVarChar).Value =   coachProfile.user.phoneNumber;
-                            if (jObject["user"]["photo"] != null)       command.Parameters.Add("@photo", System.Data.SqlDbType.VarChar).Value =          coachProfile.user.photo;
-                            if (jObject["user"]["description"] != null) command.Parameters.Add("@description", System.Data.SqlDbType.VarChar).Value =    coachProfile.user.description;
-                            if (jObject["user"]["degree"] != null)      command.Parameters.Add("@degree", System.Data.SqlDbType.NVarChar).Value =        coachProfile.user.degree;
-                            if (jObject["user"]["study"] != null)       command.Parameters.Add("@study", System.Data.SqlDbType.NVarChar).Value =         coachProfile.user.study;
-                            if (jObject["user"]["studyYear"] != null)   command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value =          coachProfile.user.studyYear;
-                            if (jObject["user"]["interests"] != null)   command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value =      coachProfile.user.interests;
+                            if (jObject["user"]["firstName"] != null)       command.Parameters.Add("@firstName",    System.Data.SqlDbType.VarChar).Value =      coachProfile.user.firstName;
+                            if (jObject["user"]["surName"] != null)         command.Parameters.Add("@surName",      System.Data.SqlDbType.VarChar).Value =      coachProfile.user.surName;
+                            if (jObject["user"]["phoneNumber"] != null)     command.Parameters.Add("@phoneNumber",  System.Data.SqlDbType.VarChar).Value =      coachProfile.user.phoneNumber;
+                            if (jObject["user"]["photo"] != null)           command.Parameters.Add("@photo",        System.Data.SqlDbType.VarChar).Value =      coachProfile.user.photo;
+                            if (jObject["user"]["description"] != null)     command.Parameters.Add("@description",  System.Data.SqlDbType.VarChar).Value =      coachProfile.user.description;
+                            if (jObject["user"]["degree"] != null)          command.Parameters.Add("@degree",       System.Data.SqlDbType.VarChar).Value =      coachProfile.user.degree;
+                            if (jObject["user"]["study"] != null)           command.Parameters.Add("@study",        System.Data.SqlDbType.VarChar).Value =      coachProfile.user.study;
+                            if (jObject["user"]["studyYear"] != null)       command.Parameters.Add("@studyYear",    System.Data.SqlDbType.Int).Value =          coachProfile.user.studyYear;
+                            if (jObject["user"]["interests"] != null)       command.Parameters.Add("@interests",    System.Data.SqlDbType.VarChar).Value =      coachProfile.user.interests;
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            // command.ExecuteNonQuery();
+                            command.ExecuteNonQuery();
                         }
+
                         //Insert profile into the Coach table
                         using (SqlCommand command = new SqlCommand(queryString_Coach, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = coachProfile.coach.studentID;
                             command.Parameters.Add("@workload", System.Data.SqlDbType.Int).Value = coachProfile.coach.workload;
-                            log.LogInformation($"{ coachProfile.coach.workload}");
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
-                            // command.ExecuteNonQuery();
+                            command.ExecuteNonQuery();
                         }
-
-            
                     } catch (SqlException e) {
+                        //This error might occur because of a PK key violation (trying to enter a already existing studentID)
                         //Return response code 503
+                        log.LogError("Test1");
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
                     }
                 }
             } catch (SqlException e) {
                 //Return response code 400
+                log.LogError("Test2");
                 log.LogError(e.Message);
                 return exceptionHandler.BadRequest(log);
             }
@@ -243,20 +241,20 @@ namespace TinderCloneV1 {
                                     while (reader.Read()) {
                                         newCoachProfile = new CoachProfile(
                                             new Coach {
-                                                studentID = reader.GetInt32(0),
-                                                workload = SafeGetInt(reader, 10)
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                                workload = GeneralFunctions.SafeGetInt(reader, 10)
                                             },
                                             new User {
-                                                studentID = reader.GetInt32(0),
-                                                firstName = SafeGetString(reader, 1),
-                                                surName = SafeGetString(reader, 2),
-                                                phoneNumber = SafeGetString(reader, 3),
-                                                photo = SafeGetString(reader, 4),
-                                                description = SafeGetString(reader, 5),
-                                                degree = SafeGetString(reader, 6),
-                                                study = SafeGetString(reader, 7),
-                                                studyYear = SafeGetInt(reader, 8),
-                                                interests = SafeGetString(reader, 9)
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                                firstName = GeneralFunctions.SafeGetString(reader, 1),
+                                                surName = GeneralFunctions.SafeGetString(reader, 2),
+                                                phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
+                                                photo = GeneralFunctions.SafeGetString(reader, 4),
+                                                description = GeneralFunctions.SafeGetString(reader, 5),
+                                                degree = GeneralFunctions.SafeGetString(reader, 6),
+                                                study = GeneralFunctions.SafeGetString(reader, 7),
+                                                studyYear = GeneralFunctions.SafeGetInt(reader, 8),
+                                                interests = GeneralFunctions.SafeGetString(reader, 9)
                                             }
                                         );
                                     }
@@ -367,8 +365,8 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         newCoach = new Coach {
-                                            studentID = reader.GetInt32(0),
-                                            workload = SafeGetInt(reader, 1)
+                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                            workload = GeneralFunctions.SafeGetInt(reader, 1)
                                         };
                                     }
                                 }
@@ -396,12 +394,6 @@ namespace TinderCloneV1 {
         }
 
         //Updates the workload of the coach (in the coach table)
-        /*
-         * Example requestbody for use in Postman (testing):
-            {
-                "workload": 5
-            } 
-        */
         public async Task<HttpResponseMessage> UpdateCoachByID(int coachID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
             Coach newCoach;
@@ -454,18 +446,6 @@ namespace TinderCloneV1 {
 
             //Return response code 204
             return new HttpResponseMessage(HttpStatusCode.NoContent);
-        }
-
-        public string SafeGetString(SqlDataReader reader, int index) {
-            if (!reader.IsDBNull(index))
-                return reader.GetString(index);
-            return string.Empty;
-        }
-
-        public int SafeGetInt(SqlDataReader reader, int index) {
-            if (!reader.IsDBNull(index))
-                return reader.GetInt32(index);
-            return 0;
         }
     }
 }
