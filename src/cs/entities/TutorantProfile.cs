@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace TinderCloneV1 {
-    class TutorantProfile {
+    public class TutorantProfile {
         [JsonProperty("tutorant")]
         public Tutorant tutorant{
             get;
