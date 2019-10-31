@@ -219,7 +219,7 @@ namespace TinderCloneV1 {
                 return exceptionHandler.BadRequest(log);
             }
 
-            log.LogInformation($"{HttpStatusCode.Created} | Profile created succesfully");
+            log.LogInformation($"{HttpStatusCode.Created} | Profile created succesfully.");
 
             //Return response code [201 Created].
             return new HttpResponseMessage(HttpStatusCode.Created);
