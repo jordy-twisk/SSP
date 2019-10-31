@@ -39,14 +39,15 @@ namespace TinderCloneV1 {
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
                     //The connection is automatically closed when going out of scope of the using block.
-                    //The connection may fail to open, in which case return a [503 Service Unavailable].
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
 
                     try {
+                        //Get profile from the Student and Coach tables
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            //The Query may fail, in which case return a [400 Bad Request].
+                            //The Query may fail, in which case a [400 Bad Request] is returned.
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
                                     //Query was succesfully executed, but returned no data.
@@ -78,14 +79,14 @@ namespace TinderCloneV1 {
                             }
                         }
                     } catch (SqlException e) {
-                        //The Query may fail, in which case return a [400 Bad Request].
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
                         return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
-                //The connection may fail to open, in which case return a [503 Service Unavailable].
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
                 return exceptionHandler.ServiceUnavailable(log); 
@@ -111,21 +112,22 @@ namespace TinderCloneV1 {
                 coachProfile = jObject.ToObject<CoachProfile>();
             }
 
-            //Verify if all parameters for the Coach table exist,
-            //One or more parameters may be missing, in which case return a [400 Bad Request].
+            //Verify if all parameters for the Coach table exist.
+            //One or more parameters may be missing, in which case a [400 Bad Request] is returned.
             if (jObject["coach"]["studentID"] == null || jObject["coach"]["workload"] == null) {
                 log.LogError("Requestbody is missing data for the coach table!");
                 return exceptionHandler.BadRequest(log);
             }
 
-            //Verify if all required parameters for the Student table exist,
-            //return response code 400 if one or more is missing
+            //Verify if all required parameters for the Student table exist.
+            //One or more parameters may be missing, in which case a [400 Bad Request] is returned.
             if (jObject["user"]["studentID"] == null) {
                 log.LogError("Requestbody is missing data for the student table!");
                 return exceptionHandler.BadRequest(log);
             }
 
-            //Verify if the studentID of the "user" and the "coach" objects match
+            //Verify if the studentID of the "user" and the "coach" objects match.
+            //A [400 Bad Request] is returned if these are mismatching.
             if (coachProfile.user.studentID != coachProfile.coach.studentID) {
                 log.LogError("RequestBody has mismatching studentID for user and coach objects!");
                 return exceptionHandler.BadRequest(log);
@@ -134,8 +136,11 @@ namespace TinderCloneV1 {
             //All fields for the Coach table are required
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
                                             VALUES (@studentID, @workload);";
+            
+            //The SQL query for the Students table has to be dynamically generated, as it contains many optional fields.
+            //By manually adding the columns to the query string (if they're present in the request body) we prevent
+            //SQL injection and ensure no illegitimate columnnames are entered into the SQL query.
 
-            //Since the query string for the Student table contains many optional fields it needs to be dynamically created
             //Dynamically create the INSERT INTO line of the SQL statement:
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
             if (jObject["user"]["firstName"] != null)       queryString_Student += ", firstName";
@@ -164,11 +169,13 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        //The connection is automatically closed when going out of scope of the using block
-                        connection.Open();
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case return a [503 Service Unavailable].
+                    connection.Open();
 
-                        //Insert profile into the Student table
+                    try {
+                        //Insert profile into the Student table.
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = coachProfile.user.studentID;
