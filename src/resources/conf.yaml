@@ -612,6 +612,8 @@ paths:
       responses:
         '204':
           description: Connection has succesfully been deleted.
+        '400':
+          description: No data to delete
         '401':
           description: Student password is not accepted.
         '429':

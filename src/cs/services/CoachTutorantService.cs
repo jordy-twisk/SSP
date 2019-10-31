@@ -46,8 +46,8 @@ namespace TinderCloneV1 {
             }
 
             string queryString = $@"UPDATE [dbo].[CoachTutorantConnection]
-                                    SET workload = @status
-                                    WHERE studentIDTutorant = @studentIDTutorant AND studentIDCoach == @studentIDCoach;";
+                                    SET status = @status
+                                    WHERE studentIDTutorant = @studentIDTutorant AND studentIDCoach = @studentIDCoach;";
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
@@ -65,20 +65,26 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@studentIDCoach", System.Data.SqlDbType.Int).Value = coachTutorantConnection.studentIDCoach;
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            command.ExecuteNonQuery();
+                            int affectedRows = command.ExecuteNonQuery();
+
+                            //The SQL query must have been incorrect if no rows were executed, return a [400 Bad Request].
+                            if(affectedRows == 0) {
+                                log.LogError("Zero rows were affected.");
+                                return exceptionHandler.BadRequest(log);
+                            }
                         }
                     } catch (SqlException e) {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log); 
             }
 
             log.LogInformation($"{HttpStatusCode.NoContent} | Data updated succesfully.");
@@ -131,14 +137,14 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log); 
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(listOfCoachTutorantConnections);
@@ -173,21 +179,27 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            command.ExecuteNonQuery();
+                            int affectedRows = command.ExecuteNonQuery();
+
+                            //The SQL query must have been incorrect if no rows were executed, return a [400 Bad Request].
+                            if (affectedRows == 0) {
+                                log.LogError("Zero rows were affected.");
+                                return exceptionHandler.BadRequest(log);
+                            }
                         }
 
                     } catch (SqlException e) {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log); 
             }
 
             log.LogInformation($"{HttpStatusCode.NoContent} | Data deleted succesfully.");
@@ -240,14 +252,14 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log); 
                     }
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(coachTutorantConnection);
@@ -303,14 +315,14 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
 
             log.LogInformation($"{HttpStatusCode.Created} | Connection created succesfully.");
@@ -326,7 +338,7 @@ namespace TinderCloneV1 {
             //Query string used to delete the coach from the coach table
             string queryString = $@"DELETE
                                             FROM [dbo].[CoachTutorantConnection]
-                                            WHERE tutorantID = @tutorantID";
+                                            WHERE studentIDtutorant = @tutorantID";
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
@@ -342,21 +354,27 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            command.ExecuteNonQuery();
+                            int affectedRows = command.ExecuteNonQuery();
+
+                            //The SQL query must have been incorrect if no rows were executed, return a [400 Bad Request].
+                            if (affectedRows == 0) {
+                                log.LogError("Zero rows were affected.");
+                                return exceptionHandler.BadRequest(log);
+                            }
                         }
 
                     } catch (SqlException e) {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log); 
             }
 
             log.LogInformation($"{HttpStatusCode.NoContent} | Data deleted succesfully.");
