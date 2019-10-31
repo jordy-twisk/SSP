@@ -38,16 +38,20 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        //The connection is automatically closed when going out of scope of the using block
-                        connection.Open();
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] will be given.
+                    connection.Open();
 
+                    try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             log.LogInformation($"Executing the following query: {queryString}");
 
+                            //The Query may fail, in which case a [400 Bad Request] will be given.
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
-                                    //Return response code 404
+                                    //Query was succesfully executed, but returned no data.
+                                    //Return response code [404 Not Found]
+                                    log.LogError("SQL Query was succesfully executed, but returned no data.");
                                     return exceptionHandler.NotFoundException(log);
                                 } else {
                                     while (reader.Read()) {
@@ -74,19 +78,21 @@ namespace TinderCloneV1 {
                             }
                         }
                     } catch (SqlException e) {
-                        //Return response code 503
+                        //The Query may fail, in which case a [400 Bad Request] will be given.
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
-                //Return response code 400
+                //The connection may fail to open, in which case a [503 Service Unavailable] will be given.
+                log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log); 
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(listOfCoachProfiles);
-            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
+            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully.");
 
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
