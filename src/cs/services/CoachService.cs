@@ -43,7 +43,7 @@ namespace TinderCloneV1 {
                     connection.Open();
 
                     try {
-                        //Get profile from the Student and Coach tables
+                        //Get all profiles from the Student and Coach tables
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -87,7 +87,7 @@ namespace TinderCloneV1 {
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
-                log.LogError("SQL has failed to open.");
+                log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
                 return exceptionHandler.ServiceUnavailable(log); 
             }
@@ -95,6 +95,7 @@ namespace TinderCloneV1 {
             var jsonToReturn = JsonConvert.SerializeObject(listOfCoachProfiles);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully.");
 
+            //Return response code [200 OK].
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
@@ -193,7 +194,8 @@ namespace TinderCloneV1 {
                             command.ExecuteNonQuery();
                         }
 
-                        //Insert profile into the Coach table
+                        //Insert profile into the Coach table.
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString_Coach, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = coachProfile.coach.studentID;
@@ -203,23 +205,23 @@ namespace TinderCloneV1 {
                             command.ExecuteNonQuery();
                         }
                     } catch (SqlException e) {
-                        //This error might occur because of a PK key violation (trying to enter a already existing studentID)
-                        //Return response code 503
-                        log.LogError("Test1");
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        //Reasons for this failure may include a PK violation (entering an already existing studentID).
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
                     }
                 }
             } catch (SqlException e) {
-                //Return response code 400
-                log.LogError("Test2");
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
                 return exceptionHandler.BadRequest(log);
             }
 
             log.LogInformation($"{HttpStatusCode.Created} | Profile created succesfully");
 
-            //Return response code 201
+            //Return response code [201 Created].
             return new HttpResponseMessage(HttpStatusCode.Created);
         }
 
@@ -237,18 +239,23 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        //The connection is automatically closed when going out of scope of the using block
-                        connection.Open();
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
 
+                    try {
+                        //Get profile from the Student and Coach tables
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString}");
 
+                            //The Query may fail, in which case a [400 Bad Request] is returned.
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
-                                    //Return response code 404
+                                    //Query was succesfully executed, but returned no data.
+                                    //Return response code [404 Not Found]
+                                    log.LogError("SQL Query was succesfully executed, but returned no data.");
                                     return exceptionHandler.NotFoundException(log);
                                 } else {
                                     while (reader.Read()) {
@@ -275,21 +282,23 @@ namespace TinderCloneV1 {
                             }
                         }
                     } catch (SqlException e) {
-                        //Return response code 503
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
-                //Return response code 400
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(newCoachProfile);
-            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
+            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully.");
 
-            //Return response code 200 and the requested data
+            //Return response code [201 Created] and the requested data.
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
@@ -312,11 +321,13 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        //The connection is automatically closed when going out of scope of the using block
-                        connection.Open();
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
 
+                    try {
                         //Delete the coach from the Coach table
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString_Coach, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
@@ -326,6 +337,7 @@ namespace TinderCloneV1 {
                         }
 
                         //Delete the profile from the Students table
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
@@ -334,20 +346,22 @@ namespace TinderCloneV1 {
                             command.ExecuteNonQuery();
                         }
                     } catch (SqlException e) {
-                        //Return response code 503
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
                     }
                 }
             } catch (SqlException e) {
-                //Return response code 400
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
                 return exceptionHandler.BadRequest(log);
             }
 
-            log.LogInformation($"{HttpStatusCode.NoContent} | Data deleted succesfully");
+            log.LogInformation($"{HttpStatusCode.NoContent} | Data deleted succesfully.");
 
-            //Return response code 204
+            //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
@@ -362,18 +376,23 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        //The connection is automatically closed when going out of scope of the using block
-                        connection.Open();
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
 
+                    try {
+                        //Get data from the Coach table by studentID
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString}");
 
+                            //The Query may fail, in which case a [400 Bad Request] is returned.
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
-                                    //Return response code 404
+                                    //Query was succesfully executed, but returned no data.
+                                    //Return response code [404 Not Found]
+                                    log.LogError("SQL Query was succesfully executed, but returned no data.");
                                     return exceptionHandler.NotFoundException(log);
                                 } else {
                                     while (reader.Read()) {
@@ -386,21 +405,23 @@ namespace TinderCloneV1 {
                             }
                         }
                     } catch (SqlException e) {
-                        //Return response code 503
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
                     }
                 }
             } catch (SqlException e) {
-                //Return response code 400
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
                 return exceptionHandler.BadRequest(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(newCoach);
-            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
+            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully.");
 
-            //Return response code 200 and the requested data
+            //Return response code [200 OK] and the requested data.
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
@@ -419,9 +440,9 @@ namespace TinderCloneV1 {
             }
 
             //newCoach.workload will be 0 if the requestbody contains no "workload" parameter,
-            //return response code 400 if this error occurs
+            //in which case [400 Bad Request] is returned.
             if(jObject["workload"] == null) {
-                log.LogError("Requestbody contains no workload!");
+                log.LogError("Requestbody contains no workload.");
                 return exceptionHandler.BadRequest(log);
             }
 
@@ -431,10 +452,13 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        //The connection is automatically closed when going out of scope of the using block
-                        connection.Open();
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
 
+                    try {
+                        //Update the workload
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@workload", System.Data.SqlDbType.Int).Value = newCoach.workload;
@@ -444,20 +468,22 @@ namespace TinderCloneV1 {
                             command.ExecuteNonQuery();
                         }
                     } catch (SqlException e) {
-                        //Return response code 503
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
                         return exceptionHandler.ServiceUnavailable(log);
                     }
                 }
             } catch (SqlException e) {
-                //Return response code 400
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
                 return exceptionHandler.BadRequest(log);
             }
 
-            log.LogInformation($"{HttpStatusCode.NoContent} | Data updated succesfully");
+            log.LogInformation($"{HttpStatusCode.NoContent} | Data updated succesfully.");
 
-            //Return response code 204
+            //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
     }
