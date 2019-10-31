@@ -46,7 +46,7 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            //The Query may fail, in which case a [400 Bad Request] will be given.
+                            //The Query may fail, in which case return a [400 Bad Request].
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
                                     //Query was succesfully executed, but returned no data.
@@ -78,14 +78,14 @@ namespace TinderCloneV1 {
                             }
                         }
                     } catch (SqlException e) {
-                        //The Query may fail, in which case a [400 Bad Request] will be given.
+                        //The Query may fail, in which case return a [400 Bad Request].
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
                         return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
-                //The connection may fail to open, in which case a [503 Service Unavailable] will be given.
+                //The connection may fail to open, in which case return a [503 Service Unavailable].
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
                 return exceptionHandler.ServiceUnavailable(log); 
@@ -112,7 +112,7 @@ namespace TinderCloneV1 {
             }
 
             //Verify if all parameters for the Coach table exist,
-            //return response code 400 if one or more is missing
+            //One or more parameters may be missing, in which case return a [400 Bad Request].
             if (jObject["coach"]["studentID"] == null || jObject["coach"]["workload"] == null) {
                 log.LogError("Requestbody is missing data for the coach table!");
                 return exceptionHandler.BadRequest(log);
