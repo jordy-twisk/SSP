@@ -21,3 +21,12 @@ API for MBO &amp; HBO students
 - [] Database subquestion. Mike
 
 - [] Tests. Kaydo, Thomas
+
+### Friday 1 November | Quick Notes
+- [] SQL injection in UserService.cs
+- [] Finalize the MessageService.cs
+- [] Generalize file structuur in every Controller and Service
+- [] Structure and relations in the database
+- [] Transport generic methods to external files
+- [] Update yaml
+- [] Delete unnecessary files
