@@ -52,3 +52,8 @@ def s_coach():
 	  'workload':	{'type': 'integer'}
   }
   return coach
+def s_tutorant():
+  tutorant = {
+    'studentID': {'type': 'integer'}
+  }
+  return tutorant
