@@ -3,13 +3,19 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace TinderCloneV1.src.cs.entities {
-    class TutorantProfile {
+namespace TinderCloneV1 {
+    public class TutorantProfile {
         [JsonProperty("tutorant")]
-        public Tutorant tutorant;
+        public Tutorant tutorant{
+            get;
+            set;
+        }
 
         [JsonProperty("user")]
-        public User user;
+        public User user{
+            get;
+            set;
+        }
 
         public TutorantProfile(Tutorant tutorant, User user) {
             this.tutorant = tutorant;
@@ -17,7 +23,6 @@ namespace TinderCloneV1.src.cs.entities {
         }
 
         public TutorantProfile() {
-
         }
     }
 }
