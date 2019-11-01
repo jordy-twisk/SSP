@@ -8,11 +8,12 @@ def test_get_coaches():
   assert r.status_code == 200, r.status_code
 def test_post_coach():
   a.delete_coach()
+  url = a.api_link() + "profile/coach"
   payload = "{\n    \"coach\": {\n      \"studentID\": \""+ a.coachId() + "\",\n      \"workload\": 10\n    },\n  \n    \"user\": {\n      \"studentID\": \""+ a.coachId() + "\",\n      \"firstName\": \"TestCoach\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a coach\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n    }}"  
   headers = {
     'Content-Type': "application/json",
     'cache-control': "no-cache"}
-  r = requests.post(a.api_link() + "profile/coach", data=payload, headers=headers)
+  r = requests.post(url, data=payload, headers=headers)
   if r.status_code is not 201:
     a.create_coach()
   assert r.status_code == 201, r.status_code

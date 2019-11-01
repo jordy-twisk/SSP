@@ -6,7 +6,17 @@ import api_info as a
 def test_get_tutorants():
   r = requests.get(a.api_link() + "profile/tutorant")
   assert r.status_code == 200, r.status_code
-#def test_post_tutorant():
+def test_post_tutorant():
+  a.delete_tutorant()
+  url = a.api_link() + "profile/tutorant"
+  payload = "{\n   \"user\": {\n      \"studentID\": \""+ a.tutorantId() + "\",\n      \"firstName\": \"TestTutorant\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a student\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n    }, \n  \"tutorant\": {\n      \"studentID\": \""+ a.tutorantId() + "\"\n } \n}"  
+  headers = {
+    'Content-Type': "application/json",
+    'cache-control': "no-cache"}
+  r = requests.request("POST", url, data=payload, headers=headers)
+  if r.status_code is not 201:
+    a.create_tutorant()
+  assert r.status_code == 201, r.status_code
 def test_get_tutorant_byId():
   r = requests.get(a.api_link() + "profile/tutorant/" + a.tutorantId())
   assert r.status_code == 200, r.status_code

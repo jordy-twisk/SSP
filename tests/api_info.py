@@ -23,7 +23,7 @@ def delete_coach():
 def create_tutorant():
   import requests
   url = api_link() + "profile/tutorant"
-  payload = "{\n   \"user\": {\n      \"studentID\": \""+ tutorantId() + "\",\n      \"firstName\": \"TestTutorant\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a student\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n    }, \n  \"student\": {\n      \"studentID\": \""+ tutorantId() + "\"\n } \n}"  
+  payload = "{\n   \"user\": {\n      \"studentID\": \""+ tutorantId() + "\",\n      \"firstName\": \"TestTutorant\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a student\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n    }, \n  \"tutorant\": {\n      \"studentID\": \""+ tutorantId() + "\"\n } \n}"  
   headers = {
     'Content-Type': "application/json",
     'cache-control': "no-cache"}
