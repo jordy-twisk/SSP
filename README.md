@@ -2,9 +2,9 @@
 API for MBO &amp; HBO students 
 
 
-### Implementation code and YAML
+### Implementation code
 
-- [] Calls for Coach and Tutorant profile. Mostly Mike and Thomas.
+- [] Calls for Coach, CoachTutorant and Tutorant. Mike (Coach and CoachTutorant) and Kaydo (Tutorant)
 
 - [] Chat functionality. Mostly Kaydo and Barend
 
@@ -12,9 +12,19 @@ API for MBO &amp; HBO students
 
 - [] Exception handling security. Mostly Barend and Thomas.
 
-- [] Keep YAML file up to date. Everyone.
-
 - [] Database management. Barend
+
+### YAML
+
+- [] Verify YAML matches CoachService
+
+- [x] Verify YAML matches CoachTutorantService
+
+- [] Verify YAML matches MessageService
+
+- [] Verify YAML matches TutorantService
+
+- [] Verify YAML matches UserServices
 
 ### Report
 
@@ -22,6 +32,7 @@ API for MBO &amp; HBO students
 
 - [] Tests. Kaydo, Thomas
 
+<<<<<<< HEAD
 ### Friday 1 November | Quick Notes
 - [] SQL injection in UserService.cs
 - [] Finalize the MessageService.cs
@@ -30,3 +41,22 @@ API for MBO &amp; HBO students
 - [] Transport generic methods to external files
 - [] Update yaml
 - [] Delete unnecessary files
+=======
+---
+
+### Verifying all files
+
+A list of all files which are completed, tested and (if needed) match their API description:
+
+| File                  | Checked by | Checked on (dd/mm/yyyy) | Latest Version |
+|-----------------------|------------|-------------------------| -------------- |
+| CoachTutorantServices | Mike       | 31/10/2019              | yes            |
+|                       |            | dd/mm/yyyy              | yes/no         |
+|                       |            | dd/mm/yyyy              | yes/no         |
+|                       |            | dd/mm/yyyy              | yes/no         |
+|                       |            | dd/mm/yyyy              | yes/no         |
+|                       |            | dd/mm/yyyy              | yes/no         |
+|                       |            | dd/mm/yyyy              | yes/no         |
+|                       |            | dd/mm/yyyy              | yes/no         |
+|                       |            | dd/mm/yyyy              | yes/no         |
+>>>>>>> master

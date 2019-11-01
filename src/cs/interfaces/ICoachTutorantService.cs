@@ -3,11 +3,11 @@ using System.Net.Http;
 
 namespace TinderCloneV1 {
     public interface ICoachTutorantService {
-        Task<HttpResponseMessage> CreateConnection();
-        Task<HttpResponseMessage> GetAllCoachConnections(int coachID);
-        Task<HttpResponseMessage> DeleteCoachConnection(int coachID);
-        Task<HttpResponseMessage> GetTutorantConnectionByID(int tutorantID);
-        Task<HttpResponseMessage> UpdateConnectionByID(int tutorantID);
-        Task<HttpResponseMessage> DeleteTutorantConnection(int tutorantID);
+        Task<HttpResponseMessage> UpdateConnection();
+        Task<HttpResponseMessage> GetAllConnectionsByCoachID(int coachID);
+        Task<HttpResponseMessage> DeleteConnectionByCoachID(int coachID);
+        Task<HttpResponseMessage> GetConnectionByTutorantID(int tutorantID);
+        Task<HttpResponseMessage> CreateConnectionByTutorantID(int tutorantID);
+        Task<HttpResponseMessage> DeleteConnectionByTutorantID(int tutorantID);
     }
 }
