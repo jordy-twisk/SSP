@@ -2,7 +2,7 @@
 using System;
 
 namespace TinderCloneV1 {
-    public class User{
+    public class Student{
         [JsonProperty("studentID")]
         public int studentID{
             get;

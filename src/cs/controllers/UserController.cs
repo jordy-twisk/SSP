@@ -14,6 +14,10 @@ namespace TinderCloneV1 {
             this.userService = userService;
         }
 
+        /* 
+        Route to /api/students/search
+        GET: to get all Students with query parameters
+        */
         [FunctionName("GetAllStudents")]
         public async Task<HttpResponseMessage> GetStudents([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, ILogger log) {
@@ -23,6 +27,12 @@ namespace TinderCloneV1 {
             return await userService.GetAllStudents();
         }
 
+        /*
+        Route to /api/student/{ID}
+        Where ID is a studentID path parameter
+        GET: Get a specific student by his ID
+        PUT: Update a specific student by his ID 
+        */
         [FunctionName("StudentByID")]
         public async Task<HttpResponseMessage> StudentByID([HttpTrigger(AuthorizationLevel.Anonymous, 
         "get", "put", Route = "student/{ID}")] HttpRequestMessage req, HttpRequest request, ILogger log, int ID) {

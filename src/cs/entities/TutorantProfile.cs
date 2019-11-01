@@ -12,12 +12,12 @@ namespace TinderCloneV1 {
         }
 
         [JsonProperty("user")]
-        public User user{
+        public Student user{
             get;
             set;
         }
 
-        public TutorantProfile(Tutorant tutorant, User user) {
+        public TutorantProfile(Tutorant tutorant, Student user) {
             this.tutorant = tutorant;
             this.user = user;
         }

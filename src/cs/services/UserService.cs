@@ -34,8 +34,8 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> GetAllStudents() {
 
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            List<User> listofStudents = new List<User>();
-            PropertyInfo[] properties = typeof(User).GetProperties();
+            List<Student> listofStudents = new List<Student>();
+            PropertyInfo[] properties = typeof(Student).GetProperties();
 
             string queryString = $"SELECT * FROM [dbo].[Student]";
 
@@ -78,7 +78,7 @@ namespace TinderCloneV1 {
                             */
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 while (reader.Read()) {
-                                    listofStudents.Add(new User {
+                                    listofStudents.Add(new Student {
                                         studentID = reader.GetInt32(0),
                                         firstName = GeneralFunctions.SafeGetString(reader, 1),
                                         surName = GeneralFunctions.SafeGetString(reader, 2),
@@ -125,7 +125,7 @@ namespace TinderCloneV1 {
         */
         public async Task<HttpResponseMessage> GetStudentByID(int studentID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(studentID);
-            User newStudent = new User();
+            Student newStudent = new Student();
 
             /* Initialize the queryString */
             string queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = @studentID;";
@@ -153,7 +153,7 @@ namespace TinderCloneV1 {
                                     return exceptionHandler.NotFoundException(log);
                                 }
                                 while (reader.Read()) {
-                                    newStudent = new User {
+                                    newStudent = new Student {
                                         studentID = reader.GetInt32(0),
                                         firstName = GeneralFunctions.SafeGetString(reader, 1),
                                         surName = GeneralFunctions.SafeGetString(reader, 2),
@@ -197,15 +197,15 @@ namespace TinderCloneV1 {
         /* Update the data from the student given by a requestBody */
         public async Task<HttpResponseMessage> UpdateStudentByID(int studentID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(studentID);
-            User newUser;
+            Student newUser;
             JObject jObject = new JObject();
-            PropertyInfo[] properties = typeof(User).GetProperties();
+            PropertyInfo[] properties = typeof(Student).GetProperties();
             
             /* Read the requestBody and put the response into a jObject which can be read later
             Also make a new user object and store the data in the user*/
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                newUser = jObject.ToObject<User>();
+                newUser = jObject.ToObject<Student>();
             }
 
             /* If the responseBody is empty (no data has been given by the user)

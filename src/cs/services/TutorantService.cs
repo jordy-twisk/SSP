@@ -213,7 +213,7 @@ namespace TinderCloneV1 {
                                             new Tutorant {
                                                 studentID = reader.GetInt32(0),
                                             },
-                                            new User {
+                                            new Student {
                                                 studentID = reader.GetInt32(0),
                                                 firstName = SafeGetString(reader, 1),
                                                 surName = SafeGetString(reader, 2),
@@ -280,7 +280,7 @@ namespace TinderCloneV1 {
                                             new Tutorant {
                                                 studentID = reader.GetInt32(0),
                                             },
-                                            new User {
+                                            new Student {
                                                 studentID = reader.GetInt32(0),
                                                 firstName = SafeGetString(reader, 1),
                                                 surName = SafeGetString(reader, 2),

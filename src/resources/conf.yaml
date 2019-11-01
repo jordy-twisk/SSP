@@ -8,6 +8,11 @@ openapi: 3.0.2
 #to be done
 #authentication
 
+
+#Maybe put this back:
+  #'429':
+          #description: Too many request on the database
+
 servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/barendmosch/TinderClone/1.0.0
@@ -55,16 +60,14 @@ paths:
           description: Student password is not accepted.
         '404':
           description: Student number not in database.
-        '429':
-          description: Too many request on the database.
         '503':
           description: Database or other services are unavailable at the moment.
     put:
       tags:
       - Studentdata
       summary: update data information
-      operationId: UpdateUserByID
-      description: Update a student data based on filters.
+      operationId: UpdateStudentByID
+      description: Update a student data based on the requestBody.
       parameters:
         - in: path
           name: studentID
@@ -73,7 +76,7 @@ paths:
           schema:
             type: integer
       requestBody:
-        description: all info that is needed to create the coach + profile
+        description: all the info that is needed to create the coach + profile
         required: true
         content:
           application/json:
@@ -88,8 +91,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: Student number not in database.
-        '429':
-          description: Too many request on the database.
         '503':
           description: Database or other services are unavailable at the moment.
   /api/students/search:
@@ -97,8 +98,8 @@ paths:
       tags:
       - Studentdata
       summary: search for student profiles
-      operationId: GetAll
-      description: Returns a list of student profiles from the database filtered by filters.
+      operationId: GetAllStudents
+      description: Returns a list of student profiles from the database filtered by query parameters.
       # No parameters returns back every profile.
       parameters:
         - in: query
@@ -164,8 +165,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: Student number not in database.
-        '429':
-          description: Too many requests
         '503':
           description: Database or other services are unavailable at the moment.
   /api/profile/coach:
@@ -189,8 +188,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: No coachprofiles available.
-        '429':
-          description: Too many requests.
         '503':
           description: Database or other services are unavailable at the moment.
     post:
@@ -212,8 +209,6 @@ paths:
           description: Requestbody missing data and/or studentID mismatching between student and coach object and/or query failing.
         '401':
           description: Student password is not accepted.
-        '429':
-          description: Too many request on the database
         '503':
           description: Database or other services are unavailable at the moment.
   /api/profile/coach/{studentID}:
@@ -244,8 +239,6 @@ paths:
             description: Student password is not accepted.
           '404':
             description: No CoachProfile found for requested studentID.
-          '429':
-            description: Too many requests
           '503':
             description: Database or other services are unavailable at the moment.
     delete:
@@ -269,8 +262,6 @@ paths:
               description: Student password is not accepted.
             '404':
               description: Query was succesful but affected zero rows.
-            '429':
-              description: Too many request on the database.
             '503':
               description: Database or other services are unavailable at the moment.
   /api/profile/tutorant:
@@ -295,8 +286,6 @@ paths:
           description: Student number not in database.
         '409':
           description: Student number already exists.
-        '429':
-          description: Too many request on the database
         '503':
           description: Database or other services are unavailable at the moment.
     post:
@@ -323,8 +312,6 @@ paths:
           description: Student number not in database.
         '409':
           description: Student number already exists.
-        '429':
-          description: Too many request on the database
         '503':
           description: Database or other services are unavailable at the moment.
   /api/profile/tutorant/{studentID}:
@@ -356,8 +343,6 @@ paths:
             description: Student password is not accepted.
           '404':
             description: Student number not in database.
-          '429':
-            description: Too many requests
           '503':
             description: Database or other services are unavailable at the moment.
     delete:
@@ -382,8 +367,6 @@ paths:
               description: Student password is not accepted.
             '404':
               description: Delete has failed, no studentnumber exists.
-            '429':
-              description: Too many request on the database.
             '503':
               description: Database or other services are unavailable at the moment.
   /api/coach/{studentID}:
@@ -414,8 +397,6 @@ paths:
             description: Student password is not accepted.
           '404':
             description: No coach found for requested studentID.
-          '429':
-            description: Too many requests
           '503':
             description: Database or other services are unavailable at the moment.
     put:
@@ -446,8 +427,6 @@ paths:
             description: Student password is not accepted.
           '404':
             description: Query was succesful but affected zero rows.
-          '429':
-            description: Too many requests
           '503':
             description: Database or other services are unavailable at the moment.
   /api/coachTutorant:
@@ -472,8 +451,6 @@ paths:
             description: Student password is not accepted.
           '404':
             description: Query was succesful but affected zero rows.
-          '429':
-            description: Too many request on the database.
           '503':
             description: Database or other services are unavailable at the moment.
   /api/coachTutorant/coach/{studentID}:
@@ -504,8 +481,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: CoachID has no connections.
-        '429':
-          description: Too many requests.
         '503':
           description: Database or other services are unavailable at the moment.
     delete:
@@ -529,8 +504,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: Query was succesful but affected zero rows.
-        '429':
-          description: Too many request on the database.
         '503':
           description: Database or other services are unavailable at the moment.
   /api/coachTutorant/tutorant/{studentID}:
@@ -561,8 +534,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: Tutorant has no connections.
-        '429':
-          description: Too many requests.
         '503':
           description: Database or other services are unavailable at the moment.
     post:
@@ -591,8 +562,6 @@ paths:
           description: Incorrect requestbody and/or failing query.
         '401':
           description: Student password is not accepted.
-        '429':
-          description: Too many request on the database
         '503':
           description: Database or other services are unavailable at the moment.
     delete:
@@ -616,8 +585,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: Query was succesful but zero rows were affected.
-        '429':
-          description: Too many request on the database. 
         '503':
           description: Database or other services are unavailable at the moment.
   /api/messages/{coachID}/{tutorantID}:
@@ -659,8 +626,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: Coach and tutorant number don't match any messages.
-        '429':
-          description: Too many request on the database.
         '503':
           description: Database or other services are unavailable at the moment.
   /api/message/{messageID}:
@@ -691,8 +656,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: messageID Coach and tutorant number don't match any message.
-        '429':
-          description: Too many request on the database.
         '503':
           description: Database or other services are unavailable at the moment.
     put:
@@ -739,8 +702,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: messageID Coach and tutorant number don't match any message.
-        '429':
-          description: Too many request on the database.
         '503':
           description: Database or other services are unavailable at the moment.
     delete:
@@ -763,8 +724,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: messageID Coach and tutorant number don't match any message.
-        '429':
-          description: Too many request on the database.
         '503':
           description: Database or other services are unavailable at the moment.
   /api/message:  
@@ -788,8 +747,6 @@ paths:
           description: Student password is not accepted.
         '404':
           description: Coach or/and tutorant number don't exist in database.
-        '429':
-          description: Too many request on the database.
         '503':
           description: Database or other services are unavailable at the moment.
 
@@ -817,9 +774,6 @@ components:
               phoneNumber:
                   type: string
                   example: "0645236582"
-              interests:
-                  type: string
-                  example: "Programming (C only), Servers, Cisco"
               photo:
                   type: string
                   example: "https://i.redd.it/xmulu1f6urt11.jpg"
@@ -837,6 +791,9 @@ components:
               studyYear:
                   type: integer
                   example: 2
+              interests:
+                  type: string
+                  example: "Programming (C only), Servers, Cisco"
       TutorantProfile:
         type: object
         required:

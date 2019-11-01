@@ -61,7 +61,7 @@ namespace TinderCloneV1 {
                                                 studentID = GeneralFunctions.SafeGetInt(reader, 0),
                                                 workload = GeneralFunctions.SafeGetInt(reader, 10)
                                             },
-                                            new User {
+                                            new Student {
                                                 studentID = GeneralFunctions.SafeGetInt(reader, 0),
                                                 firstName = GeneralFunctions.SafeGetString(reader, 1),
                                                 surName = GeneralFunctions.SafeGetString(reader, 2),
@@ -264,7 +264,7 @@ namespace TinderCloneV1 {
                                             studentID = GeneralFunctions.SafeGetInt(reader, 0),
                                             workload = GeneralFunctions.SafeGetInt(reader, 10)
                                         },
-                                        new User {
+                                        new Student {
                                             studentID = GeneralFunctions.SafeGetInt(reader, 0),
                                             firstName = GeneralFunctions.SafeGetString(reader, 1),
                                             surName = GeneralFunctions.SafeGetString(reader, 2),
