@@ -29,4 +29,4 @@ def test_get_tutorant_byId():
 def test_delete_tutorant_byId():
   r = requests.delete(a.api_link() + "profile/tutorant/" + a.tutorantId())
   assert r.status_code == 204, r.status_code
-  a.create_tutorant()
+  a.create_tutorant(a.tutorantId())
