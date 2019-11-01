@@ -10,7 +10,7 @@ namespace TinderCloneV1 {
             builder.Services.AddTransient<ICoachTutorantService, CoachTutorantService>();
             builder.Services.AddTransient<IMessageService, MessageService>();
             builder.Services.AddTransient<ITutorantService, TutorantService>();
-            builder.Services.AddTransient<IUserService, UserService>();
+            builder.Services.AddTransient<IStudentService, StudentService>();
             builder.Services.AddLogging();
         }
     }

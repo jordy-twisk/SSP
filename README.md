@@ -34,12 +34,12 @@ API for MBO &amp; HBO students
 
 <<<<<<< HEAD
 ### Friday 1 November | Quick Notes
-- [] SQL injection in UserService.cs
+- [CHECK] SQL injection in UserService.cs
 - [] Finalize the MessageService.cs
-- [] Generalize file structuur in every Controller and Service
+- [ONLY FOR StudentSERVICE] Generalize file structuur in every Controller and Service
 - [] Structure and relations in the database
 - [] Transport generic methods to external files
-- [] Update yaml
+- [CHECK] Update yaml
 - [] Delete unnecessary files
 =======
 ---
@@ -51,7 +51,7 @@ A list of all files which are completed, tested and (if needed) match their API 
 | File                  | Checked by | Checked on (dd/mm/yyyy) | Latest Version |
 |-----------------------|------------|-------------------------| -------------- |
 | CoachTutorantServices | Mike       | 31/10/2019              | yes            |
-|                       |            | dd/mm/yyyy              | yes/no         |
+| StudentServices       | Barend     | 01/11/2019              | yes            |
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |

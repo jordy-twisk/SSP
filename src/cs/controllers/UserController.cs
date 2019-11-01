@@ -9,8 +9,8 @@ using Microsoft.Extensions.Logging;
 namespace TinderCloneV1 {
     public class UserController{
 
-        IUserService userService;
-        public UserController(IUserService userService) {
+        IStudentService userService;
+        public UserController(IStudentService userService) {
             this.userService = userService;
         }
 
@@ -22,7 +22,7 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> GetStudents([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", Route = "students/search")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
-            userService = new UserService(req, request, log);
+            userService = new StudentService(req, request, log);
 
             return await userService.GetAllStudents();
         }
@@ -37,7 +37,7 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> StudentByID([HttpTrigger(AuthorizationLevel.Anonymous, 
         "get", "put", Route = "student/{ID}")] HttpRequestMessage req, HttpRequest request, ILogger log, int ID) {
 
-            userService = new UserService(req, request, log);
+            userService = new StudentService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
                 return await userService.GetStudentByID(ID);
