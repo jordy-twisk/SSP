@@ -257,27 +257,26 @@ namespace TinderCloneV1 {
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
                                     return exceptionHandler.NotFoundException(log);
-                                } else {
-                                    while (reader.Read()) {
-                                        newCoachProfile = new CoachProfile(
-                                            new Coach {
-                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                                workload = GeneralFunctions.SafeGetInt(reader, 10)
-                                            },
-                                            new User {
-                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                                firstName = GeneralFunctions.SafeGetString(reader, 1),
-                                                surName = GeneralFunctions.SafeGetString(reader, 2),
-                                                phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
-                                                photo = GeneralFunctions.SafeGetString(reader, 4),
-                                                description = GeneralFunctions.SafeGetString(reader, 5),
-                                                degree = GeneralFunctions.SafeGetString(reader, 6),
-                                                study = GeneralFunctions.SafeGetString(reader, 7),
-                                                studyYear = GeneralFunctions.SafeGetInt(reader, 8),
-                                                interests = GeneralFunctions.SafeGetString(reader, 9)
-                                            }
-                                        );
-                                    }
+                                } 
+                                while (reader.Read()) {
+                                    newCoachProfile = new CoachProfile(
+                                        new Coach {
+                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                            workload = GeneralFunctions.SafeGetInt(reader, 10)
+                                        },
+                                        new User {
+                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                            firstName = GeneralFunctions.SafeGetString(reader, 1),
+                                            surName = GeneralFunctions.SafeGetString(reader, 2),
+                                            phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
+                                            photo = GeneralFunctions.SafeGetString(reader, 4),
+                                            description = GeneralFunctions.SafeGetString(reader, 5),
+                                            degree = GeneralFunctions.SafeGetString(reader, 6),
+                                            study = GeneralFunctions.SafeGetString(reader, 7),
+                                            studyYear = GeneralFunctions.SafeGetInt(reader, 8),
+                                            interests = GeneralFunctions.SafeGetString(reader, 9)
+                                        }
+                                    );
                                 }
                             }
                         }
