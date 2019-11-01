@@ -51,7 +51,7 @@ namespace TinderCloneV1 {
         public HttpResponseMessage BadRequest(ILogger log){
             LogMessage(ID, badRequestMessage, log);
 
-            return new HttpResponseMessage(HttpStatusCode.TooManyRequests){
+            return new HttpResponseMessage(HttpStatusCode.BadRequest){
                 Content = new StringContent(badRequestMessage)
             };
         }

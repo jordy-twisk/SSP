@@ -17,12 +17,16 @@ namespace TinderCloneV1 {
 
         [FunctionName("PostCoachTutorant")]
         public async Task<HttpResponseMessage> PostCoachTutorant([HttpTrigger(AuthorizationLevel.Anonymous,
-            "post", Route = "coachTutorant")] HttpRequestMessage req, HttpRequest request, ILogger log) {
+            "put", Route = "coachTutorant")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
             coachTutorantService = new CoachTutorantService(req, request, log);
 
-            return await coachTutorantService.CreateConnection();
+            if (req.Method == HttpMethod.Put) {
+                return await coachTutorantService.UpdateConnection();
 
+            } else {
+                throw new NotImplementedException();
+            }
         }
 
         [FunctionName("CoachConnectionTutorantByID")]
@@ -32,10 +36,10 @@ namespace TinderCloneV1 {
             coachTutorantService = new CoachTutorantService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
-                return await coachTutorantService.GetAllCoachConnections(studentID);
+                return await coachTutorantService.GetAllConnectionsByCoachID(studentID);
             }
             else if (req.Method == HttpMethod.Delete) {
-                return await coachTutorantService.DeleteCoachConnection(studentID);
+                return await coachTutorantService.DeleteConnectionByCoachID(studentID);
             } 
             else {
                 throw new NotImplementedException();
@@ -44,18 +48,18 @@ namespace TinderCloneV1 {
 
         [FunctionName("TutorantConnectionCoachByID")]
         public async Task<HttpResponseMessage> GetCoachTutorantTutorant([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", "put", "delete", Route = "coachTutorant/tutorant/{studentID}")] HttpRequestMessage req, HttpRequest request, int studentID, ILogger log) {
+            "get", "post", "delete", Route = "coachTutorant/tutorant/{studentID}")] HttpRequestMessage req, HttpRequest request, int studentID, ILogger log) {
 
             coachTutorantService = new CoachTutorantService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
-                return await coachTutorantService.GetTutorantConnectionByID(studentID);
+                return await coachTutorantService.GetConnectionByTutorantID(studentID);
             } 
-            else if (req.Method == HttpMethod.Put) {
-                return await coachTutorantService.UpdateConnectionByID(studentID);
+            else if (req.Method == HttpMethod.Post) {
+                return await coachTutorantService.CreateConnectionByTutorantID(studentID); 
             }
             else if (req.Method == HttpMethod.Delete) {
-                return await coachTutorantService.DeleteTutorantConnection(studentID);
+                return await coachTutorantService.DeleteConnectionByTutorantID(studentID);
             }
             else {
                 throw new NotImplementedException();
