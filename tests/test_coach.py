@@ -2,10 +2,15 @@ import pytest
 import requests
 import os
 import api_info as a
+from cerberus import Validator
 
 def test_get_coaches():
   r = requests.get(a.api_link() + "profile/coach")
   assert r.status_code == 200, r.status_code
+  v = Validator(a.s_coach())
+  assert v.validate(r.json()[0]['coach']) == True, v.errors
+  v = Validator(a.s_studentData())
+  assert v.validate(r.json()[0]['user']) == True, v.errors
 def test_post_coach():
   a.delete_coach()
   url = a.api_link() + "profile/coach"
