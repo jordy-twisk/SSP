@@ -30,21 +30,16 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> CreateTutorantProfile() {
             exceptionHandler = new ExceptionHandler(0);
             TutorantProfile tutorantProfile;
-            JObject jObject = new JObject();
-            JObject userDataJson = new JObject();
+            JObject jObject;
 
             // Read from the request body.
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 tutorantProfile = jObject.ToObject<TutorantProfile>();
             }
-            foreach (JProperty property in jObject.Properties()) {
-                using (StringReader reader = new StringReader(property.Value.ToString())) {
-                    userDataJson = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                }
-            }
-            // Verify if all parameters for the Tutorant table exist,
-            // return response code 400 if one or more is missing.
+
+            // Verify if all parameters for the Tutorant table exist.
+            //One or more parameters may be missing, in which case a [400 Bad Request] is returned.
             if (jObject["tutorant"]["studentID"] == null) {
                 log.LogError("Requestbody is missing data for the tutorant table!");
                 return exceptionHandler.BadRequest(log);
@@ -56,33 +51,46 @@ namespace TinderCloneV1 {
                 log.LogError("Requestbody is missing data for the student table!");
                 return exceptionHandler.BadRequest(log);
             }
-            
-            if(tutorantProfile.tutorant.studentID != tutorantProfile.user.studentID){
-                log.LogError("Tutorant studentID must be the same as User StudentID!");
+
+            //Verify if the studentID of the "user" and the "tutorant" objects match.
+            //A [400 Bad Request] is returned if these are mismatching.
+            if (tutorantProfile.tutorant.studentID != tutorantProfile.user.studentID){
+                log.LogError("RequestBody has mismatching studentID for user and tutorant objects!");
                 return exceptionHandler.BadRequest(log);
             }
             
             // All fields for the Tutorant table are required.
             string queryStringTutorant = $@"INSERT INTO [dbo].[Tutorant] (studentID) VALUES (@studentID);";
 
-            // Since the query string for the Student table contains many optional fields it needs to be dynamically created
-            // Dynamically create the INSERT INTO line of the SQL statement:
-            string queryStringStudent = $@"INSERT INTO [dbo].[Student] (studentID";
-            foreach (JProperty property in userDataJson.Properties()) {
-                if(property.Name != "studentID"){
-                    queryStringStudent += $", {property.Name}";
-                }
-            }
-            queryStringStudent += ") ";
+            //The SQL query for the Students table has to be dynamically generated, as it contains many optional fields.
+            //By manually adding the columns to the query string (if they're present in the request body) we prevent
+            //SQL injection and ensure no illegitimate columnnames are entered into the SQL query.
 
-            // Dynamically create the VALUES line of the SQL statement:
-            queryStringStudent += "VALUES (@studentID";
-            foreach (JProperty property in userDataJson.Properties()) {
-                if(property.Name != "studentID"){
-                    queryStringStudent += $", @{property.Name}";
-                }
-            }
-            queryStringStudent += ");";
+            //Dynamically create the INSERT INTO line of the SQL statement:
+            string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
+            if (jObject["user"]["firstName"] != null) queryString_Student += ", firstName";
+            if (jObject["user"]["surName"] != null) queryString_Student += ", surName";
+            if (jObject["user"]["phoneNumber"] != null) queryString_Student += ", phoneNumber";
+            if (jObject["user"]["photo"] != null) queryString_Student += ", photo";
+            if (jObject["user"]["description"] != null) queryString_Student += ", description";
+            if (jObject["user"]["degree"] != null) queryString_Student += ", degree";
+            if (jObject["user"]["study"] != null) queryString_Student += ", study";
+            if (jObject["user"]["studyYear"] != null) queryString_Student += ", studyYear";
+            if (jObject["user"]["interests"] != null) queryString_Student += ", interests";
+            queryString_Student += ") ";
+
+            //Dynamically create the VALUES line of the SQL statement:
+            queryString_Student += "VALUES (@studentID";
+            if (jObject["user"]["firstName"] != null) queryString_Student += ", @firstName";
+            if (jObject["user"]["surName"] != null) queryString_Student += ", @surName";
+            if (jObject["user"]["phoneNumber"] != null) queryString_Student += ", @phoneNumber";
+            if (jObject["user"]["photo"] != null) queryString_Student += ", @photo";
+            if (jObject["user"]["description"] != null) queryString_Student += ", @description";
+            if (jObject["user"]["degree"] != null) queryString_Student += ", @degree";
+            if (jObject["user"]["study"] != null) queryString_Student += ", @study";
+            if (jObject["user"]["studyYear"] != null) queryString_Student += ", @studyYear";
+            if (jObject["user"]["interests"] != null) queryString_Student += ", @interests";
+            queryString_Student += ");";
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
@@ -92,7 +100,7 @@ namespace TinderCloneV1 {
 
                     try {
                         // Insert profile into the Student table
-                        using (SqlCommand command = new SqlCommand(queryStringStudent, connection)) {
+                        using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
                             command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = tutorantProfile.user.studentID;
                             if (jObject["user"]["firstName"] != null)   command.Parameters.Add("@firstName", System.Data.SqlDbType.NVarChar).Value =     tutorantProfile.user.firstName;
@@ -104,7 +112,7 @@ namespace TinderCloneV1 {
                             if (jObject["user"]["study"] != null)       command.Parameters.Add("@study", System.Data.SqlDbType.NVarChar).Value =         tutorantProfile.user.study;
                             if (jObject["user"]["studyYear"] != null)   command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value =          tutorantProfile.user.studyYear;
                             if (jObject["user"]["interests"] != null)   command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value =      tutorantProfile.user.interests;
-                            log.LogInformation($"Executing the following query: {queryStringStudent}");
+                            log.LogInformation($"Executing the following query: {queryString_Student}");
 
                             command.ExecuteNonQuery();
                         }
