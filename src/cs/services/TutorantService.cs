@@ -86,10 +86,11 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        // The connection is automatically closed when going out of scope of the using block..
-                        connection.Open();
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case return a [503 Service Unavailable].
+                    connection.Open();
 
+                    try {
                         // Insert profile into the Student table
                         using (SqlCommand command = new SqlCommand(queryStringStudent, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
@@ -117,20 +118,23 @@ namespace TinderCloneV1 {
                             command.ExecuteNonQuery();
                         }
                     } catch (SqlException e) {
-                        // Return response code 503.
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        //Reasons for this failure may include a PK violation (entering an already existing studentID).
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
-                //Return response code 400.
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
 
-            log.LogInformation($"{HttpStatusCode.Created} | Profile created succesfully");
+            log.LogInformation($"{HttpStatusCode.Created} | Profile created succesfully.");
 
-            // Return response code 201.
+            //Return response code [201 Created].
             return new HttpResponseMessage(HttpStatusCode.Created);
         }
 
@@ -147,17 +151,24 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        // The connection is automatically closed when going out of scope of the using block.
-                        connection.Open();
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
 
+                    try {
                         // Delete the tutorant from the tutorant table.
                         using (SqlCommand command = new SqlCommand(queryStringTutorant, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
                             log.LogInformation($"Executing the following query: {queryStringTutorant}");
 
-                            command.ExecuteNonQuery();
+                            int affectedRows = command.ExecuteNonQuery();
+
+                            //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
+                            if (affectedRows == 0) {
+                                log.LogError("Zero rows were affected while deleting from the Tutorant table.");
+                                return exceptionHandler.NotFoundException(log);
+                            }
                         }
 
                         // Delete the profile from the Students table.
@@ -166,23 +177,31 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
                             log.LogInformation($"Executing the following query: {queryStringStudent}");
 
-                            command.ExecuteNonQuery();
+                            int affectedRows = command.ExecuteNonQuery();
+
+                            //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
+                            if (affectedRows == 0) {
+                                log.LogError("Zero rows were affected while deleting from the Student table.");
+                                return exceptionHandler.NotFoundException(log);
+                            }
                         }
                     } catch (SqlException e) {
-                        // Return response code 503.
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
-                // Return response code 400.
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
 
-            log.LogInformation($"{HttpStatusCode.NoContent} | Data deleted succesfully");
+            log.LogInformation($"{HttpStatusCode.NoContent} | Data deleted succesfully.");
 
-            // Return response code 204.
+            //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
@@ -196,34 +215,37 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        // The connection is automatically closed when going out of scope of the using block.
-                        connection.Open();
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
 
+                    try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             log.LogInformation($"Executing the following query: {queryString}");
 
+                            //The Query may fail, in which case a [400 Bad Request] is returned.
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
-                                    // Return response code 404.
-                                    return exceptionHandler.NotFoundException(log);
+                                    //Query was succesfully executed, but returned no data.
+                                    //Return response code [404 Not Found]
+                                    log.LogError("SQL Query was succesfully executed, but returned no data.");
                                 } else {
                                     while (reader.Read()) {
                                         listOfTutorantProfiles.Add(new TutorantProfile(
                                             new Tutorant {
-                                                studentID = reader.GetInt32(0),
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
                                             },
                                             new Student {
-                                                studentID = reader.GetInt32(0),
-                                                firstName = SafeGetString(reader, 1),
-                                                surName = SafeGetString(reader, 2),
-                                                phoneNumber = SafeGetString(reader, 3),
-                                                photo = SafeGetString(reader, 4),
-                                                description = SafeGetString(reader, 5),
-                                                degree = SafeGetString(reader, 6),
-                                                study = SafeGetString(reader, 7),
-                                                studyYear = SafeGetInt(reader, 8),
-                                                interests = SafeGetString(reader, 9)
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                                firstName = GeneralFunctions.SafeGetString(reader, 1),
+                                                surName = GeneralFunctions.SafeGetString(reader, 2),
+                                                phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
+                                                photo = GeneralFunctions.SafeGetString(reader, 4),
+                                                description = GeneralFunctions.SafeGetString(reader, 5),
+                                                degree = GeneralFunctions.SafeGetString(reader, 6),
+                                                study = GeneralFunctions.SafeGetString(reader, 7),
+                                                studyYear = GeneralFunctions.SafeGetInt(reader, 8),
+                                                interests = GeneralFunctions.SafeGetString(reader, 9)
                                             }
                                         ));
                                     }
@@ -231,20 +253,23 @@ namespace TinderCloneV1 {
                             }
                         }
                     } catch (SqlException e) {
-                        // Return response code 503.
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
-                // Return response code 400.
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(listOfTutorantProfiles);
-            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
+            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully.");
 
+            //Return response code [200 OK] and the requested data.
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
@@ -256,41 +281,46 @@ namespace TinderCloneV1 {
             TutorantProfile newTutorantProfile = new TutorantProfile();
 
             string queryString = $@"SELECT Student.* FROM [dbo].[Student]
-                                    INNER JOIN [dbo].[Tutorant] ON Student.studentID = Tutorant.studentID
+                                    INNER JOIN [dbo].[Tutorant] 
+                                    ON Student.studentID = Tutorant.studentID
                                     WHERE Student.studentID = @tutorantID;";
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        // The connection is automatically closed when going out of scope of the using block.
-                        connection.Open();
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
 
+                    try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
                             log.LogInformation($"Executing the following query: {queryString}");
 
+                            //The Query may fail, in which case a [400 Bad Request] is returned.
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
-                                    // Return response code 404.
+                                    //Query was succesfully executed, but returned no data.
+                                    //Return response code [404 Not Found]
+                                    log.LogError("SQL Query was succesfully executed, but returned no data.");
                                     return exceptionHandler.NotFoundException(log);
                                 } else {
                                     while (reader.Read()) {
                                         newTutorantProfile = new TutorantProfile(
                                             new Tutorant {
-                                                studentID = reader.GetInt32(0),
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0)
                                             },
                                             new Student {
-                                                studentID = reader.GetInt32(0),
-                                                firstName = SafeGetString(reader, 1),
-                                                surName = SafeGetString(reader, 2),
-                                                phoneNumber = SafeGetString(reader, 3),
-                                                photo = SafeGetString(reader, 4),
-                                                description = SafeGetString(reader, 5),
-                                                degree = SafeGetString(reader, 6),
-                                                study = SafeGetString(reader, 7),
-                                                studyYear = SafeGetInt(reader, 8),
-                                                interests = SafeGetString(reader, 9)
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                                firstName = GeneralFunctions.SafeGetString(reader, 1),
+                                                surName = GeneralFunctions.SafeGetString(reader, 2),
+                                                phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
+                                                photo = GeneralFunctions.SafeGetString(reader, 4),
+                                                description = GeneralFunctions.SafeGetString(reader, 5),
+                                                degree = GeneralFunctions.SafeGetString(reader, 6),
+                                                study = GeneralFunctions.SafeGetString(reader, 7),
+                                                studyYear = GeneralFunctions.SafeGetInt(reader, 8),
+                                                interests = GeneralFunctions.SafeGetString(reader, 9)
                                             }
                                         );
                                     }
@@ -298,36 +328,26 @@ namespace TinderCloneV1 {
                             }
                         }
                     } catch (SqlException e) {
-                        // Return response code 503.
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
-                // Return response code 400.
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(newTutorantProfile);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
 
-            // Return response code 200 and the requested data.
+            //Return response code [200 OK] and the requested data.
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
-        }
-
-        public string SafeGetString(SqlDataReader reader, int index) {
-            if (!reader.IsDBNull(index))
-                return reader.GetString(index);
-            return string.Empty;
-        }
-
-        public int SafeGetInt(SqlDataReader reader, int index) {
-            if (!reader.IsDBNull(index))
-                return reader.GetInt32(index);
-            return 0;
         }
     }
 }
