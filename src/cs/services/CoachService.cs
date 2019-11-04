@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace TinderCloneV1 {
     class CoachService : ICoachService {
-        private readonly string environmentString = Environment.GetEnvironmentVariable("sqldb_connection");
+        private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
         private readonly HttpRequestMessage req;
         private readonly HttpRequest request;
@@ -37,7 +37,7 @@ namespace TinderCloneV1 {
                                     ON Student.studentID = Coach.studentID";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
@@ -58,11 +58,11 @@ namespace TinderCloneV1 {
                                     while (reader.Read()) {
                                         listOfCoachProfiles.Add(new CoachProfile(
                                             new Coach {
-                                                studentID = GeneralFunctions.SafeGetInt32(reader, 0),
-                                                workload = GeneralFunctions.SafeGetInt32(reader, 10)
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                                workload = GeneralFunctions.SafeGetInt(reader, 10)
                                             },
                                             new Student {
-                                                studentID = GeneralFunctions.SafeGetInt32(reader, 0),
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
                                                 firstName = GeneralFunctions.SafeGetString(reader, 1),
                                                 surName = GeneralFunctions.SafeGetString(reader, 2),
                                                 phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
@@ -70,7 +70,7 @@ namespace TinderCloneV1 {
                                                 description = GeneralFunctions.SafeGetString(reader, 5),
                                                 degree = GeneralFunctions.SafeGetString(reader, 6),
                                                 study = GeneralFunctions.SafeGetString(reader, 7),
-                                                studyYear = GeneralFunctions.SafeGetInt32(reader, 8),
+                                                studyYear = GeneralFunctions.SafeGetInt(reader, 8),
                                                 interests = GeneralFunctions.SafeGetString(reader, 9)
                                             }
                                         ));
@@ -169,7 +169,7 @@ namespace TinderCloneV1 {
             queryString_Student += ");";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case return a [503 Service Unavailable].
                     connection.Open();
@@ -238,7 +238,7 @@ namespace TinderCloneV1 {
                                     WHERE Student.studentID = @coachID;";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
@@ -261,11 +261,11 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     newCoachProfile = new CoachProfile(
                                         new Coach {
-                                            studentID = GeneralFunctions.SafeGetInt32(reader, 0),
-                                            workload = GeneralFunctions.SafeGetInt32(reader, 10)
+                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                            workload = GeneralFunctions.SafeGetInt(reader, 10)
                                         },
                                         new Student {
-                                            studentID = GeneralFunctions.SafeGetInt32(reader, 0),
+                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
                                             firstName = GeneralFunctions.SafeGetString(reader, 1),
                                             surName = GeneralFunctions.SafeGetString(reader, 2),
                                             phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
@@ -273,7 +273,7 @@ namespace TinderCloneV1 {
                                             description = GeneralFunctions.SafeGetString(reader, 5),
                                             degree = GeneralFunctions.SafeGetString(reader, 6),
                                             study = GeneralFunctions.SafeGetString(reader, 7),
-                                            studyYear = GeneralFunctions.SafeGetInt32(reader, 8),
+                                            studyYear = GeneralFunctions.SafeGetInt(reader, 8),
                                             interests = GeneralFunctions.SafeGetString(reader, 9)
                                         }
                                     );
@@ -319,7 +319,7 @@ namespace TinderCloneV1 {
                                             WHERE studentID = @coachID";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
@@ -386,7 +386,7 @@ namespace TinderCloneV1 {
                                     WHERE studentID = @coachID;";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
@@ -408,8 +408,8 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         newCoach = new Coach {
-                                            studentID = GeneralFunctions.SafeGetInt32(reader, 0),
-                                            workload = GeneralFunctions.SafeGetInt32(reader, 1)
+                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                            workload = GeneralFunctions.SafeGetInt(reader, 1)
                                         };
                                     }
                                 }
@@ -462,7 +462,7 @@ namespace TinderCloneV1 {
                                     WHERE studentID = @coachID;";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
