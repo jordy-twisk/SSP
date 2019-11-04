@@ -100,7 +100,7 @@ namespace TinderCloneV1 {
 
             string queryString = $@"SELECT *
                                     FROM [dbo].[CoachTutorantConnection]
-                                    WHERE studentIDcoach = @coachID";
+                                    WHERE studentIDCoach = @coachID";
 
             try {
                 using (SqlConnection connection = new SqlConnection(connectionString)) {
@@ -125,9 +125,11 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         listOfCoachTutorantConnections.Add(new CoachTutorantConnection {
-                                            studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 0),
-                                            studentIDCoach = GeneralFunctions.SafeGetInt(reader, 1),
-                                            status = GeneralFunctions.SafeGetString(reader, 2)
+                                            //Reader 0 contains coachTutorantConnectionID key (of the database),
+                                            //this data is irrelevant for the user.
+                                            studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 1),
+                                            studentIDCoach = GeneralFunctions.SafeGetInt(reader, 2),
+                                            status = GeneralFunctions.SafeGetString(reader, 3)
                                         });
                                     }
                                 }
@@ -240,9 +242,11 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         coachTutorantConnection = new CoachTutorantConnection {
-                                            studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 0),
-                                            studentIDCoach = GeneralFunctions.SafeGetInt(reader, 1),
-                                            status = GeneralFunctions.SafeGetString(reader, 2)
+                                            //Reader 0 contains coachTutorantConnectionID key (of the database),
+                                            //this data is irrelevant for the user.
+                                            studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 1),
+                                            studentIDCoach = GeneralFunctions.SafeGetInt(reader, 2),
+                                            status = GeneralFunctions.SafeGetString(reader, 3)
                                         };
                                     }
                                 }
