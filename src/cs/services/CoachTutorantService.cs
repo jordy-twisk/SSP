@@ -54,7 +54,6 @@ namespace TinderCloneV1 {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
-
                     try {
                         //Update the status for the tutorant/coach connection
                         //The Query may fail, in which case a [400 Bad Request] is returned.
@@ -63,9 +62,10 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@status", System.Data.SqlDbType.VarChar).Value = coachTutorantConnection.status;
                             command.Parameters.Add("@studentIDTutorant", System.Data.SqlDbType.Int).Value = coachTutorantConnection.studentIDTutorant;
                             command.Parameters.Add("@studentIDCoach", System.Data.SqlDbType.Int).Value = coachTutorantConnection.studentIDCoach;
+
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            int affectedRows = command.ExecuteNonQuery();
+                            int affectedRows = await command.ExecuteNonQueryAsync();
 
                             //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
                             if(affectedRows == 0) {
@@ -107,31 +107,30 @@ namespace TinderCloneV1 {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
-
                     try {
                         //Get all connections from the CoachTutorantConnections table for a specific coach
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             //The Query may fail, in which case a [400 Bad Request] is returned.
-                            using (SqlDataReader reader = command.ExecuteReader()) {
+                            using (SqlDataReader reader = await command.ExecuteReaderAsync()) {
                                 if (!reader.HasRows) {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
                                     return exceptionHandler.NotFoundException(log);
-                                } else {
-                                    while (reader.Read()) {
-                                        listOfCoachTutorantConnections.Add(new CoachTutorantConnection {
-                                            //Reader 0 contains coachTutorantConnectionID key (of the database),
-                                            //this data is irrelevant for the user.
-                                            studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 1),
-                                            studentIDCoach = GeneralFunctions.SafeGetInt(reader, 2),
-                                            status = GeneralFunctions.SafeGetString(reader, 3)
-                                        });
-                                    }
+                                } 
+                                while (reader.Read()) {
+                                    listOfCoachTutorantConnections.Add(new CoachTutorantConnection {
+                                        //Reader 0 contains coachTutorantConnectionID key (of the database),
+                                        //this data is irrelevant for the user.
+                                        studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 1),
+                                        studentIDCoach = GeneralFunctions.SafeGetInt(reader, 2),
+                                        status = GeneralFunctions.SafeGetString(reader, 3)
+                                    });
                                 }
                             }
                         }
@@ -163,25 +162,24 @@ namespace TinderCloneV1 {
             ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
 
             //Query string used to delete the coach from the coach table
-            string queryString = $@"DELETE
-                                            FROM [dbo].[CoachTutorantConnection]
-                                            WHERE studentIDcoach = @coachID";
+            string queryString = $@"DELETE FROM [dbo].[CoachTutorantConnection]
+                                    WHERE studentIDcoach = @coachID";
 
             try {
                 using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
-
                     try {
                         //Delete all connections from a specific coach in the CoachTutorantConnection table
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            int affectedRows = command.ExecuteNonQuery();
+                            int affectedRows = await command.ExecuteNonQueryAsync();
 
                             //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
                             if (affectedRows == 0) {
@@ -189,7 +187,6 @@ namespace TinderCloneV1 {
                                 return exceptionHandler.NotFoundException(log);
                             }
                         }
-
                     } catch (SqlException e) {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
@@ -215,8 +212,7 @@ namespace TinderCloneV1 {
             ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
             CoachTutorantConnection coachTutorantConnection = new CoachTutorantConnection();
 
-            string queryString = $@"SELECT *
-                                    FROM [dbo].[CoachTutorantConnection]
+            string queryString = $@"SELECT * FROM [dbo].[CoachTutorantConnection]
                                     WHERE studentIDTutorant = @tutorantID";
 
             try {
@@ -230,25 +226,25 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             //The Query may fail, in which case a [400 Bad Request] is returned.
-                            using (SqlDataReader reader = command.ExecuteReader()) {
+                            using (SqlDataReader reader = await command.ExecuteReaderAsync()) {
                                 if (!reader.HasRows) {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
                                     return exceptionHandler.NotFoundException(log);
-                                } else {
-                                    while (reader.Read()) {
-                                        coachTutorantConnection = new CoachTutorantConnection {
-                                            //Reader 0 contains coachTutorantConnectionID key (of the database),
-                                            //this data is irrelevant for the user.
-                                            studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 1),
-                                            studentIDCoach = GeneralFunctions.SafeGetInt(reader, 2),
-                                            status = GeneralFunctions.SafeGetString(reader, 3)
-                                        };
-                                    }
+                                }
+                                while (reader.Read()) {
+                                    coachTutorantConnection = new CoachTutorantConnection {
+                                        //Reader 0 contains coachTutorantConnectionID key (of the database),
+                                        //this data is irrelevant for the user.
+                                        studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 1),
+                                        studentIDCoach = GeneralFunctions.SafeGetInt(reader, 2),
+                                        status = GeneralFunctions.SafeGetString(reader, 3)
+                                    };
                                 }
                             }
                         }
@@ -302,7 +298,6 @@ namespace TinderCloneV1 {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
-
                     try {
                         //Update the status for the tutorant/coach connection
                         //The Query may fail, in which case a [400 Bad Request] is returned.
@@ -311,9 +306,10 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@status", System.Data.SqlDbType.VarChar).Value = coachTutorantConnection.status;
                             command.Parameters.Add("@studentIDTutorant", System.Data.SqlDbType.Int).Value = coachTutorantConnection.studentIDTutorant;
                             command.Parameters.Add("@studentIDCoach", System.Data.SqlDbType.Int).Value = coachTutorantConnection.studentIDCoach;
+
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            command.ExecuteNonQuery();
+                            await command.ExecuteNonQueryAsync();
                         }
                     } catch (SqlException e) {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
@@ -340,25 +336,24 @@ namespace TinderCloneV1 {
             ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
 
             //Query string used to delete the coach from the coach table
-            string queryString = $@"DELETE
-                                            FROM [dbo].[CoachTutorantConnection]
-                                            WHERE studentIDtutorant = @tutorantID";
+            string queryString = $@"DELETE FROM [dbo].[CoachTutorantConnection]
+                                    WHERE studentIDtutorant = @tutorantID";
 
             try {
                 using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
-
                     try {
                         //Delete the connection from a specific tutorant in the CoachTutorantConnection table
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            int affectedRows = command.ExecuteNonQuery();
+                            int affectedRows = await command.ExecuteNonQueryAsync();
 
                             //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
                             if (affectedRows == 0) {

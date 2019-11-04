@@ -7,10 +7,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace TinderCloneV1 {
-    public class UserController{
+    public class StudentController{
 
         IStudentService userService;
-        public UserController(IStudentService userService) {
+        public StudentController(IStudentService userService) {
             this.userService = userService;
         }
 
@@ -24,7 +24,12 @@ namespace TinderCloneV1 {
 
             userService = new StudentService(req, request, log);
 
-            return await userService.GetAllStudents();
+            if (req.Method == HttpMethod.Get) {
+                return await userService.GetAllStudents();
+            } 
+            else {
+                throw new NotImplementedException();
+            }
         }
 
         /*

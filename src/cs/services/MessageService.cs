@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace TinderCloneV1 {
     class MessageService : IMessageService {
@@ -46,14 +47,13 @@ namespace TinderCloneV1 {
                 jObject["senderID"] == null || jObject["receiverID"] == null)  {
                     log.LogError($"Requestbody is missing data for the Message table!");
                     return exceptionHandler.BadRequest(log);
-            }
+             }
 
             // All fields for the Message table are required.
             string queryString = $@"INSERT INTO [dbo].[Message] (type, payload, created, lastModified, senderID, receiverID)" +
                 $"VALUES (@type, @payload, @created, @lastModified, @senderID, @receiverID);";
 
             try {
-            
                 using (SqlConnection connection = new SqlConnection(connectionString)) {
                     // The connection is automatically closed when going out of scope of the using block.
                     // The connection may fail to open, in which case return a [503 Service Unavailable].
@@ -72,10 +72,9 @@ namespace TinderCloneV1 {
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            command.ExecuteNonQuery();
+                            await command.ExecuteNonQueryAsync();
                         }
-                    }
-                    catch (SqlException e) {
+                    } catch (SqlException e) {
                         // The Query may fail, in which case a [400 Bad Request] is returned.
                         // Reasons for this failure may include a PK violation (entering an already existing studentID).
                         log.LogError("SQL Query has failed to execute.");
@@ -83,8 +82,7 @@ namespace TinderCloneV1 {
                         return exceptionHandler.BadRequest(log);
                     }
                 }
-            }
-            catch (SqlException e) {
+            } catch (SqlException e) {
                 // The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
@@ -110,9 +108,10 @@ namespace TinderCloneV1 {
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             command.Parameters.Add("@MessageID", System.Data.SqlDbType.DateTime).Value = messageID;
+
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            int affectedRows = command.ExecuteNonQuery();
+                            int affectedRows = await command.ExecuteNonQueryAsync();
 
                             // The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
@@ -120,16 +119,14 @@ namespace TinderCloneV1 {
                                 return exceptionHandler.NotFoundException(log);
                             }
                         }
-                    }
-                    catch (SqlException e) {
+                    } catch (SqlException e) {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
                         return exceptionHandler.BadRequest(log);
                     }
                 }
-            }
-            catch (SqlException e) {
+            } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
@@ -152,8 +149,8 @@ namespace TinderCloneV1 {
             // or
             // the senderID is that of the tutorantID and the receiverID is that of the coachID.
             string queryString = $@"SELECT * FROM [dbo].[Message]
-                            WHERE (senderID = @coachID AND receiverID = @tutorantID) OR  
-                            (senderID = @tutorantID AND receiverID = @coachID);";
+                                    WHERE (senderID = @coachID AND receiverID = @tutorantID) OR  
+                                          (senderID = @tutorantID AND receiverID = @coachID);";
 
             try {
                 using (SqlConnection connection = new SqlConnection(connectionString)) {
@@ -166,12 +163,14 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
-                            using (SqlDataReader reader = command.ExecuteReader()) {
+
+                            using (SqlDataReader reader = await command.ExecuteReaderAsync()) {
                                 if (!reader.HasRows) {
                                     // Query was succesfully executed, but returned no data.
                                     // Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                } 
+                                    return exceptionHandler.NotFoundException(log);
+                                }
                                 while (reader.Read()) {
                                     listOfMessages.Add(new Message {
                                         MessageID = reader.GetInt32(0),
@@ -185,16 +184,14 @@ namespace TinderCloneV1 {
                                 }
                             }
                         }
-                    }
-                    catch (SqlException e) {
+                    } catch (SqlException e) {
                         // The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
                         return exceptionHandler.BadRequest(log);
                     }
                 }
-            }
-            catch (SqlException e) {
+            } catch (SqlException e) {
                 // The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
@@ -227,7 +224,8 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
-                            using (SqlDataReader reader = command.ExecuteReader()) {
+
+                            using (SqlDataReader reader = await command.ExecuteReaderAsync()) {
                                 if (!reader.HasRows) {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
@@ -274,11 +272,10 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> UpdateMessageByID(int messageID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(messageID);
             PropertyInfo[] properties = typeof(Message).GetProperties();
-            string body = await req.Content.ReadAsStringAsync();
             Message newMessage = new Message();
             JObject jObject; 
 
-            using (StringReader reader = new StringReader(body)) {
+            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 newMessage = jObject.ToObject<Message>();
             }
@@ -291,18 +288,20 @@ namespace TinderCloneV1 {
 
             string queryString = $"UPDATE [dbo].[Message] SET ";
 
-            // if data to update is given in the request body.
-            /* THIS NEED FIXING */
-            int i = 0;
+            /* Loop through the properties of the jObject Object which contains the values given in the requestBody
+               loop through the hardcoded properties in the Message Entity to check if they correspond with the requestBody 
+               to prevent SQL injection. */
             foreach (JProperty property in jObject.Properties()) {
-                queryString += $"{properties[i].Name} = '@{property.Name}',";
-                i++;
+                foreach (PropertyInfo props in properties) {
+                    if (props.Name == property.Name) {
+                        /* fill the queryString with the property names from the Message and their values */
+                        queryString += $"{props.Name} = @{property.Name},";
+                    }
+                }
             }
 
             queryString = queryString.Remove(queryString.Length - 1);
             queryString += $@" WHERE MessageID = @messageID;";
-
-            log.LogInformation($"Executing the following query: {queryString}");
 
             try {
                 using (SqlConnection connection = new SqlConnection(connectionString)) {
@@ -322,7 +321,7 @@ namespace TinderCloneV1 {
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            int affectedRows = command.ExecuteNonQuery();
+                            int affectedRows = await command.ExecuteNonQueryAsync();
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");

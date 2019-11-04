@@ -15,6 +15,10 @@ namespace TinderCloneV1 {
             this.coachTutorantService = coachTutorantService;
         }
 
+        /*
+        Route to /api/coachTutorant
+        PUT: Updates the status of the connection between the coach and his tutorant. (Pending, Completed etc)
+        */
         [FunctionName("PostCoachTutorant")]
         public async Task<HttpResponseMessage> PostCoachTutorant([HttpTrigger(AuthorizationLevel.Anonymous,
             "put", Route = "coachTutorant")] HttpRequestMessage req, HttpRequest request, ILogger log) {
@@ -23,12 +27,18 @@ namespace TinderCloneV1 {
 
             if (req.Method == HttpMethod.Put) {
                 return await coachTutorantService.UpdateConnection();
-
-            } else {
+            } 
+            else {
                 throw new NotImplementedException();
             }
         }
 
+        /*
+        Route to /api/coachTutorant/coach/{studentID}
+        WHERE studentID is the studentID of the student (coach) as path parameter
+        GET: Gets the connection data from the coach connected with his/her tutorants
+        DELETE: Deletes the connections the coach has running with hsi/her tutorants
+        */
         [FunctionName("CoachConnectionTutorantByID")]
         public async Task<HttpResponseMessage> GetCoachTutorantCoach([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "delete", Route = "coachTutorant/coach/{studentID}")] HttpRequestMessage req, HttpRequest request, int studentID, ILogger log) {
@@ -46,6 +56,13 @@ namespace TinderCloneV1 {
             }
         }
 
+        /*
+        Route to /api/coachTutorant/tutorant/{studentID}
+        WHERE studentID is the studentID of the student (tutorant) as path parameter
+        GET: Gets the connection data from the tutorant connected with his/her coach
+        POST: Creates (or request) a connection to a coach
+        DELETE: Deletes the tutorants connection with his/her coach
+        */
         [FunctionName("TutorantConnectionCoachByID")]
         public async Task<HttpResponseMessage> GetCoachTutorantTutorant([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "post", "delete", Route = "coachTutorant/tutorant/{studentID}")] HttpRequestMessage req, HttpRequest request, int studentID, ILogger log) {

@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 [assembly: FunctionsStartup(typeof(TinderCloneV1.Startup))]
 namespace TinderCloneV1 {
+
+    /* The startup function to prevent Dependency Injection */
     class Startup : FunctionsStartup {
         public override void Configure(IFunctionsHostBuilder builder) {
 

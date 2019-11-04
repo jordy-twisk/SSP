@@ -14,8 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace TinderCloneV1 {
     public class StudentService : IStudentService {
-
-        private readonly string str = Environment.GetEnvironmentVariable("sqldb_connection");
+        private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
         private readonly HttpRequestMessage req;
         private readonly HttpRequest request;
@@ -27,10 +26,8 @@ namespace TinderCloneV1 {
             this.log = log;
         }
 
-        /*
-        Returns the data from all the students that were created (Coaches and Tutorants) 
-        based on the filters given by the user through query parameters.
-        */
+        /* Returns the data from all the students that were created (Coaches and Tutorants) 
+           based on the filters given by the user through query parameters. */
         public async Task<HttpResponseMessage> GetAllStudents() {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             PropertyInfo[] properties = typeof(Student).GetProperties();
@@ -38,12 +35,10 @@ namespace TinderCloneV1 {
 
             string queryString = $"SELECT * FROM [dbo].[Student]";
 
-            /*
-            If there are any query parameters, loop through the properties of the User 
-            to check if they exist, if so, add the given property with its query value 
-            to the queryString. This enables filtering between individual words in
-            the interests and study columns
-            */
+            /* If there are any query parameters, loop through the properties of the User 
+               to check if they exist, if so, add the given property with its query value 
+               to the queryString. This enables filtering between individual words in
+               the interests and study columns */
             string isEmpty = null;
             if (request.Query.Count != 0) {
                 queryString += $" WHERE";
@@ -62,20 +57,16 @@ namespace TinderCloneV1 {
             }
 
             try {
-                using (SqlConnection connection = new SqlConnection(str)) {
-                    /* 
-                    The connection is automatically closed when going out of scope of the using block.
-                    The connection may fail to open, in which case a [503 Service Unavailable] is returned. 
-                    */
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
+                    /* The connection is automatically closed when going out of scope of the using block.
+                       The connection may fail to open, in which case a [503 Service Unavailable] is returned.  */
                     connection.Open();
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             log.LogInformation($"Executing the following query: {queryString}");
-                            /* 
-                            Executing the queryString to get all Student profiles 
-                            and add the data of all students to a list of students 
-                            */
-                            using (SqlDataReader reader = command.ExecuteReader()) {
+                            /* Executing the queryString to get all Student profiles 
+                               and add the data of all students to a list of students */
+                            using (SqlDataReader reader = await command.ExecuteReaderAsync()) {
                                 while (reader.Read()) {
                                     listOfStudents.Add(new Student {
                                         studentID = reader.GetInt32(0),
@@ -95,7 +86,7 @@ namespace TinderCloneV1 {
                     } 
                     catch (SqlException e) {
                         /* The Query may fail, in which case a [400 Bad Request] is returned. */
-                        log.LogError("Could not perform given query on the database");
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
                         return exceptionHandler.BadRequest(log);
                     }
@@ -130,7 +121,7 @@ namespace TinderCloneV1 {
             string queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = @studentID;";
 
             try {
-                using (SqlConnection connection = new SqlConnection(str)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     /* 
                     The connection is automatically closed when going out of scope of the using block.
                     The connection may fail to open, in which case a [503 Service Unavailable] is returned. 
@@ -146,7 +137,7 @@ namespace TinderCloneV1 {
                             and add the data of the student to a newStudent
                             */
                             log.LogInformation($"Executing the following query: {queryString}");
-                            using (SqlDataReader reader = command.ExecuteReader()) {
+                            using (SqlDataReader reader = await command.ExecuteReaderAsync()) {
                                 /* If the student does not exist, it returns a notFoundException */
                                 /* Return status code 404 */
                                 if (!reader.HasRows) {
@@ -202,7 +193,7 @@ namespace TinderCloneV1 {
             JObject jObject;
             
             /* Read the requestBody and put the response into a jObject which can be read later
-            Also make a new user object and store the data in the user*/
+            Also make a new user object and store the data in the user */
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 newStudent = jObject.ToObject<Student>();
@@ -218,14 +209,16 @@ namespace TinderCloneV1 {
 
             string queryString = $"UPDATE [dbo].[Student] SET ";
 
-            int i = 0;
             /* Loop through the properties of the jObject Object which contains the values given in the requestBody
-            fill the queryString with the property names from the User and their corresponding values*/
+               loop through the hardcoded properties in the Student Entity to check if they correspond with the requestBody 
+               to prevent SQL injection. */
             foreach (JProperty property in jObject.Properties()) {
-                /* ProperyInfo[] properties used here to prevent SQLIjection in the columns, since the properties
-                are hardcoded in the entities */
-                queryString += $"{properties[i].Name} = '@{property.Name}',";
-                i++;
+                foreach (PropertyInfo props in properties) {
+                    if (props.Name == property.Name) {
+                        /* fill the queryString with the property names from the Message and their values */
+                        queryString += $"{props.Name} = @{property.Name},";
+                    }
+                }
             }
 
             /* Remove the last character from the queryString, which is ','  
@@ -233,9 +226,8 @@ namespace TinderCloneV1 {
             queryString = queryString.Remove(queryString.Length - 1);
             queryString += $" WHERE studentID = @studentID;";
 
-
             try {
-                using (SqlConnection connection = new SqlConnection(str)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     /* 
                     The connection is automatically closed when going out of scope of the using block.
                     The connection may fail to open, in which case a [503 Service Unavailable] is returned. 
@@ -257,13 +249,11 @@ namespace TinderCloneV1 {
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            SqlCommand commandUpdate = new SqlCommand(queryString, connection);
-
-                            int affectedRows = commandUpdate.ExecuteNonQuery();
+                            int affectedRows = await command.ExecuteNonQueryAsync();
 
                             /* The SQL query must have been incorrect if no rows were executed, return a [404 Not Found] */
                             if (affectedRows == 0) {
-                                log.LogError($"No data has been changed for student: {studentID}");
+                                log.LogError("Zero rows were affected.");
                                 return exceptionHandler.NotFoundException(log);
                             }
                         }

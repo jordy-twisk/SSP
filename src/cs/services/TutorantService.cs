@@ -112,18 +112,20 @@ namespace TinderCloneV1 {
                             if (jObject["user"]["study"] != null)       command.Parameters.Add("@study", System.Data.SqlDbType.NVarChar).Value =         tutorantProfile.user.study;
                             if (jObject["user"]["studyYear"] != null)   command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value =          tutorantProfile.user.studyYear;
                             if (jObject["user"]["interests"] != null)   command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value =      tutorantProfile.user.interests;
+
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            command.ExecuteNonQuery();
+                            await command.ExecuteNonQueryAsync();
                         }
 
                         // Insert profile into the Tutorant table.
                         using (SqlCommand command = new SqlCommand(queryStringTutorant, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
                             command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = tutorantProfile.tutorant.studentID;
+
                             log.LogInformation($"Executing the following query: {queryStringTutorant}");
 
-                            command.ExecuteNonQuery();
+                            await command.ExecuteNonQueryAsync();
                         }
                     } catch (SqlException e) {
                         // The Query may fail, in which case a [400 Bad Request] is returned.
@@ -162,15 +164,15 @@ namespace TinderCloneV1 {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
-
                     try {
                         // Delete the tutorant from the tutorant table.
                         using (SqlCommand command = new SqlCommand(queryStringTutorant, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+
                             log.LogInformation($"Executing the following query: {queryStringTutorant}");
 
-                            int affectedRows = command.ExecuteNonQuery();
+                            int affectedRows = await command.ExecuteNonQueryAsync();
 
                             // The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
@@ -185,7 +187,7 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
                             log.LogInformation($"Executing the following query: {queryStringStudent}");
 
-                            int affectedRows = command.ExecuteNonQuery();
+                            int affectedRows = await command.ExecuteNonQueryAsync();
 
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
@@ -219,44 +221,44 @@ namespace TinderCloneV1 {
             List<TutorantProfile> listOfTutorantProfiles = new List<TutorantProfile>();
 
             string queryString = $@"SELECT Student.* FROM [dbo].[Student]
-                                    INNER JOIN [dbo].[Tutorant] ON Student.studentID = Tutorant.studentID";
+                                    INNER JOIN [dbo].[Tutorant] 
+                                    ON Student.studentID = Tutorant.studentID";
 
             try {
                 using (SqlConnection connection = new SqlConnection(connectionString)) {
                     // The connection is automatically closed when going out of scope of the using block.
                     // The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
-
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             // The Query may fail, in which case a [400 Bad Request] is returned.
-                            using (SqlDataReader reader = command.ExecuteReader()) {
+                            using (SqlDataReader reader = await command.ExecuteReaderAsync()) {
                                 if (!reader.HasRows) {
                                     // Query was succesfully executed, but returned no data.
                                     // Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                } else {
-                                    while (reader.Read()) {
-                                        listOfTutorantProfiles.Add(new TutorantProfile(
-                                            new Tutorant {
-                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                            },
-                                            new Student {
-                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                                firstName = GeneralFunctions.SafeGetString(reader, 1),
-                                                surName = GeneralFunctions.SafeGetString(reader, 2),
-                                                phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
-                                                photo = GeneralFunctions.SafeGetString(reader, 4),
-                                                description = GeneralFunctions.SafeGetString(reader, 5),
-                                                degree = GeneralFunctions.SafeGetString(reader, 6),
-                                                study = GeneralFunctions.SafeGetString(reader, 7),
-                                                studyYear = GeneralFunctions.SafeGetInt(reader, 8),
-                                                interests = GeneralFunctions.SafeGetString(reader, 9)
-                                            }
-                                        ));
-                                    }
+                                    return exceptionHandler.NotFoundException(log);
+                                }
+                                while (reader.Read()) {
+                                    listOfTutorantProfiles.Add(new TutorantProfile(
+                                        new Tutorant {
+                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                        },
+                                        new Student {
+                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                            firstName = GeneralFunctions.SafeGetString(reader, 1),
+                                            surName = GeneralFunctions.SafeGetString(reader, 2),
+                                            phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
+                                            photo = GeneralFunctions.SafeGetString(reader, 4),
+                                            description = GeneralFunctions.SafeGetString(reader, 5),
+                                            degree = GeneralFunctions.SafeGetString(reader, 6),
+                                            study = GeneralFunctions.SafeGetString(reader, 7),
+                                            studyYear = GeneralFunctions.SafeGetInt(reader, 8),
+                                            interests = GeneralFunctions.SafeGetString(reader, 9)
+                                        }
+                                    ));
                                 }
                             }
                         }
@@ -298,7 +300,6 @@ namespace TinderCloneV1 {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
-
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
@@ -306,32 +307,31 @@ namespace TinderCloneV1 {
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             //The Query may fail, in which case a [400 Bad Request] is returned.
-                            using (SqlDataReader reader = command.ExecuteReader()) {
+                            using (SqlDataReader reader = await command.ExecuteReaderAsync()) {
                                 if (!reader.HasRows) {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
                                     return exceptionHandler.NotFoundException(log);
-                                } else {
-                                    while (reader.Read()) {
-                                        newTutorantProfile = new TutorantProfile(
-                                            new Tutorant {
-                                                studentID = GeneralFunctions.SafeGetInt(reader, 0)
-                                            },
-                                            new Student {
-                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                                firstName = GeneralFunctions.SafeGetString(reader, 1),
-                                                surName = GeneralFunctions.SafeGetString(reader, 2),
-                                                phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
-                                                photo = GeneralFunctions.SafeGetString(reader, 4),
-                                                description = GeneralFunctions.SafeGetString(reader, 5),
-                                                degree = GeneralFunctions.SafeGetString(reader, 6),
-                                                study = GeneralFunctions.SafeGetString(reader, 7),
-                                                studyYear = GeneralFunctions.SafeGetInt(reader, 8),
-                                                interests = GeneralFunctions.SafeGetString(reader, 9)
-                                            }
-                                        );
-                                    }
+                                } 
+                                while (reader.Read()) {
+                                    newTutorantProfile = new TutorantProfile(
+                                        new Tutorant {
+                                            studentID = GeneralFunctions.SafeGetInt(reader, 0)
+                                        },
+                                        new Student {
+                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                            firstName = GeneralFunctions.SafeGetString(reader, 1),
+                                            surName = GeneralFunctions.SafeGetString(reader, 2),
+                                            phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
+                                            photo = GeneralFunctions.SafeGetString(reader, 4),
+                                            description = GeneralFunctions.SafeGetString(reader, 5),
+                                            degree = GeneralFunctions.SafeGetString(reader, 6),
+                                            study = GeneralFunctions.SafeGetString(reader, 7),
+                                            studyYear = GeneralFunctions.SafeGetInt(reader, 8),
+                                            interests = GeneralFunctions.SafeGetString(reader, 9)
+                                        }
+                                    );
                                 }
                             }
                         }

@@ -21,11 +21,9 @@ namespace TinderCloneV1 {
                     await connection.OpenAsync();
                     return req.CreateResponse(HttpStatusCode.OK, $"The database connection is: {connection.State}");
                 }
-            }
-            catch (SqlException sqlex){
+            } catch (SqlException sqlex){
                 return req.CreateResponse(HttpStatusCode.BadRequest, $"The following SqlException happened: {sqlex.Message}");
-            }
-            catch (Exception ex){
+            } catch (Exception ex){
                 return req.CreateResponse(HttpStatusCode.BadRequest, $"The following Exception happened: {ex.Message}");
             }
         }
