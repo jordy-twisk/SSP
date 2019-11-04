@@ -210,7 +210,7 @@ namespace TinderCloneV1 {
 
             /* If the responseBody is empty (no data has been given by the user)
             return a BadRequest to say that the User must fill the requestBody.*/
-            if (jObject.Properties() != null) {
+            if (jObject.Properties() == null) {
                 log.LogError($"Requestbody is missing data for the student table! Cant change {studentID}");
                 return exceptionHandler.BadRequest(log);
             }
