@@ -24,7 +24,7 @@ def test_delete_coachTutorant_coach_byId():
     a.create_multiple_coachTutorant()
   assert r.status_code == 204, r.status_code
   a.create_multiple_coachTutorant()
-def test_get_coachTutorants_tutorant_byId():
+def test_get_coachTutorant_tutorant_byId():
   r = requests.get(a.api_link() + "coachTutorant/tutorant/" + a.tutorantId())
   assert r.status_code == 200, r.status_code
 def test_put_coachTutorant_tutorant_byId():
