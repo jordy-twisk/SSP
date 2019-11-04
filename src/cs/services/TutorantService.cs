@@ -39,7 +39,7 @@ namespace TinderCloneV1 {
             }
 
             // Verify if all parameters for the Tutorant table exist.
-            //One or more parameters may be missing, in which case a [400 Bad Request] is returned.
+            // One or more parameters may be missing, in which case a [400 Bad Request] is returned.
             if (jObject["tutorant"]["studentID"] == null) {
                 log.LogError("Requestbody is missing data for the tutorant table!");
                 return exceptionHandler.BadRequest(log);
@@ -62,11 +62,11 @@ namespace TinderCloneV1 {
             // All fields for the Tutorant table are required.
             string queryStringTutorant = $@"INSERT INTO [dbo].[Tutorant] (studentID) VALUES (@studentID);";
 
-            //The SQL query for the Students table has to be dynamically generated, as it contains many optional fields.
-            //By manually adding the columns to the query string (if they're present in the request body) we prevent
-            //SQL injection and ensure no illegitimate columnnames are entered into the SQL query.
+            // The SQL query for the Students table has to be dynamically generated, as it contains many optional fields.
+            // By manually adding the columns to the query string (if they're present in the request body) we prevent
+            // SQL injection and ensure no illegitimate columnnames are entered into the SQL query.
 
-            //Dynamically create the INSERT INTO line of the SQL statement:
+            // Dynamically create the INSERT INTO line of the SQL statement:
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
             if (jObject["user"]["firstName"] != null) queryString_Student += ", firstName";
             if (jObject["user"]["surName"] != null) queryString_Student += ", surName";
@@ -79,7 +79,7 @@ namespace TinderCloneV1 {
             if (jObject["user"]["interests"] != null) queryString_Student += ", interests";
             queryString_Student += ") ";
 
-            //Dynamically create the VALUES line of the SQL statement:
+            // Dynamically create the VALUES line of the SQL statement:
             queryString_Student += "VALUES (@studentID";
             if (jObject["user"]["firstName"] != null) queryString_Student += ", @firstName";
             if (jObject["user"]["surName"] != null) queryString_Student += ", @surName";
@@ -94,8 +94,8 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    //The connection is automatically closed when going out of scope of the using block.
-                    //The connection may fail to open, in which case return a [503 Service Unavailable].
+                    // The connection is automatically closed when going out of scope of the using block.
+                    // The connection may fail to open, in which case return a [503 Service Unavailable].
                     connection.Open();
 
                     try {
@@ -126,15 +126,15 @@ namespace TinderCloneV1 {
                             command.ExecuteNonQuery();
                         }
                     } catch (SqlException e) {
-                        //The Query may fail, in which case a [400 Bad Request] is returned.
-                        //Reasons for this failure may include a PK violation (entering an already existing studentID).
+                        // The Query may fail, in which case a [400 Bad Request] is returned.
+                        // Reasons for this failure may include a PK violation (entering an already existing studentID).
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
                         return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
-                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                // The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
                 return exceptionHandler.ServiceUnavailable(log);
@@ -142,7 +142,7 @@ namespace TinderCloneV1 {
 
             log.LogInformation($"{HttpStatusCode.Created} | Profile created succesfully.");
 
-            //Return response code [201 Created].
+            // Return response code [201 Created].
             return new HttpResponseMessage(HttpStatusCode.Created);
         }
 
@@ -172,7 +172,7 @@ namespace TinderCloneV1 {
 
                             int affectedRows = command.ExecuteNonQuery();
 
-                            //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
+                            // The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected while deleting from the Tutorant table.");
                                 return exceptionHandler.NotFoundException(log);
@@ -209,7 +209,7 @@ namespace TinderCloneV1 {
 
             log.LogInformation($"{HttpStatusCode.NoContent} | Data deleted succesfully.");
 
-            //Return response code [204 NoContent].
+            // Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
@@ -223,19 +223,19 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    //The connection is automatically closed when going out of scope of the using block.
-                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    // The connection is automatically closed when going out of scope of the using block.
+                    // The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
 
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            //The Query may fail, in which case a [400 Bad Request] is returned.
+                            // The Query may fail, in which case a [400 Bad Request] is returned.
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
-                                    //Query was succesfully executed, but returned no data.
-                                    //Return response code [404 Not Found]
+                                    // Query was succesfully executed, but returned no data.
+                                    // Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
                                 } else {
                                     while (reader.Read()) {
@@ -261,14 +261,14 @@ namespace TinderCloneV1 {
                             }
                         }
                     } catch (SqlException e) {
-                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        // The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
                         return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
-                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                // The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
                 return exceptionHandler.ServiceUnavailable(log);

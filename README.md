@@ -22,7 +22,7 @@ API for MBO &amp; HBO students
 
 - [] Verify YAML matches MessageService
 
-- [] Verify YAML matches TutorantService
+- [✓] Verify YAML matches TutorantService
 
 - [] Verify YAML matches UserServices
 
@@ -32,7 +32,6 @@ API for MBO &amp; HBO students
 
 - [] Tests. Kaydo, Thomas
 
-<<<<<<< HEAD
 ### Friday 1 November | Quick Notes
 - [CHECK] SQL injection in UserService.cs
 - [] Finalize the MessageService.cs
@@ -59,4 +58,3 @@ A list of all files which are completed, tested and (if needed) match their API 
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |
->>>>>>> master
