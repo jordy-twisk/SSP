@@ -53,8 +53,8 @@ A list of all files which are completed, tested and (if needed) match their API 
 |-----------------------|------------|-------------------------| -------------- |
 | CoachTutorantServices | Mike       | 31/10/2019              | yes            |
 | StudentServices       | Barend     | 01/11/2019              | yes            |
-|                       |            | dd/mm/yyyy              | yes/no         |
-|                       |            | dd/mm/yyyy              | yes/no         |
+| TutorantService       | Kaydo      | 04/11/2019              | yes            |
+| MessageService        |            |                         |                |
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |
