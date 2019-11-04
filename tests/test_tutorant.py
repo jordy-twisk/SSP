@@ -13,7 +13,7 @@ def test_get_tutorants():
   v = Validator(a.s_studentData())
   assert v.validate(r.json()[0]['user']) == True, v.errors
 def test_post_tutorant():
-  a.delete_tutorant()
+  a.delete_tutorant(a.tutorantId())
   url = a.api_link() + "profile/tutorant"
   payload = "{\n   \"user\": {\n      \"studentID\": \""+ a.tutorantId() + "\",\n      \"firstName\": \"TestTutorant\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a student\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n    }, \n  \"tutorant\": {\n      \"studentID\": \""+ a.tutorantId() + "\"\n } \n}"  
   headers = {
@@ -21,7 +21,7 @@ def test_post_tutorant():
     'cache-control': "no-cache"}
   r = requests.request("POST", url, data=payload, headers=headers)
   if r.status_code is not 201:
-    a.create_tutorant()
+    a.create_tutorant(a.tutorantId())
   assert r.status_code == 201, r.status_code
 def test_get_tutorant_byId():
   r = requests.get(a.api_link() + "profile/tutorant/" + a.tutorantId())

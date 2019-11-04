@@ -1,6 +1,6 @@
 #static values
 def api_link():
-  return "https://dev-tinderfunv2-test.azurewebsites.net/api/"
+  return "https://dev-tinderfunv2.azurewebsites.net/api/"
 def studentId():
   return "581433"
 def coachId():
@@ -20,9 +20,9 @@ def create_multiple_tutorant():
   create_tutorant(tutorantId1())
   create_tutorant(tutorantId2())
 def delete_multiple_tutorant():
-  delete_tutorant()
-  delete_tutorant()
-  delete_tutorant()  
+  delete_tutorant(tutorantId())
+  delete_tutorant(tutorantId1())
+  delete_tutorant(tutorantId2())  
 def create_multiple_coachTutorant():
   create_coachTutorant(tutorantId())
   create_coachTutorant(tutorantId1())
@@ -48,8 +48,8 @@ def create_tutorant(tut):
     'Content-Type': "application/json",
     'cache-control': "no-cache"}
   response = requests.request("POST", url, data=payload, headers=headers)
-def delete_tutorant():
-  r = requests.delete(api_link() + "profile/tutorant/" + tutorantId())
+def delete_tutorant(tut):
+  r = requests.delete(api_link() + "profile/tutorant/" + tut)
 def create_coachTutorant(tut):
   url = api_link() + "coachTutorant/tutorant/" + tut
   payload = "{\n\"studentIDTutorant\":\""+ tut +"\",\n\"studentIDCoach\": \""+ coachId() +"\",\n\"status\":\"Pending\"\n}"

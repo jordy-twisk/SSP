@@ -10,11 +10,15 @@ def test_get_student_byId():
   v = Validator(a.s_studentData())
   assert v.validate(r.json()) == True, v.errors
 def test_put_student_byId():
-  payload = "{\n\"studentID\": \""+ a.coachId() + "\",\n      \"firstName\": \"TestCoach\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a coach\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n}"  
+  #fout ligt nog in de code. Wordt naar gekeken
+  tut = a.tutorantId()
+  url = a.api_link() + "student/" + tut
+  #payload = "{\"studentID\": \""+ tut + "\",\n      \"firstName\": \"TestTutorant\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a student\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n}"  
+  payload = "{\n\"studentID\": "+ a.tutorantId() +" ,\n      \"firstName\": \"TestCoach+1\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a coach\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n}"  
   headers = {
     'Content-Type': "application/json",
     'cache-control': "no-cache"}
-  r = requests.put(a.api_link() + "student/" + a.coachId(), data=payload, headers=headers)
+  r = requests.put(url, data=payload, headers=headers)
   assert r.status_code == 204, r.status_code
 def test_get_student():
   r = requests.get(a.api_link() + "students/search")

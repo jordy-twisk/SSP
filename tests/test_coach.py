@@ -14,7 +14,7 @@ def test_get_coaches():
 def test_post_coach():
   a.delete_coach()
   url = a.api_link() + "profile/coach"
-  payload = "{\n    \"coach\": {\n      \"studentID\": \""+ a.coachId() + "\",\n      \"workload\": 10\n    },\n  \n    \"user\": {\n      \"studentID\": \""+ a.coachId() + "\",\n      \"firstName\": \"TestCoach\",\n      \"surName\": \"Test\",\n      \"phoneNumber\": \"0692495724\",\n      \"interests\": \"Programming (C only), Servers, Cisco\",\n      \"photo\": \"https://i.imgur.com/Tl5sYD6.jpg\",\n      \"description\": \"I am a coach\",\n      \"degree\": \"HBO\",\n      \"study\": \"Technische Informatica\",\n      \"studyYear\": 4\n    }}"  
+  payload = "{\n\"coach\": {\n      \"studentID\": \""+ a.coachId() + "\",\n      \"workload\": 5\n    },\n \"user\": {\n      \"studentID\": \""+ a.coachId() + "\",\n      \"firstName\": \"TestCoach\",\n      \"surName\": \"Test\"}}"  
   headers = {
     'Content-Type': "application/json",
     'cache-control': "no-cache"}
