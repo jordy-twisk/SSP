@@ -268,34 +268,34 @@ paths:
     get:
       tags:
         - Tutorant profile
-      summary: get all tutorant profiles
+      summary: Get all tutorant profiles
       operationId: GetAllTutorantProfiles
-      description: Get all tutorant profiles.
+      description: Gets all tutorant profiles from the database.
       responses:
         '200':
-          description: Returned profiles
+          description: Returned tutorant profiles
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/TutorantProfile'
+        '400':
+          description: The query has failed to execute.
         '401':
           description: Student password is not accepted.
         '404':
-          description: Student number not in database.
-        '409':
-          description: Student number already exists.
+          description: Query returned no data.
         '503':
           description: Database or other services are unavailable at the moment.
     post:
       tags:
         - Tutorant profile
-      summary: create user profile for a tutorant
+      summary: Create profile for a tutorant
       operationId: CreateTutorantProfile
-      description: Creates a new tutorant profile.
+      description: Creates a new tutorant profile for the tutorant.
       requestBody:
-        description: all info that is needed to create the tutorant + profile
+        description: All info that is needed to create the tutorant and her profile.
         required: true
         content:
           application/json:
@@ -305,13 +305,9 @@ paths:
         '201':
           description: TutorantProfile has been created.
         '400':
-          description: Requestbody incomplete or studentIDs do not match
+          description: Requestbody incomplete or conflicts with existing data.
         '401':
           description: Student password is not accepted.
-        '404':
-          description: Student number not in database.
-        '409':
-          description: Student number already exists.
         '503':
           description: Database or other services are unavailable at the moment.
   /api/profile/tutorant/{studentID}:
@@ -320,7 +316,7 @@ paths:
       - Tutorant profile
       summary: get tutorant and his profile.
       operationId: GetTutorantProfileByID
-      description: Returns requested coach.
+      description: Returns the requested tutorant and his profile.
       parameters:
         - in: path
           name: studentID
@@ -338,11 +334,11 @@ paths:
                   items:
                   $ref: '#/components/schemas/TutorantProfile'
           '400':
-            description: Undocumented filter parameter.
+            description: The query has failed to execute.
           '401':
             description: Student password is not accepted.
           '404':
-            description: Student number not in database.
+            description: StudentID is not in database.
           '503':
             description: Database or other services are unavailable at the moment.
     delete:
@@ -366,7 +362,7 @@ paths:
             '401':
               description: Student password is not accepted.
             '404':
-              description: Delete has failed, no studentnumber exists.
+              description: Delete has failed, the specified studentID does not exist.
             '503':
               description: Database or other services are unavailable at the moment.
   /api/coach/{studentID}:
@@ -591,9 +587,10 @@ paths:
     get:
       tags: 
       - Messages
-      summary: get messages
+      summary: Get conversation between the specified coach and tutorant.
       operationId: GetAllMessages
-      description: Returns some messages, default number of last messages is 20 that will be returned.
+      # I removed the fact that this may return only a specified number of messages for now.
+      description: Returns all messages between the specified coach, specified with and tutorant.
       parameters: 
         - in: path
           name: coachID
