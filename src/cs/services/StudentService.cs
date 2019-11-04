@@ -222,14 +222,14 @@ namespace TinderCloneV1 {
             fill the queryString with the property names from the User and their corresponding values*/
             foreach (JProperty property in jObject.Properties()) {
                 /* ProperyInfo[] properties used here to prevent SQLIjection in the columns */
-                queryString += $"{properties[i].Name} = '@{property.Value}',";
+                queryString += $"{properties[i].Name} = '@{property.Name}',";
                 i++;
             }
 
             /* Remove the last character from the queryString, which is ','  
             And add the WHERE statement*/
             queryString = queryString.Remove(queryString.Length - 1);
-            queryString += $" WHERE studentID = @{studentID};";
+            queryString += $" WHERE studentID = @studentID;";
 
 
             try {
