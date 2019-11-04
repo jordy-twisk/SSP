@@ -17,8 +17,6 @@ namespace TinderCloneV1 {
 
         private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
-        private ExceptionHandler exceptionHandler;
-
         private readonly HttpRequestMessage req;
         private readonly HttpRequest request;
         private readonly ILogger log;
@@ -60,7 +58,6 @@ namespace TinderCloneV1 {
                     // The connection is automatically closed when going out of scope of the using block.
                     // The connection may fail to open, in which case return a [503 Service Unavailable].
                     connection.Open();
-       
                     try {
                         // Insert new message into the Message table.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
@@ -102,6 +99,7 @@ namespace TinderCloneV1 {
 
         public async Task<HttpResponseMessage> DeleteMessageByID(int messageID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+
             string queryString = $@"DELETE FROM [dbo].[Message] WHERE MessageID = @MessageID";
 
             try {
@@ -146,7 +144,7 @@ namespace TinderCloneV1 {
 
         // Get all messages between a coach and a tutorant (a conversation between a coach and a tutorant).
         public async Task<HttpResponseMessage> GetAllMessages(int coachID, int tutorantID) {
-            exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             List<Message> listOfMessages = new List<Message>();
 
             // Get a conversation.
@@ -166,24 +164,24 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+
                             log.LogInformation($"Executing the following query: {queryString}");
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
                                     // Query was succesfully executed, but returned no data.
                                     // Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                } else {
-                                    while (reader.Read()) {
-                                        listOfMessages.Add(new Message {
-                                            MessageID = reader.GetInt32(0),
-                                            type = GeneralFunctions.SafeGetString(reader, 1),
-                                            payload = GeneralFunctions.SafeGetString(reader, 2),
-                                            created = GeneralFunctions.SafeGetDateTime(reader, 3),
-                                            lastModified = GeneralFunctions.SafeGetDateTime(reader, 4),
-                                            senderID = GeneralFunctions.SafeGetInt(reader, 5),
-                                            receiverID = GeneralFunctions.SafeGetInt(reader, 6)
-                                        });
-                                    }
+                                } 
+                                while (reader.Read()) {
+                                    listOfMessages.Add(new Message {
+                                        MessageID = reader.GetInt32(0),
+                                        type = GeneralFunctions.SafeGetString(reader, 1),
+                                        payload = GeneralFunctions.SafeGetString(reader, 2),
+                                        created = GeneralFunctions.SafeGetDateTime(reader, 3),
+                                        lastModified = GeneralFunctions.SafeGetDateTime(reader, 4),
+                                        senderID = GeneralFunctions.SafeGetInt(reader, 5),
+                                        receiverID = GeneralFunctions.SafeGetInt(reader, 6)
+                                    });
                                 }
                             }
                         }
@@ -214,7 +212,7 @@ namespace TinderCloneV1 {
         }
 
         public async Task<HttpResponseMessage> GetMessageByID(int messageID) {
-            exceptionHandler = new ExceptionHandler(messageID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(messageID);
             Message newMessage = new Message();
 
             string queryString = $@"SELECT * FROM [dbo].[Message] WHERE MessageID = @messageID;";
@@ -274,67 +272,79 @@ namespace TinderCloneV1 {
         }
 
         public async Task<HttpResponseMessage> UpdateMessageByID(int messageID) {
-            exceptionHandler = new ExceptionHandler(messageID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(messageID);
+            PropertyInfo[] properties = typeof(Message).GetProperties();
             string body = await req.Content.ReadAsStringAsync();
-            Message newMessage new Message();
+            Message newMessage = new Message();
             JObject jObject; 
-
-            string queryString;
 
             using (StringReader reader = new StringReader(body)) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 newMessage = jObject.ToObject<Message>();
             }
 
+            // if there is no data in the requestBody, return a badRequest exception
+            if (jObject.Properties() == null) {
+                log.LogError($"Requestbody is missing data for the message table! Cant change {messageID}");
+                return exceptionHandler.BadRequest(log);
+            }
+
+            string queryString = $"UPDATE [dbo].[Message] SET ";
+
             // if data to update is given in the request body.
-            if (jObject.Properties() != null) {
-                queryString = $"UPDATE [dbo].[Message] SET ";
+            /* THIS NEED FIXING */
+            int i = 0;
+            foreach (JProperty property in jObject.Properties()) {
+                queryString += $"{properties[i].Name} = '@{property.Name}',";
+                i++;
+            }
 
-                foreach (JProperty property in jObject.Properties()) {
-                    queryString += $"{property.Name} = '{property.Value}',";
-                }
+            queryString = queryString.Remove(queryString.Length - 1);
+            queryString += $@" WHERE MessageID = @messageID;";
 
-                queryString = queryString.Remove(queryString.Length - 1);
-                queryString += $@" WHERE MessageID = @messageID;";
+            log.LogInformation($"Executing the following query: {queryString}");
 
-                log.LogInformation($"Executing the following query: {queryString}");
+            try {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
+                    try {
+                        using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                            // Parameters are used to ensure no SQL injection can take place.
+                            command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
+                            if (jObject["type"] != null) command.Parameters.Add("@type", System.Data.SqlDbType.VarChar).Value = newMessage.type;
+                            if (jObject["payload"] != null) command.Parameters.Add("@payload", System.Data.SqlDbType.VarChar).Value = newMessage.payload;
+                            if (jObject["created"] != null) command.Parameters.Add("@created", System.Data.SqlDbType.DateTime).Value = newMessage.created;
+                            if (jObject["lastModified"] != null) command.Parameters.Add("@lastModified", System.Data.SqlDbType.DateTime).Value = newMessage.lastModified;
+                            if (jObject["senderID"] != null) command.Parameters.Add("@senderID", System.Data.SqlDbType.Int).Value = newMessage.senderID;
+                            if (jObject["receiverID"] != null) command.Parameters.Add("@receiverID", System.Data.SqlDbType.Int).Value = newMessage.receiverID;
 
-                try {
-                    using (SqlConnection connection = new SqlConnection(connectionString)) {
-                        //The connection is automatically closed when going out of scope of the using block.
-                        //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
-                        connection.Open();
-                        try {
-                            using (SqlCommand command = new SqlCommand(queryString, connection)) {
-                                // Parameters are used to ensure no SQL injection can take place.
-                                command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
-                                log.LogInformation($"Executing the following query: {queryString}");
+                            log.LogInformation($"Executing the following query: {queryString}");
 
-                                int affectedRows = command.ExecuteNonQuery();
-
-                                //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
-                                if (affectedRows == 0) {
-                                    log.LogError("Zero rows were affected.");
-                                    return exceptionHandler.NotFoundException(log);
-                                }
+                            int affectedRows = command.ExecuteNonQuery();
+                            //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
+                            if (affectedRows == 0) {
+                                log.LogError("Zero rows were affected.");
+                                return exceptionHandler.NotFoundException(log);
                             }
                         }
-                        catch (SqlException e) {
-                            //The Query may fail, in which case a [400 Bad Request] is returned.
-                            log.LogError("SQL Query has failed to execute.");
-                            log.LogError(e.Message);
-                            return exceptionHandler.BadRequest(log);
-                        }
+                    }
+                    catch (SqlException e) {
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
+                        log.LogError(e.Message);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
-                catch (SqlException e) {
-                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
-                    log.LogError("SQL has failed to open.");
-                    log.LogError(e.Message);
-                    return exceptionHandler.ServiceUnavailable(log);
-                }
-                log.LogInformation($"{HttpStatusCode.NoContent} | Data updated succesfully.");
             }
+            catch (SqlException e) {
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
+                log.LogError(e.Message);
+                return exceptionHandler.ServiceUnavailable(log);
+            }
+            log.LogInformation($"{HttpStatusCode.NoContent} | Data updated succesfully.");
 
             //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
