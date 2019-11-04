@@ -25,6 +25,10 @@ def test_post_coach():
 def test_get_coachProfile_byId():
   r = requests.get(a.api_link() + "profile/coach/" + a.coachId())
   assert r.status_code == 200, r.status_code
+  v = Validator(a.s_coach())
+  assert v.validate(r.json()['coach']) == True, v.errors
+  v = Validator(a.s_studentData())
+  assert v.validate(r.json()['user']) == True, v.errors
 def test_delete_coachProfile_byId():
   r = requests.delete(a.api_link() + "profile/coach/" + a.coachId())
   if r.status_code is not 204:
@@ -34,6 +38,8 @@ def test_delete_coachProfile_byId():
 def test_get_coach_byId():
   r = requests.get(a.api_link() + "coach/" + a.coachId())
   assert r.status_code == 200, r.status_code
+  v = Validator(a.s_coach())
+  assert v.validate(r.json()) == True, v.errors
 def test_put_coach_byId():
   payload = "{\n\t\"studentID\": 000701,\n\t\"workload\": 5 \n}"
   headers = {
