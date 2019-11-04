@@ -754,6 +754,7 @@ components:
         scheme: basic
     schemas:
       # Is a profile.
+      # Creating a user must be in this format and the requestbody must be made with this exact order
       Student:
           type: object
           required: 

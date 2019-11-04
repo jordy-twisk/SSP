@@ -46,15 +46,11 @@ namespace TinderCloneV1 {
 
             // Verify if all parameters for the Message table exist,
             // return response code 400 if one or more of the parameters are missing.
-            if (jObject["type"] == null ||
-                jObject["payload"] == null ||
-                jObject["created"] == null ||
-                jObject["lastModified"] == null ||
-                jObject["senderID"] == null ||
-                jObject["receiverID"] == null) {
+            if (jObject["type"] == null     || jObject["payload"] == null      ||
+                jObject["created"] == null  || jObject["lastModified"] == null ||
+                jObject["senderID"] == null || jObject["receiverID"] == null)  {
                     log.LogError($"Requestbody is missing data for the Message table!");
                     return exceptionHandler.BadRequest(log);
-                   
             }
 
             // All fields for the Message table are required.
@@ -66,7 +62,6 @@ namespace TinderCloneV1 {
                     // The connection is automatically closed when going out of scope of the using block.
                     // The connection may fail to open, in which case return a [503 Service Unavailable].
                     connection.Open();
-
                     try {
                         // Insert new message into the Message table.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
@@ -187,13 +182,13 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         listOfMessages.Add(new Message {
-                                            MessageID = GeneralFunctions.SafeGetInt(reader, 0),
+                                            MessageID = GeneralFunctions.SafeGetInt32(reader, 0),
                                             type = GeneralFunctions.SafeGetString(reader, 1),
                                             payload = GeneralFunctions.SafeGetString(reader, 2),
                                             created = GeneralFunctions.SafeGetDateTime(reader, 3),
                                             lastModified = GeneralFunctions.SafeGetDateTime(reader, 4),
-                                            senderID = GeneralFunctions.SafeGetInt(reader, 5),
-                                            receiverID = GeneralFunctions.SafeGetInt(reader, 6)
+                                            senderID = GeneralFunctions.SafeGetInt32(reader, 5),
+                                            receiverID = GeneralFunctions.SafeGetInt32(reader, 6)
                                         });
                                     }
                                 }
@@ -250,13 +245,13 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         newMessage = new Message {
-                                            MessageID = reader.GetInt64(0),
+                                            MessageID = reader.SafeGetInt32(0),
                                             type = GeneralFunctions.SafeGetString(reader, 1),
                                             payload = GeneralFunctions.SafeGetString(reader, 2),
                                             created = GeneralFunctions.SafeGetDateTime(reader, 3),
                                             lastModified = GeneralFunctions.SafeGetDateTime(reader, 4),
-                                            senderID = GeneralFunctions.SafeGetInt(reader, 5),
-                                            receiverID = GeneralFunctions.SafeGetInt(reader, 6)
+                                            senderID = GeneralFunctions.SafeGetInt32(reader, 5),
+                                            receiverID = GeneralFunctions.SafeGetInt32(reader, 6)
                                         };
                                     }
                                 }
