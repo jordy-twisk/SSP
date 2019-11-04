@@ -63,10 +63,11 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        // The connection is automatically closed when going out of scope of the using block
-                        connection.Open();
+                    // The connection is automatically closed when going out of scope of the using block.
+                    // The connection may fail to open, in which case return a [503 Service Unavailable].
+                    connection.Open();
 
+                    try {
                         // Insert new message into the Message table.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
@@ -80,25 +81,28 @@ namespace TinderCloneV1 {
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            // command.ExecuteNonQuery();
+                            command.ExecuteNonQuery();
                         }
                     }
                     catch (SqlException e) {
-                        // Return response code 503
+                        // The Query may fail, in which case a [400 Bad Request] is returned.
+                        // Reasons for this failure may include a PK violation (entering an already existing studentID).
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             }
             catch (SqlException e) {
-                // Return response code 400.
+                // The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
 
-            log.LogInformation($"{HttpStatusCode.Created} | Message created succesfully");
+            log.LogInformation($"{HttpStatusCode.Created} | Message created succesfully.");
 
-            // Return response code 201.
+            // Return response code [201 Created].
             return new HttpResponseMessage(HttpStatusCode.Created);
         }
 
@@ -108,29 +112,43 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
+
                     try {
-                        connection.Open();
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             command.Parameters.Add("@MessageID", System.Data.SqlDbType.DateTime).Value = messageID;
                             log.LogInformation($"Executing the following query: {queryString}");
-                            command.ExecuteNonQuery();
+
+                            int affectedRows = command.ExecuteNonQuery();
+
+                            // The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
+                            if (affectedRows == 0) {
+                                log.LogError("Zero rows were affected while deleting from the Tutorant table.");
+                                return exceptionHandler.NotFoundException(log);
+                            }
                         }
                     }
                     catch (SqlException e) {
-                        // Return response code 503
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
 
                 }
             }
             catch (SqlException e) {
-                // Return response code 400
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
+
             log.LogInformation($"{HttpStatusCode.NoContent} | Data deleted succesfully");
-            // Return response code 204
+
+            // Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
@@ -151,27 +169,31 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        connection.Open();
+                    // The connection is automatically closed when going out of scope of the using block.
+                    // The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
 
+                    try {
+                        
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
                             log.LogInformation($"Executing the following query: {queryString}");
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 if (!reader.HasRows) {
-                                    // Return response code 404
-                                    return exceptionHandler.NotFoundException(log);
+                                    // Query was succesfully executed, but returned no data.
+                                    // Return response code [404 Not Found]
+                                    log.LogError("SQL Query was succesfully executed, but returned no data.");
                                 } else {
                                     while (reader.Read()) {
                                         listOfMessages.Add(new Message {
-                                            MessageID = reader.GetInt32(0),
-                                            type = reader.GetString(1),
-                                            payload = reader.GetString(2),
+                                            MessageID = GeneralFunctions.SafeGetInt(reader, 0),
+                                            type = GeneralFunctions.SafeGetString(reader, 1),
+                                            payload = GeneralFunctions.SafeGetString(reader, 2),
                                             created = reader.GetDateTime(3),
                                             lastModified = reader.GetDateTime(4),
-                                            senderID = reader.GetInt32(5),
-                                            receiverID = reader.GetInt32(6)
+                                            senderID = GeneralFunctions.SafeGetInt(reader, 5),
+                                            receiverID = GeneralFunctions.SafeGetInt(reader, 6)
                                         });
                                     }
                                 }
@@ -179,19 +201,24 @@ namespace TinderCloneV1 {
                         }
                     }
                     catch (SqlException e) {
+                        // The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
+                        return exceptionHandler.BadRequest(log);
                     }
                 }
             }
             catch (SqlException e) {
+                // The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(listOfMessages);
-            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
+            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully.");
 
+            //Return response code [200 OK] and the requested data.
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
@@ -207,47 +234,52 @@ namespace TinderCloneV1 {
 
             try {
                 using (SqlConnection connection = new SqlConnection(environmentString)) {
-                    try {
-                        connection.Open();
-                    }
-                    catch (SqlException e) {
-                        log.LogError(e.Message);
-                        return exceptionHandler.ServiceUnavailable(log);
-                    }
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
 
-                    using (SqlCommand command = new SqlCommand(queryString, connection)) {
-                        command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
-                        using (SqlDataReader reader = command.ExecuteReader()) {
-                            if (!reader.HasRows) {
-                                return exceptionHandler.NotFoundException(log);
-                            }
-                            else {
-                                while (reader.Read()) {
-                                    newMessage = new Message
-                                    {
-                                        MessageID = reader.GetInt64(0),
-                                        type = reader.GetString(1),
-                                        payload = reader.GetString(2),
-                                        created = reader.GetDateTime(3),
-                                        lastModified = reader.GetDateTime(4),
-                                        senderID = reader.GetInt32(5),
-                                        receiverID = reader.GetInt32(6)
-                                    };
+                    try {
+                        using (SqlCommand command = new SqlCommand(queryString, connection)) {
+                            command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
+                            using (SqlDataReader reader = command.ExecuteReader()) {
+                                if (!reader.HasRows) {
+                                    //Query was succesfully executed, but returned no data.
+                                    //Return response code [404 Not Found]
+                                    log.LogError("SQL Query was succesfully executed, but returned no data.");
+                                    return exceptionHandler.NotFoundException(log);
+                                } else {
+                                    while (reader.Read()) {
+                                        newMessage = new Message {
+                                            MessageID = reader.GetInt64(0),
+                                            type = GeneralFunctions.SafeGetString(reader, 1),
+                                            payload = GeneralFunctions.SafeGetString(reader, 2),
+                                            created = reader.GetDateTime(3),
+                                            lastModified = reader.GetDateTime(4),
+                                            senderID = GeneralFunctions.SafeGetInt(reader, 5),
+                                            receiverID = GeneralFunctions.SafeGetInt(reader, 6)
+                                        };
+                                    }
                                 }
                             }
                         }
+                    } catch (SqlException e) {
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
+                        log.LogError(e.Message);
+                        return exceptionHandler.BadRequest(log);
                     }
-                    connection.Close();
                 }
-            }
-            catch (SqlException e) {
+            } catch (SqlException e) {
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.BadRequest(log);
+                return exceptionHandler.ServiceUnavailable(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(newMessage);
-            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
+            log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully.");
 
+            //Return response code [200 OK] and the requested data.
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
@@ -281,46 +313,46 @@ namespace TinderCloneV1 {
 
                 try {
                     using (SqlConnection connection = new SqlConnection(environmentString)) {
-                        try {
-                            // The connection is automatically closed when going out of scope of the using block
-                            connection.Open();
+                        //The connection is automatically closed when going out of scope of the using block.
+                        //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                        connection.Open();
 
+                        try {
+                            
                             using (SqlCommand command = new SqlCommand(queryString, connection)) {
                                 // Parameters are used to ensure no SQL injection can take place.
                                 command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
                                 log.LogInformation($"Executing the following query: {queryString}");
-                                command.ExecuteNonQuery();
+
+                                int affectedRows = command.ExecuteNonQuery();
+
+                                //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
+                                if (affectedRows == 0) {
+                                    log.LogError("Zero rows were affected.");
+                                    return exceptionHandler.NotFoundException(log);
+                                }
                             }
                         }
                         catch (SqlException e) {
-                            // Return response code 503
+                            //The Query may fail, in which case a [400 Bad Request] is returned.
+                            log.LogError("SQL Query has failed to execute.");
                             log.LogError(e.Message);
                             return exceptionHandler.ServiceUnavailable(log);
                         }
                     }
                 }
                 catch (SqlException e) {
-                    // Return response code 400.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    log.LogError("SQL has failed to open.");
                     log.LogError(e.Message);
                     return exceptionHandler.BadRequest(log);
                 }
 
-                log.LogInformation($"{HttpStatusCode.NoContent} | Data updated succesfully");
+                log.LogInformation($"{HttpStatusCode.NoContent} | Data updated succesfully.");
             }
-            // Return response code 204.
+
+            //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
-        }
-
-        public string SafeGetString(SqlDataReader reader, int index) {
-            if (!reader.IsDBNull(index))
-                return reader.GetString(index);
-            return string.Empty;
-        }
-
-        public int SafeGetInt(SqlDataReader reader, int index) {
-            if (!reader.IsDBNull(index))
-                return reader.GetInt32(index);
-            return 0;
         }
     }
 }
