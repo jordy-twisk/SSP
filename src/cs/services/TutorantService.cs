@@ -15,8 +15,8 @@ using Newtonsoft.Json.Linq;
 namespace TinderCloneV1 {
     class TutorantService : ITutorantService {
 
-        private readonly string environmentString = Environment.GetEnvironmentVariable("sqldb_connection");
-        private ExceptionHandler exceptionHandler;
+        private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
+
         private readonly HttpRequestMessage req;
         private readonly HttpRequest request;
         private readonly ILogger log;
@@ -28,7 +28,7 @@ namespace TinderCloneV1 {
         }
         // Create a new profile based on the data in the request body.
         public async Task<HttpResponseMessage> CreateTutorantProfile() {
-            exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             TutorantProfile tutorantProfile;
             JObject jObject;
 
@@ -93,7 +93,7 @@ namespace TinderCloneV1 {
             queryString_Student += ");";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     // The connection is automatically closed when going out of scope of the using block.
                     // The connection may fail to open, in which case return a [503 Service Unavailable].
                     connection.Open();
@@ -149,7 +149,7 @@ namespace TinderCloneV1 {
         // Deletes the Tutorant from the Tutorant table.
         // then deletes the Tutorant from Student table.
         public async Task<HttpResponseMessage> DeleteTutorantProfileByID(int tutorantID) {
-            exceptionHandler = new ExceptionHandler(tutorantID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
 
             // Query string used to delete the tutorant from the Tutorant table.
             string queryStringTutorant = $@"DELETE FROM [dbo].[Tutorant] WHERE studentID = @tutorantID";
@@ -158,7 +158,7 @@ namespace TinderCloneV1 {
             string queryStringStudent = $@"DELETE FROM [dbo].[Student] WHERE studentID = @tutorantID";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
@@ -215,14 +215,14 @@ namespace TinderCloneV1 {
 
         // Returns the profile of all tutorants (from the student table).
         public async Task<HttpResponseMessage> GetAllTutorantProfiles() {
-            exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             List<TutorantProfile> listOfTutorantProfiles = new List<TutorantProfile>();
 
             string queryString = $@"SELECT Student.* FROM [dbo].[Student]
                                     INNER JOIN [dbo].[Tutorant] ON Student.studentID = Tutorant.studentID";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     // The connection is automatically closed when going out of scope of the using block.
                     // The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
@@ -285,7 +285,7 @@ namespace TinderCloneV1 {
 
         // Returns the profile of the tutorant (from the student table).
         public async Task<HttpResponseMessage> GetTutorantProfileByID(int tutorantID) {
-            exceptionHandler = new ExceptionHandler(tutorantID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
             TutorantProfile newTutorantProfile = new TutorantProfile();
 
             string queryString = $@"SELECT Student.* FROM [dbo].[Student]
@@ -294,7 +294,7 @@ namespace TinderCloneV1 {
                                     WHERE Student.studentID = @tutorantID;";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();

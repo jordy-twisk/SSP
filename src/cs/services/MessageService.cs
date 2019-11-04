@@ -46,15 +46,11 @@ namespace TinderCloneV1 {
 
             // Verify if all parameters for the Message table exist,
             // return response code 400 if one or more of the parameters are missing.
-            if (jObject["type"] == null ||
-                jObject["payload"] == null ||
-                jObject["created"] == null ||
-                jObject["lastModified"] == null ||
-                jObject["senderID"] == null ||
-                jObject["receiverID"] == null) {
+            if (jObject["type"] == null     || jObject["payload"] == null      ||
+                jObject["created"] == null  || jObject["lastModified"] == null ||
+                jObject["senderID"] == null || jObject["receiverID"] == null)  {
                     log.LogError($"Requestbody is missing data for the Message table!");
                     return exceptionHandler.BadRequest(log);
-                   
             }
 
             // All fields for the Message table are required.
@@ -66,7 +62,6 @@ namespace TinderCloneV1 {
                     // The connection is automatically closed when going out of scope of the using block.
                     // The connection may fail to open, in which case return a [503 Service Unavailable].
                     connection.Open();
-
                     try {
                         // Insert new message into the Message table.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {

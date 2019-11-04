@@ -32,10 +32,9 @@ namespace TinderCloneV1 {
         based on the filters given by the user through query parameters.
         */
         public async Task<HttpResponseMessage> GetAllStudents() {
-
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            List<Student> listofStudents = new List<Student>();
             PropertyInfo[] properties = typeof(Student).GetProperties();
+            List<Student> listOfStudents = new List<Student>();
 
             string queryString = $"SELECT * FROM [dbo].[Student]";
 
@@ -78,7 +77,7 @@ namespace TinderCloneV1 {
                             */
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 while (reader.Read()) {
-                                    listofStudents.Add(new Student {
+                                    listOfStudents.Add(new Student {
                                         studentID = reader.GetInt32(0),
                                         firstName = GeneralFunctions.SafeGetString(reader, 1),
                                         surName = GeneralFunctions.SafeGetString(reader, 2),
@@ -110,7 +109,7 @@ namespace TinderCloneV1 {
             }
 
             /* Convert the list of students to a JSON and Log a OK message */
-            var jsonToReturn = JsonConvert.SerializeObject(listofStudents);
+            var jsonToReturn = JsonConvert.SerializeObject(listOfStudents);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
 
             /* Return the JSON */
@@ -125,7 +124,7 @@ namespace TinderCloneV1 {
         */
         public async Task<HttpResponseMessage> GetStudentByID(int studentID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(studentID);
-            Student newStudent = new Student();
+            Student newStudent;
 
             /* Initialize the queryString */
             string queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = @studentID;";
@@ -197,15 +196,15 @@ namespace TinderCloneV1 {
         /* Update the data from the student given by a requestBody */
         public async Task<HttpResponseMessage> UpdateStudentByID(int studentID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(studentID);
-            Student newUser;
-            JObject jObject = new JObject();
             PropertyInfo[] properties = typeof(Student).GetProperties();
+            Student newStudent;
+            JObject jObject;
             
             /* Read the requestBody and put the response into a jObject which can be read later
             Also make a new user object and store the data in the user*/
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                newUser = jObject.ToObject<Student>();
+                newStudent = jObject.ToObject<Student>();
             }
 
             /* If the responseBody is empty (no data has been given by the user)
@@ -221,7 +220,8 @@ namespace TinderCloneV1 {
             /* Loop through the properties of the jObject Object which contains the values given in the requestBody
             fill the queryString with the property names from the User and their corresponding values*/
             foreach (JProperty property in jObject.Properties()) {
-                /* ProperyInfo[] properties used here to prevent SQLIjection in the columns */
+                /* ProperyInfo[] properties used here to prevent SQLIjection in the columns, since the properties
+                are hardcoded in the entities */
                 queryString += $"{properties[i].Name} = '@{property.Name}',";
                 i++;
             }
@@ -242,16 +242,16 @@ namespace TinderCloneV1 {
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             /* Parameters are used to prevent SQLInjection */
-                            command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = newUser.studentID;
-                            if (jObject["firstName"] != null) command.Parameters.Add("@firstName", System.Data.SqlDbType.VarChar).Value = newUser.firstName;
-                            if (jObject["surName"] != null) command.Parameters.Add("@surName", System.Data.SqlDbType.VarChar).Value = newUser.surName;
-                            if (jObject["phoneNumber"] != null) command.Parameters.Add("@phoneNumber", System.Data.SqlDbType.VarChar).Value = newUser.phoneNumber;
-                            if (jObject["photo"] != null) command.Parameters.Add("@photo", System.Data.SqlDbType.VarChar).Value = newUser.photo;
-                            if (jObject["description"] != null) command.Parameters.Add("@description", System.Data.SqlDbType.VarChar).Value = newUser.description;
-                            if (jObject["degree"] != null) command.Parameters.Add("@degree", System.Data.SqlDbType.VarChar).Value = newUser.degree;
-                            if (jObject["study"] != null) command.Parameters.Add("@study", System.Data.SqlDbType.VarChar).Value = newUser.study;
-                            if (jObject["studyYear"] != null) command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value = newUser.studyYear;
-                            if (jObject["interests"] != null) command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value = newUser.interests;
+                            command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = newStudent.studentID;
+                            if (jObject["firstName"] != null) command.Parameters.Add("@firstName", System.Data.SqlDbType.VarChar).Value = newStudent.firstName;
+                            if (jObject["surName"] != null) command.Parameters.Add("@surName", System.Data.SqlDbType.VarChar).Value = newStudent.surName;
+                            if (jObject["phoneNumber"] != null) command.Parameters.Add("@phoneNumber", System.Data.SqlDbType.VarChar).Value = newStudent.phoneNumber;
+                            if (jObject["photo"] != null) command.Parameters.Add("@photo", System.Data.SqlDbType.VarChar).Value = newStudent.photo;
+                            if (jObject["description"] != null) command.Parameters.Add("@description", System.Data.SqlDbType.VarChar).Value = newStudent.description;
+                            if (jObject["degree"] != null) command.Parameters.Add("@degree", System.Data.SqlDbType.VarChar).Value = newStudent.degree;
+                            if (jObject["study"] != null) command.Parameters.Add("@study", System.Data.SqlDbType.VarChar).Value = newStudent.study;
+                            if (jObject["studyYear"] != null) command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value = newStudent.studyYear;
+                            if (jObject["interests"] != null) command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value = newStudent.interests;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
