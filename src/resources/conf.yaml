@@ -587,9 +587,10 @@ paths:
     get:
       tags: 
       - Messages
-      summary: get messages
+      summary: Get conversation between the specified coach and tutorant.
       operationId: GetAllMessages
-      description: Returns some messages, default number of last messages is 20 that will be returned.
+      # I removed the fact that this may return only a specified number of messages for now.
+      description: Returns all messages between the specified coach, specified with and tutorant.
       parameters: 
         - in: path
           name: coachID
