@@ -36,10 +36,10 @@ API for MBO &amp; HBO students
 - [CHECK] SQL injection in UserService.cs
 - [] Finalize the MessageService.cs
 - [ONLY FOR StudentSERVICE] Generalize file structuur in every Controller and Service
-- [] Structure and relations in the database
-- [] Transport generic methods to external files
+- [CHECK] Structure and relations in the database
+- [CHECK] Transport generic methods to external files
 - [CHECK] Update yaml
-- [] Delete unnecessary files
+- [CHECK] Delete unnecessary files
 =======
 ---
 
