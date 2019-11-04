@@ -80,7 +80,7 @@ namespace TinderCloneV1 {
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            // command.ExecuteNonQuery();
+                            command.ExecuteNonQuery();
                         }
                     }
                     catch (SqlException e) {
