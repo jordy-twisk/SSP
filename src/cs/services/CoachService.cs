@@ -58,11 +58,11 @@ namespace TinderCloneV1 {
                                     while (reader.Read()) {
                                         listOfCoachProfiles.Add(new CoachProfile(
                                             new Coach {
-                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                                workload = GeneralFunctions.SafeGetInt(reader, 10)
+                                                studentID = GeneralFunctions.SafeGetInt32(reader, 0),
+                                                workload = GeneralFunctions.SafeGetInt32(reader, 10)
                                             },
                                             new Student {
-                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                                studentID = GeneralFunctions.SafeGetInt32(reader, 0),
                                                 firstName = GeneralFunctions.SafeGetString(reader, 1),
                                                 surName = GeneralFunctions.SafeGetString(reader, 2),
                                                 phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
@@ -70,7 +70,7 @@ namespace TinderCloneV1 {
                                                 description = GeneralFunctions.SafeGetString(reader, 5),
                                                 degree = GeneralFunctions.SafeGetString(reader, 6),
                                                 study = GeneralFunctions.SafeGetString(reader, 7),
-                                                studyYear = GeneralFunctions.SafeGetInt(reader, 8),
+                                                studyYear = GeneralFunctions.SafeGetInt32(reader, 8),
                                                 interests = GeneralFunctions.SafeGetString(reader, 9)
                                             }
                                         ));
@@ -261,11 +261,11 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     newCoachProfile = new CoachProfile(
                                         new Coach {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                            workload = GeneralFunctions.SafeGetInt(reader, 10)
+                                            studentID = GeneralFunctions.SafeGetInt32(reader, 0),
+                                            workload = GeneralFunctions.SafeGetInt32(reader, 10)
                                         },
                                         new Student {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                            studentID = GeneralFunctions.SafeGetInt32(reader, 0),
                                             firstName = GeneralFunctions.SafeGetString(reader, 1),
                                             surName = GeneralFunctions.SafeGetString(reader, 2),
                                             phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
@@ -273,7 +273,7 @@ namespace TinderCloneV1 {
                                             description = GeneralFunctions.SafeGetString(reader, 5),
                                             degree = GeneralFunctions.SafeGetString(reader, 6),
                                             study = GeneralFunctions.SafeGetString(reader, 7),
-                                            studyYear = GeneralFunctions.SafeGetInt(reader, 8),
+                                            studyYear = GeneralFunctions.SafeGetInt32(reader, 8),
                                             interests = GeneralFunctions.SafeGetString(reader, 9)
                                         }
                                     );
@@ -408,8 +408,8 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         newCoach = new Coach {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                            workload = GeneralFunctions.SafeGetInt(reader, 1)
+                                            studentID = GeneralFunctions.SafeGetInt32(reader, 0),
+                                            workload = GeneralFunctions.SafeGetInt32(reader, 1)
                                         };
                                     }
                                 }
