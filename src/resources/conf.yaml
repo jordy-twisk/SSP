@@ -43,7 +43,7 @@ paths:
       parameters: 
         - in: path
           name: studentID
-          description: The student's personal id.
+          description: The student number of the student.
           required: true
           schema:
             type: integer
@@ -56,6 +56,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Student'
+        '400':
+          description: Something went wrong while executing the query to the database.
         '401':
           description: Student password is not accepted.
         '404':
@@ -65,28 +67,28 @@ paths:
     put:
       tags:
       - Studentdata
-      summary: update data information
+      summary: Update data information
       operationId: UpdateStudentByID
-      description: Update a student data based on the requestBody.
+      description: Update a student data based on the studentID and update the data in the requestBody.
       parameters:
         - in: path
           name: studentID
-          description: The student's personal id.
+          description: The student's student number.
           required: true
           schema:
             type: integer
       requestBody:
-        description: all the info that is needed to create the coach + profile
+        description: All the info that is needed to create the coach and her profile.
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Student'
       responses:
-        '200':
-          description: modified.
+        '204':
+          description: Modified student data .
         '400':
-          description: Undocumented filter parameter.
+          description: The query has failed to execute.
         '401':
           description: Student password is not accepted.
         '404':
@@ -163,8 +165,6 @@ paths:
           description: Undocumented filter parameter.
         '401':
           description: Student password is not accepted.
-        '404':
-          description: Student number not in database.
         '503':
           description: Database or other services are unavailable at the moment.
   /api/profile/coach:

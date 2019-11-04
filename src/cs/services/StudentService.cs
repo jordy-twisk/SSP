@@ -112,7 +112,7 @@ namespace TinderCloneV1 {
             var jsonToReturn = JsonConvert.SerializeObject(listOfStudents);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
 
-            /* Return the JSON */
+            /* Return the JSON. Return status code 200 */
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
@@ -148,6 +148,7 @@ namespace TinderCloneV1 {
                             log.LogInformation($"Executing the following query: {queryString}");
                             using (SqlDataReader reader = command.ExecuteReader()) {
                                 /* If the student does not exist, it returns a notFoundException */
+                                /* Return status code 404 */
                                 if (!reader.HasRows) {
                                     return exceptionHandler.NotFoundException(log);
                                 }
@@ -187,7 +188,7 @@ namespace TinderCloneV1 {
             var jsonToReturn = JsonConvert.SerializeObject(newStudent);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
 
-            /* Return the JSON */
+            /* Return the JSON  Return status code 200 */
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
@@ -208,7 +209,8 @@ namespace TinderCloneV1 {
             }
 
             /* If the responseBody is empty (no data has been given by the user)
-            return a BadRequest to say that the User must fill the requestBody.*/
+            return a BadRequest to say that the User must fill the requestBody.
+            Bad request is status code 400 */
             if (jObject.Properties() == null) {
                 log.LogError($"Requestbody is missing data for the student table! Cant change {studentID}");
                 return exceptionHandler.BadRequest(log);
