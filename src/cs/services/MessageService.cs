@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 namespace TinderCloneV1 {
     class MessageService : IMessageService {
 
-        private readonly string environmentString = Environment.GetEnvironmentVariable("sqldb_connection");
+        private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
         private ExceptionHandler exceptionHandler;
 
@@ -35,7 +35,7 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> CreateMessage() {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             Message message;
-            JObject jObject = new JObject();
+            JObject jObject;
 
             // Read from the request body.
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
@@ -62,7 +62,7 @@ namespace TinderCloneV1 {
                 $"VALUES (@type, @payload, @created, @lastModified, @senderID, @receiverID);";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     try {
                         // The connection is automatically closed when going out of scope of the using block
                         connection.Open();
@@ -107,7 +107,7 @@ namespace TinderCloneV1 {
             queryString = $@"DELETE FROM [dbo].[Message] WHERE MessageID = @MessageID";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     try {
                         connection.Open();
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
@@ -150,7 +150,7 @@ namespace TinderCloneV1 {
                             (senderID = @tutorantID AND receiverID = @coachID);";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     try {
                         connection.Open();
 
@@ -180,18 +180,21 @@ namespace TinderCloneV1 {
                     }
                     catch (SqlException e) {
                         log.LogError(e.Message);
+                        // Return response code 503.
                         return exceptionHandler.ServiceUnavailable(log);
                     }
                 }
             }
             catch (SqlException e) {
                 log.LogError(e.Message);
+                // Return response code 400.
                 return exceptionHandler.BadRequest(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(listOfMessages);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
 
+            // Everything went fine, return status code 200.
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
@@ -206,12 +209,13 @@ namespace TinderCloneV1 {
             log.LogInformation($"Executing the following query: {queryString}");
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     try {
                         connection.Open();
                     }
                     catch (SqlException e) {
                         log.LogError(e.Message);
+                        // Return status code 503.
                         return exceptionHandler.ServiceUnavailable(log);
                     }
 
@@ -219,6 +223,7 @@ namespace TinderCloneV1 {
                         command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
                         using (SqlDataReader reader = command.ExecuteReader()) {
                             if (!reader.HasRows) {
+                                // Return status code 404.
                                 return exceptionHandler.NotFoundException(log);
                             }
                             else {
@@ -242,12 +247,14 @@ namespace TinderCloneV1 {
             }
             catch (SqlException e) {
                 log.LogError(e.Message);
+                // Return status code 400.
                 return exceptionHandler.BadRequest(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(newMessage);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully");
 
+            // Everything went fine, return status code 200.
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
@@ -280,7 +287,7 @@ namespace TinderCloneV1 {
                 log.LogInformation($"Executing the following query: {queryString}");
 
                 try {
-                    using (SqlConnection connection = new SqlConnection(environmentString)) {
+                    using (SqlConnection connection = new SqlConnection(connectionString)) {
                         try {
                             // The connection is automatically closed when going out of scope of the using block
                             connection.Open();

@@ -4,6 +4,8 @@ API for MBO &amp; HBO students
 
 ### Implementation code
 
+- [] Implement `amountOfMessages` according to the YAML in `GetAllMessages()`.
+
 - [] Calls for Coach, CoachTutorant and Tutorant. Mike (Coach and CoachTutorant) and Kaydo (Tutorant)
 
 - [] Chat functionality. Mostly Kaydo and Barend
@@ -20,7 +22,7 @@ API for MBO &amp; HBO students
 
 - [x] Verify YAML matches CoachTutorantService
 
-- [] Verify YAML matches MessageService
+- [✓] Verify YAML matches MessageService
 
 - [✓] Verify YAML matches TutorantService
 
