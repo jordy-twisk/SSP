@@ -190,8 +190,8 @@ namespace TinderCloneV1 {
                                             MessageID = GeneralFunctions.SafeGetInt(reader, 0),
                                             type = GeneralFunctions.SafeGetString(reader, 1),
                                             payload = GeneralFunctions.SafeGetString(reader, 2),
-                                            created = reader.GetDateTime(3),
-                                            lastModified = reader.GetDateTime(4),
+                                            created = GeneralFunctions.SafeGetDateTime(reader, 3),
+                                            lastModified = GeneralFunctions.SafeGetDateTime(reader, 4),
                                             senderID = GeneralFunctions.SafeGetInt(reader, 5),
                                             receiverID = GeneralFunctions.SafeGetInt(reader, 6)
                                         });
@@ -253,8 +253,8 @@ namespace TinderCloneV1 {
                                             MessageID = reader.GetInt64(0),
                                             type = GeneralFunctions.SafeGetString(reader, 1),
                                             payload = GeneralFunctions.SafeGetString(reader, 2),
-                                            created = reader.GetDateTime(3),
-                                            lastModified = reader.GetDateTime(4),
+                                            created = GeneralFunctions.SafeGetDateTime(reader, 3),
+                                            lastModified = GeneralFunctions.SafeGetDateTime(reader, 4),
                                             senderID = GeneralFunctions.SafeGetInt(reader, 5),
                                             receiverID = GeneralFunctions.SafeGetInt(reader, 6)
                                         };
