@@ -59,7 +59,7 @@ namespace TinderCloneV1 {
 
             try {
             
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     // The connection is automatically closed when going out of scope of the using block.
                     // The connection may fail to open, in which case return a [503 Service Unavailable].
                     connection.Open();
@@ -108,12 +108,10 @@ namespace TinderCloneV1 {
             queryString = $@"DELETE FROM [dbo].[Message] WHERE MessageID = @MessageID";
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
-
-                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             command.Parameters.Add("@MessageID", System.Data.SqlDbType.DateTime).Value = messageID;
@@ -134,7 +132,6 @@ namespace TinderCloneV1 {
                         log.LogError(e.Message);
                         return exceptionHandler.BadRequest(log);
                     }
-
                 }
             }
             catch (SqlException e) {
@@ -166,17 +163,10 @@ namespace TinderCloneV1 {
                             (senderID = @tutorantID AND receiverID = @coachID);";
 
             try {
-            
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     // The connection is automatically closed when going out of scope of the using block.
                     // The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
-       
-                using (SqlConnection connection = new SqlConnection(connectionString)) {
-                    try {
-                        connection.Open();
-              
-
                     try {
                         
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
@@ -242,11 +232,10 @@ namespace TinderCloneV1 {
             log.LogInformation($"Executing the following query: {queryString}");
 
             try {
-                using (SqlConnection connection = new SqlConnection(environmentString)) {
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
-
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
@@ -268,35 +257,6 @@ namespace TinderCloneV1 {
                                             receiverID = GeneralFunctions.SafeGetInt(reader, 6)
                                         };
                                     }
-                using (SqlConnection connection = new SqlConnection(connectionString)) {
-                    try {
-                        connection.Open();
-                    }
-                    catch (SqlException e) {
-                        log.LogError(e.Message);
-                        // Return status code 503.
-                        return exceptionHandler.ServiceUnavailable(log);
-                    }
-
-                    using (SqlCommand command = new SqlCommand(queryString, connection)) {
-                        command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
-                        using (SqlDataReader reader = command.ExecuteReader()) {
-                            if (!reader.HasRows) {
-                                // Return status code 404.
-                                return exceptionHandler.NotFoundException(log);
-                            }
-                            else {
-                                while (reader.Read()) {
-                                    newMessage = new Message
-                                    {
-                                        MessageID = reader.GetInt64(0),
-                                        type = reader.GetString(1),
-                                        payload = reader.GetString(2),
-                                        created = reader.GetDateTime(3),
-                                        lastModified = reader.GetDateTime(4),
-                                        senderID = reader.GetInt32(5),
-                                        receiverID = reader.GetInt32(6)
-                                    };
                                 }
                             }
                         }
@@ -312,8 +272,6 @@ namespace TinderCloneV1 {
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
                 return exceptionHandler.ServiceUnavailable(log);
-                // Return status code 400.
-                return exceptionHandler.BadRequest(log);
             }
 
             var jsonToReturn = JsonConvert.SerializeObject(newMessage);
@@ -353,17 +311,11 @@ namespace TinderCloneV1 {
                 log.LogInformation($"Executing the following query: {queryString}");
 
                 try {
-                    using (SqlConnection connection = new SqlConnection(environmentString)) {
+                    using (SqlConnection connection = new SqlConnection(connectionString)) {
                         //The connection is automatically closed when going out of scope of the using block.
                         //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                         connection.Open();
-                    using (SqlConnection connection = new SqlConnection(connectionString)) {
                         try {
-                            // The connection is automatically closed when going out of scope of the using block
-                            connection.Open();
-
-                        try {
-                            
                             using (SqlCommand command = new SqlCommand(queryString, connection)) {
                                 // Parameters are used to ensure no SQL injection can take place.
                                 command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
@@ -382,7 +334,7 @@ namespace TinderCloneV1 {
                             //The Query may fail, in which case a [400 Bad Request] is returned.
                             log.LogError("SQL Query has failed to execute.");
                             log.LogError(e.Message);
-                            return exceptionHandler.ServiceUnavailable(log);
+                            return exceptionHandler.BadRequest(log);
                         }
                     }
                 }
@@ -390,9 +342,8 @@ namespace TinderCloneV1 {
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     log.LogError("SQL has failed to open.");
                     log.LogError(e.Message);
-                    return exceptionHandler.BadRequest(log);
+                    return exceptionHandler.ServiceUnavailable(log);
                 }
-
                 log.LogInformation($"{HttpStatusCode.NoContent} | Data updated succesfully.");
             }
 
