@@ -154,7 +154,7 @@ namespace TinderCloneV1 {
                                 }
                                 while (reader.Read()) {
                                     newStudent = new Student {
-                                        studentID = reader.GetInt32(0),
+                                        studentID = GeneralFunctions.SafeGetInt32(0),
                                         firstName = GeneralFunctions.SafeGetString(reader, 1),
                                         surName = GeneralFunctions.SafeGetString(reader, 2),
                                         phoneNumber = GeneralFunctions.SafeGetString(reader, 3),

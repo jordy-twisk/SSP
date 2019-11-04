@@ -10,12 +10,12 @@ namespace TinderCloneV1 {
             return string.Empty;
         }
 
-        static public int SafeGetInt(SqlDataReader reader, int index) {
+        static public int SafeGetInt32(SqlDataReader reader, int index) {
             if (!reader.IsDBNull(index))
                 return reader.GetInt32(index);
             return 0;
         }
-
+        
         static public DateTime SafeGetDateTime(SqlDataReader reader, int index){
             if (!reader.IsDBNull(index))
                 return reader.GetDateTime(index);

@@ -125,8 +125,8 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         listOfCoachTutorantConnections.Add(new CoachTutorantConnection {
-                                            studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 0),
-                                            studentIDCoach = GeneralFunctions.SafeGetInt(reader, 1),
+                                            studentIDTutorant = GeneralFunctions.SafeGetInt32(reader, 0),
+                                            studentIDCoach = GeneralFunctions.SafeGetInt32(reader, 1),
                                             status = GeneralFunctions.SafeGetString(reader, 2)
                                         });
                                     }
@@ -240,8 +240,8 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         coachTutorantConnection = new CoachTutorantConnection {
-                                            studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 0),
-                                            studentIDCoach = GeneralFunctions.SafeGetInt(reader, 1),
+                                            studentIDTutorant = GeneralFunctions.SafeGetInt32(reader, 0),
+                                            studentIDCoach = GeneralFunctions.SafeGetInt32(reader, 1),
                                             status = GeneralFunctions.SafeGetString(reader, 2)
                                         };
                                     }
