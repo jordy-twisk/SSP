@@ -612,7 +612,7 @@ paths:
           required: true
       responses:
         '200':
-          description: Return an array of "message".
+          description: Returns an array of message objects.
           content:
             application/json:
               schema:
@@ -622,17 +622,20 @@ paths:
         '401':
           description: Student password is not accepted.
         '404':
-          description: Coach and tutorant number don't match any messages.
+          description: Coach and tutorant IDs do not match with any messages in the database.
+        '400':
+          description: Something went wrong while executing the query to the database.
         '503':
           description: Database or other services are unavailable at the moment.
   /api/message/{messageID}:
     #think about if we need this one, or remove, because why would we only get one message?
+    # I think this is fine :-).
     get:
       tags:
         - Message
       summary: get message
       operationId: GetMessageByID
-      description: Returns a specific message.
+      description: Returns a message specified by the messageID.
       parameters: 
         - in: path
           name: messageID
@@ -649,6 +652,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Message'
+        '400':
+          description: Something went wrong while executing the query to the database.
         '401':
           description: Student password is not accepted.
         '404':
@@ -660,7 +665,7 @@ paths:
         - Message
       summary: modify message
       operationId: UpdateMessageByID
-      description: Changes the messages by the user's choice.
+      description: Changes a message specified by the messageID.
       parameters: 
         - in: path
           name: messageID
@@ -687,7 +692,7 @@ paths:
           description: The modified messaged.
           required: true
       responses:
-        '201':
+        '204':
           description: Modified the requested message.
           content:
             application/json:
@@ -695,10 +700,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Message'
+        '400':
+          description: Something went wrong while executing the query to the database.
         '401':
           description: Student password is not accepted.
-        '404':
-          description: messageID Coach and tutorant number don't match any message.
         '503':
           description: Database or other services are unavailable at the moment.
     delete:
@@ -717,10 +722,10 @@ paths:
       responses:
         '204':
           description: Deleted the requested message.
+        '400':
+          description: Something went wrong while executing the query to the database.
         '401':
           description: Student password is not accepted.
-        '404':
-          description: messageID Coach and tutorant number don't match any message.
         '503':
           description: Database or other services are unavailable at the moment.
   /api/message:  
@@ -740,10 +745,10 @@ paths:
       responses:
         '201':
           description: successfully posted the message.
+        '400':
+          description: Missing parameters in the request body.
         '401':
           description: Student password is not accepted.
-        '404':
-          description: Coach or/and tutorant number don't exist in database.
         '503':
           description: Database or other services are unavailable at the moment.
 
