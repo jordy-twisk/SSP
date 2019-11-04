@@ -127,8 +127,8 @@ namespace TinderCloneV1 {
                                         listOfCoachTutorantConnections.Add(new CoachTutorantConnection {
                                             //Reader 0 contains coachTutorantConnectionID key (of the database),
                                             //this data is irrelevant for the user.
-                                            studentIDTutorant = GeneralFunctions.SafeGetInt32(reader, 1),
-                                            studentIDCoach = GeneralFunctions.SafeGetInt32(reader, 2),
+                                            studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 1),
+                                            studentIDCoach = GeneralFunctions.SafeGetInt(reader, 2),
                                             status = GeneralFunctions.SafeGetString(reader, 3)
                                         });
                                     }
@@ -244,8 +244,8 @@ namespace TinderCloneV1 {
                                         coachTutorantConnection = new CoachTutorantConnection {
                                             //Reader 0 contains coachTutorantConnectionID key (of the database),
                                             //this data is irrelevant for the user.
-                                            studentIDTutorant = GeneralFunctions.SafeGetInt32(reader, 1),
-                                            studentIDCoach = GeneralFunctions.SafeGetInt32(reader, 2),
+                                            studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 1),
+                                            studentIDCoach = GeneralFunctions.SafeGetInt(reader, 2),
                                             status = GeneralFunctions.SafeGetString(reader, 3)
                                         };
                                     }
