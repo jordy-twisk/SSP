@@ -15,10 +15,11 @@ def test_get_message_byId():
 def test_delete_message_byId():
   r = requests.delete(a.api_link() + "message/" + a.messageId())
   assert r.status_code == 204, r.status_code
-def test_post_message():
-  payload = "{\n\t\"type\": \"text\",\n\t\"payload\": \"Hi Barend ;)\",\n\t\"created\": \"2019-11-1\",\n\t\"lastModified\": \"2019-11-1\",\n\t\"senderID\": \"701\",\n\t\"receiverID\": \"710\"\n}"
-  headers = {
-    'Content-Type': "application/json",
-    'cache-control': "no-cache"}
-  r = requests.post(a.api_link() + "message/", payload, headers)
-  assert r.status_code == 201, r.status_code
+#works - but dissabled 
+#def test_post_message():
+#  payload = "{\n\t\"type\": \"text\",\n\t\"payload\": \"Hi Barend ;)\",\n\t\"created\": \"2019-11-1\",\n\t\"lastModified\": \"2019-11-1\",\n\t\"senderID\": \"701\",\n\t\"receiverID\": \"710\"\n}"
+#  headers = {
+#    'Content-Type': "application/json",
+#    'cache-control': "no-cache"}
+#  r = requests.post(a.api_link() + "message/", payload, headers)
+#  assert r.status_code == 201, r.status_code
