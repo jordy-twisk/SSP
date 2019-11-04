@@ -52,8 +52,8 @@ namespace TinderCloneV1 {
                 return exceptionHandler.BadRequest(log);
             }
 
-            //Verify if the studentID of the "user" and the "tutorant" objects match.
-            //A [400 Bad Request] is returned if these are mismatching.
+            // Verify if the studentID of the "user" and the "tutorant" objects match.
+            // A [400 Bad Request] is returned if these are mismatching.
             if (tutorantProfile.tutorant.studentID != tutorantProfile.user.studentID){
                 log.LogError("RequestBody has mismatching studentID for user and tutorant objects!");
                 return exceptionHandler.BadRequest(log);
@@ -241,10 +241,10 @@ namespace TinderCloneV1 {
                                     while (reader.Read()) {
                                         listOfTutorantProfiles.Add(new TutorantProfile(
                                             new Tutorant {
-                                                studentID = GeneralFunctions.SafeGetIn32t(reader, 0),
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
                                             },
                                             new Student {
-                                                studentID = GeneralFunctions.SafeGetIn32(reader, 0),
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
                                                 firstName = GeneralFunctions.SafeGetString(reader, 1),
                                                 surName = GeneralFunctions.SafeGetString(reader, 2),
                                                 phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
@@ -252,7 +252,7 @@ namespace TinderCloneV1 {
                                                 description = GeneralFunctions.SafeGetString(reader, 5),
                                                 degree = GeneralFunctions.SafeGetString(reader, 6),
                                                 study = GeneralFunctions.SafeGetString(reader, 7),
-                                                studyYear = GeneralFunctions.SafeGetIn32(reader, 8),
+                                                studyYear = GeneralFunctions.SafeGetInt(reader, 8),
                                                 interests = GeneralFunctions.SafeGetString(reader, 9)
                                             }
                                         ));
@@ -316,10 +316,10 @@ namespace TinderCloneV1 {
                                     while (reader.Read()) {
                                         newTutorantProfile = new TutorantProfile(
                                             new Tutorant {
-                                                studentID = GeneralFunctions.SafeGetIn32(reader, 0)
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0)
                                             },
                                             new Student {
-                                                studentID = GeneralFunctions.SafeGetIn32(reader, 0),
+                                                studentID = GeneralFunctions.SafeGetInt(reader, 0),
                                                 firstName = GeneralFunctions.SafeGetString(reader, 1),
                                                 surName = GeneralFunctions.SafeGetString(reader, 2),
                                                 phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
@@ -327,7 +327,7 @@ namespace TinderCloneV1 {
                                                 description = GeneralFunctions.SafeGetString(reader, 5),
                                                 degree = GeneralFunctions.SafeGetString(reader, 6),
                                                 study = GeneralFunctions.SafeGetString(reader, 7),
-                                                studyYear = GeneralFunctions.SafeGetIn32(reader, 8),
+                                                studyYear = GeneralFunctions.SafeGetInt(reader, 8),
                                                 interests = GeneralFunctions.SafeGetString(reader, 9)
                                             }
                                         );

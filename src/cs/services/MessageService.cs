@@ -182,13 +182,13 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         listOfMessages.Add(new Message {
-                                            MessageID = GeneralFunctions.SafeGetInt32(reader, 0),
+                                            MessageID = GeneralFunctions.SafeGetInt(reader, 0),
                                             type = GeneralFunctions.SafeGetString(reader, 1),
                                             payload = GeneralFunctions.SafeGetString(reader, 2),
                                             created = GeneralFunctions.SafeGetDateTime(reader, 3),
                                             lastModified = GeneralFunctions.SafeGetDateTime(reader, 4),
-                                            senderID = GeneralFunctions.SafeGetInt32(reader, 5),
-                                            receiverID = GeneralFunctions.SafeGetInt32(reader, 6)
+                                            senderID = GeneralFunctions.SafeGetInt(reader, 5),
+                                            receiverID = GeneralFunctions.SafeGetInt(reader, 6)
                                         });
                                     }
                                 }
@@ -245,13 +245,13 @@ namespace TinderCloneV1 {
                                 } else {
                                     while (reader.Read()) {
                                         newMessage = new Message {
-                                            MessageID = reader.SafeGetInt32(0),
+                                            MessageID = reader.GetInt32(0),
                                             type = GeneralFunctions.SafeGetString(reader, 1),
                                             payload = GeneralFunctions.SafeGetString(reader, 2),
                                             created = GeneralFunctions.SafeGetDateTime(reader, 3),
                                             lastModified = GeneralFunctions.SafeGetDateTime(reader, 4),
-                                            senderID = GeneralFunctions.SafeGetInt32(reader, 5),
-                                            receiverID = GeneralFunctions.SafeGetInt32(reader, 6)
+                                            senderID = GeneralFunctions.SafeGetInt(reader, 5),
+                                            receiverID = GeneralFunctions.SafeGetInt(reader, 6)
                                         };
                                     }
                                 }

@@ -124,7 +124,7 @@ namespace TinderCloneV1 {
         */
         public async Task<HttpResponseMessage> GetStudentByID(int studentID) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(studentID);
-            Student newStudent;
+            Student newStudent = new Student();
 
             /* Initialize the queryString */
             string queryString = $"SELECT * FROM [dbo].[Student] WHERE studentID = @studentID;";
@@ -153,7 +153,7 @@ namespace TinderCloneV1 {
                                 }
                                 while (reader.Read()) {
                                     newStudent = new Student {
-                                        studentID = GeneralFunctions.SafeGetInt32(0),
+                                        studentID = reader.GetInt32(0),
                                         firstName = GeneralFunctions.SafeGetString(reader, 1),
                                         surName = GeneralFunctions.SafeGetString(reader, 2),
                                         phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
