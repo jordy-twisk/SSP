@@ -406,8 +406,8 @@ namespace TinderCloneV1 {
                                 } 
                                 while (reader.Read()) {
                                     newCoach = new Coach {
-                                        studentID = GeneralFunctions.SafeGetInt(reader, 1),
-                                        workload = GeneralFunctions.SafeGetInt(reader, 2)
+                                        studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                        workload = GeneralFunctions.SafeGetInt(reader, 1)
                                     };
                                 }
                             }
