@@ -189,7 +189,7 @@ namespace TinderCloneV1 {
                             if (jObject["user"]["interests"] != null)       command.Parameters.Add("@interests",    System.Data.SqlDbType.VarChar).Value =      coachProfile.user.interests;
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            await command.ExecuteReaderAsync();
+                            command.ExecuteNonQuery();
                         }
 
                         /*Insert profile into the Coach table.
@@ -200,7 +200,7 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@workload", System.Data.SqlDbType.Int).Value = coachProfile.coach.workload;
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
-                            await command.ExecuteReaderAsync();
+                            command.ExecuteNonQuery();
                         }
                     } catch (SqlException e) {
                         /* The Query may fail, in which case a [400 Bad Request] is returned.
@@ -330,7 +330,7 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
-                             int affectedRows = await command.ExecuteNonQueryAsync();
+                            int affectedRows = command.ExecuteNonQuery();
 
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
@@ -346,7 +346,7 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            int affectedRows = await command.ExecuteNonQueryAsync();
+                            int affectedRows = command.ExecuteNonQuery();
 
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
@@ -406,8 +406,8 @@ namespace TinderCloneV1 {
                                 } 
                                 while (reader.Read()) {
                                     newCoach = new Coach {
-                                        studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                        workload = GeneralFunctions.SafeGetInt(reader, 1)
+                                        studentID = GeneralFunctions.SafeGetInt(reader, 1),
+                                        workload = GeneralFunctions.SafeGetInt(reader, 2)
                                     };
                                 }
                             }
@@ -473,7 +473,7 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            int affectedRows = await command.ExecuteNonQueryAsync();
+                            int affectedRows = command.ExecuteNonQuery();
 
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
