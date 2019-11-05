@@ -403,13 +403,12 @@ namespace TinderCloneV1 {
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
                                     return exceptionHandler.NotFoundException(log);
-                                } else {
-                                    while (reader.Read()) {
-                                        newCoach = new Coach {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                            workload = GeneralFunctions.SafeGetInt(reader, 1)
-                                        };
-                                    }
+                                } 
+                                while (reader.Read()) {
+                                    newCoach = new Coach {
+                                        studentID = GeneralFunctions.SafeGetInt(reader, 1),
+                                        workload = GeneralFunctions.SafeGetInt(reader, 2)
+                                    };
                                 }
                             }
                         }
