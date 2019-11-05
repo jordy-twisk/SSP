@@ -86,3 +86,10 @@ def s_tutorant():
     'studentID': {'type': 'integer'}
   }
   return tutorant
+def s_coachTutorant():
+  coachTutorant = {
+    'studentIDTutorant': {'type': 'integer'},
+    'studentIDCoach': {'type': 'integer'},
+    'status': {'type': 'string'}
+  }
+  return coachTutorant

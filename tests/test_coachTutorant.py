@@ -2,6 +2,7 @@ import pytest
 import requests
 import os
 import api_info as a
+from cerberus import Validator
 
 def test_post_coachTutorant():
   tut = a.tutorantId()
@@ -18,6 +19,8 @@ def test_post_coachTutorant():
 def test_get_coachTutorants_coach_byId():
   r = requests.get(a.api_link() + "coachTutorant/coach/" + a.coachId())
   assert r.status_code == 200, r.status_code
+  v = Validator(a.s_coachTutorant())
+  assert v.validate(r.json()[0]) == True, v.errors
 def test_delete_coachTutorant_coach_byId():
   r = requests.delete(a.api_link() + "coachTutorant/coach/" + a.coachId())
   if r.status_code is not 204:
@@ -27,6 +30,8 @@ def test_delete_coachTutorant_coach_byId():
 def test_get_coachTutorant_tutorant_byId():
   r = requests.get(a.api_link() + "coachTutorant/tutorant/" + a.tutorantId())
   assert r.status_code == 200, r.status_code
+  v = Validator(a.s_coachTutorant())
+  assert v.validate(r.json()) == True, v.errors
 def test_put_coachTutorant_tutorant_byId():
   tut = a.tutorantId()
   url = a.api_link() + "coachTutorant"
