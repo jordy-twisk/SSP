@@ -1,6 +1,12 @@
 # TinderClone
 API for MBO &amp; HBO students 
 
+### Submission details:
+
+- API is hosted at 'https://dev-tinderfunv2.azurewebsites.net'
+- API source located at 'TinderClone/src/cs/'
+- API tests located at 'TinderClone/tests/'
+- API specification located at 'TinderClone/src/resources/'
 
 ### Implementation code
 
@@ -20,7 +26,7 @@ API for MBO &amp; HBO students
 
 - [] Verify YAML matches CoachService
 
-- [x] Verify YAML matches CoachTutorantService
+- [✓] Verify YAML matches CoachTutorantService
 
 - [✓] Verify YAML matches MessageService
 
@@ -35,13 +41,13 @@ API for MBO &amp; HBO students
 - [] Tests. Kaydo, Thomas
 
 ### Friday 1 November | Quick Notes
-- [CHECK] SQL injection in UserService.cs
+- [✓] SQL injection in UserService.cs
 - [] Finalize the MessageService.cs
 - [ONLY FOR StudentSERVICE] Generalize file structuur in every Controller and Service
-- [CHECK] Structure and relations in the database
-- [CHECK] Transport generic methods to external files
-- [CHECK] Update yaml
-- [CHECK] Delete unnecessary files
+- [✓] Structure and relations in the database
+- [✓] Transport generic methods to external files
+- [✓] Update yaml
+- [✓] Delete unnecessary files
 =======
 ---
 
