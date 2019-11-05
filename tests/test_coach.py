@@ -12,6 +12,8 @@ def test_get_coaches():
   v = Validator(a.s_studentData())
   assert v.validate(r.json()[0]['user']) == True, v.errors
 def test_post_coach():
+  a.delete_multiple_coachTutorant
+  a.delete_multiple_tutorant
   a.delete_coach()
   url = a.api_link() + "profile/coach"
   payload = "{\n\"coach\": {\n      \"studentID\": \""+ a.coachId() + "\",\n      \"workload\": 5\n    },\n \"user\": {\n      \"studentID\": \""+ a.coachId() + "\",\n      \"firstName\": \"TestCoach\",\n      \"surName\": \"Test\"}}"  
@@ -21,7 +23,11 @@ def test_post_coach():
   r = requests.post(url, data=payload, headers=headers)
   if r.status_code is not 201:
     a.create_coach()
+    a.create_multiple_tutorant
+    a.create_multiple_coachTutorant
   assert r.status_code == 201, r.status_code
+  a.create_multiple_tutorant
+  a.create_multiple_coachTutorant
 def test_get_coachProfile_byId():
   r = requests.get(a.api_link() + "profile/coach/" + a.coachId())
   assert r.status_code == 200, r.status_code
