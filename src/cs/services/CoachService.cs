@@ -187,9 +187,10 @@ namespace TinderCloneV1 {
                             if (jObject["user"]["study"] != null)           command.Parameters.Add("@study",        System.Data.SqlDbType.VarChar).Value =      coachProfile.user.study;
                             if (jObject["user"]["studyYear"] != null)       command.Parameters.Add("@studyYear",    System.Data.SqlDbType.Int).Value =          coachProfile.user.studyYear;
                             if (jObject["user"]["interests"] != null)       command.Parameters.Add("@interests",    System.Data.SqlDbType.VarChar).Value =      coachProfile.user.interests;
+                            
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            await command.ExecuteReaderAsync();
+                            command.ExecuteReader();
                         }
 
                         /*Insert profile into the Coach table.
@@ -198,9 +199,10 @@ namespace TinderCloneV1 {
                             /* Parameters are used to ensure no SQL injection can take place */
                             command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = coachProfile.coach.studentID;
                             command.Parameters.Add("@workload", System.Data.SqlDbType.Int).Value = coachProfile.coach.workload;
+
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
-                            await command.ExecuteReaderAsync();
+                            command.ExecuteReader();
                         }
                     } catch (SqlException e) {
                         /* The Query may fail, in which case a [400 Bad Request] is returned.
