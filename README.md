@@ -1,12 +1,14 @@
 # TinderClone
 API for MBO &amp; HBO students 
 
+<!---
 ### Submission details:
 
 - API is hosted at 'https://dev-tinderfunv2.azurewebsites.net'
 - API source located at 'TinderClone/src/cs/'
 - API tests located at 'TinderClone/tests/'
 - API specification located at 'TinderClone/src/resources/'
+
 
 ### Implementation code
 
@@ -49,14 +51,12 @@ API for MBO &amp; HBO students
 - [✓] Update yaml
 - [✓] Delete unnecessary files
 =======
----
 
 ### Verifying all files
 
 A list of all files which are completed, tested and (if needed) match their API description:
 
 | File                  | Checked by | Checked on (dd/mm/yyyy) | Latest Version |
-|-----------------------|------------|-------------------------| -------------- |
 | CoachTutorantServices | Mike       | 31/10/2019              | yes            |
 | StudentServices       | Barend     | 01/11/2019              | yes            |
 |                       |            | dd/mm/yyyy              | yes/no         |
@@ -66,3 +66,5 @@ A list of all files which are completed, tested and (if needed) match their API 
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |
+
+-->
