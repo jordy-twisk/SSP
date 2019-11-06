@@ -797,18 +797,18 @@ components:
               interests:
                   type: string
                   example: "Programming (C only), Servers, Cisco"
-      TutorantProfile:
-        type: object
-        required:
-          - user
-          - student
-        properties:
-          user:
-            type: object
-            $ref: '#/components/schemas/Student'
-          student:
-            type: object
-            $ref: '#/components/schemas/Tutorant'
+      # TutorantProfile:
+      #   type: object
+      #   required:
+      #     - user
+      #     - student
+      #   properties:
+      #     user:
+      #       type: object
+      #       $ref: '#/components/schemas/Student'
+      #     student:
+      #       type: object
+      #       $ref: '#/components/schemas/Tutorant'
       Tutorant:
         type: object
         required:
@@ -818,18 +818,18 @@ components:
             type: integer
             example: 520438
       # User profile of the coach and coach object.
-      CoachProfile:
-        type: object
-        required:
-          - user
-          - coach
-        properties:
-          user:
-            type: object
-            $ref: '#/components/schemas/Student'
-          coach:
-            type: object
-            $ref: '#/components/schemas/Coach'
+      # CoachProfile:
+      #   type: object
+      #   required:
+      #     - student
+      #     - coach
+      #   properties:
+      #     user:
+      #       type: object
+      #       $ref: '#/components/schemas/Student'
+      #     coach:
+      #       type: object
+      #       $ref: '#/components/schemas/Coach'
       # Coach studentID and workload.
       Coach:
         type: object
@@ -861,13 +861,13 @@ components:
             type: string
             example: "pending"
       # Chat system
-      Messages:
-        properties:
-          list:
-            type: array
-            items:
-              type: object
-              $ref: '#/components/schemas/Message'
+      # Messages:
+      #   properties:
+      #     list:
+      #       type: array
+      #       items:
+      #         type: object
+      #         $ref: '#/components/schemas/Message'
       Message:
         type: object
         required:
@@ -876,36 +876,34 @@ components:
         - payload
         - created
         - lastModified
+        - senderID
+        - receiverID
         properties:
           messageID:
             type: integer
-            # couchStudentNumber + tutorantStudentNumber + increment creates a unique id.
-            # Saved as separate fields.
-            example: 59053939
-          #coachStudentID:
-          #  type: integer
-          #  example: 590539
-          #tutorantStudentID:
-          #  type: integer
-          #  example: 510539
+            example: 1
           type:
             type: string
             example: "text"
           payload:
-            type: object
-            example: {"text": "Interesting message!"}
+            type: string
+            example: "Interesting message!"
           created:
             type: string
             example: "2019-05-01T00:00:00Z"
-          # if put modified message: different
-          # else: same as created.
           lastModified:
             type: string
             example: "2019-06-01T00:00:00Z"
+          senderID:
+            type: int
+            example: 586141
+          receiverID:
+            type: int
+            example: 683910
       # Generic fail message
-      Fail:
-          type: object
-          properties:
-              Message:
-                  type: string
-                  example: "Failed to do things."
+      # Fail:
+      #     type: object
+      #     properties:
+      #         Message:
+      #             type: string
+      #             example: "Failed to do things."
