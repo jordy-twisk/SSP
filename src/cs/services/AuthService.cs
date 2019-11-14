@@ -28,14 +28,14 @@ namespace TinderCloneV1 {
         /*Returns */
         public async Task<HttpResponseMessage> CreateAuth() {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            NewAccount newAccount;
+            UserAuth userAuth;
             JObject jObject;
 
             /* Read from the requestBody */
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync()))
             {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                newAccount = jObject.ToObject<NewAccount>();
+                userAuth = jObject.ToObject<UserAuth>();
             }
 
             /* Verify if all parameters for the Auth table exist.
@@ -68,8 +68,8 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection))
                         {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.VarChar).Value = newAccount.studentID;
-                            command.Parameters.Add("@password", System.Data.SqlDbType.Int).Value = newAccount.password;
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.VarChar).Value = UserAuth.studentID;
+                            command.Parameters.Add("@password", System.Data.SqlDbType.Int).Value = UserAuth.password;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -104,14 +104,14 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> Login()
         {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            NewAccount newAccount;
+            UserAuth userAuth;
             JObject jObject;
 
             /* Read from the requestBody */
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync()))
             {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                newAccount = jObject.ToObject<NewAccount>();
+                userAuth = jObject.ToObject<UserAuth>();
             }
 
             /* Verify if all parameters for the Auth table exist.
@@ -143,7 +143,7 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection))
                         {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.VarChar).Value = newAccount.studentID;
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.VarChar).Value = userAuth.studentID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
