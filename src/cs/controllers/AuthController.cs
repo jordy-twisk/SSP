@@ -32,7 +32,7 @@ namespace TinderCloneV1 {
             coachService = new CoachService(req, request, log);
 
             if (req.Method == HttpMethod.Post) {
-                return await coachService.GetAllCoachProfiles();
+                return await authService.Login();
             }
             else {
                 throw new NotImplementedException();
@@ -49,7 +49,7 @@ namespace TinderCloneV1 {
 
             if (req.Method == HttpMethod.Post)
             {
-                return await coachService.GetAllCoachProfiles();
+                return await authService.CreateAuth();
             }
             else
             {

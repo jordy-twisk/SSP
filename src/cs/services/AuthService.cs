@@ -170,7 +170,7 @@ namespace TinderCloneV1 {
             log.LogInformation($"{HttpStatusCode.Created} | Connection created succesfully.");
 
             //Return response code [201 Created].
-            return new HttpResponseMessage(HttpStatusCode.Created);
+            return new HttpResponseMessage(HttpStatusCode.OK);
         }
     }
     
