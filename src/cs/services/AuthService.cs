@@ -68,8 +68,8 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection))
                         {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.VarChar).Value = UserAuth.studentID;
-                            command.Parameters.Add("@password", System.Data.SqlDbType.Int).Value = UserAuth.password;
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.VarChar).Value = userAuth.studentID;
+                            command.Parameters.Add("@password", System.Data.SqlDbType.Int).Value = userAuth.password;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 

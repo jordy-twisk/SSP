@@ -29,7 +29,7 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> AuthLogin([HttpTrigger(AuthorizationLevel.Anonymous,
             "post", Route = "auth/login")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
-            coachService = new CoachService(req, request, log);
+            authService = new AuthService(req, request, log);
 
             if (req.Method == HttpMethod.Post) {
                 return await authService.Login();
@@ -45,7 +45,7 @@ namespace TinderCloneV1 {
             "post", Route = "auth/register")] HttpRequestMessage req, HttpRequest request, ILogger log)
         {
 
-            coachService = new CoachService(req, request, log);
+            authService = new AuthService(req, request, log);
 
             if (req.Method == HttpMethod.Post)
             {
