@@ -11,7 +11,7 @@ namespace TinderCloneV1 {
             set;
         }
         [JsonProperty("password")]
-        public int password {
+        public string password {
             get;
             set;
         }

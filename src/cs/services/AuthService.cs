@@ -46,6 +46,7 @@ namespace TinderCloneV1 {
             }
 
             /* ******** To do ******************
+             * Check if the ID is already in the db
              * Check password length and stuff
              * Encrypt password (make function for)
              * ********************************* */
@@ -68,8 +69,8 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection))
                         {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.VarChar).Value = userAuth.studentID;
-                            command.Parameters.Add("@password", System.Data.SqlDbType.Int).Value = userAuth.password;
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = userAuth.studentID;
+                            command.Parameters.Add("@password", System.Data.SqlDbType.VarChar).Value = userAuth.password;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -96,7 +97,9 @@ namespace TinderCloneV1 {
             log.LogInformation($"{HttpStatusCode.Created} | Connection created succesfully.");
 
             //Return response code [201 Created].
-            return new HttpResponseMessage(HttpStatusCode.Created);
+            HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
+            response.Content = new StringContent(getToken(jObject["studentID"].ToString()));
+            return response;
         }
 
 
@@ -169,8 +172,75 @@ namespace TinderCloneV1 {
 
             log.LogInformation($"{HttpStatusCode.Created} | Connection created succesfully.");
 
+            
             //Return response code [201 Created].
-            return new HttpResponseMessage(HttpStatusCode.OK);
+            HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
+            response.Content = new StringContent(getToken(jObject["studentID"].ToString()));
+            return response;
+        }
+
+        public string getToken(string studentID)
+        {
+            if (checkForToken(studentID))
+            {
+                string token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                //https://stackoverflow.com/questions/14643735/how-to-generate-a-unique-token-which-expires-after-24-hours
+
+                //post token
+
+                return token;
+            }
+
+            return "";
+        }
+
+        private bool checkForToken(string studentID)
+        {
+            string queryString = $@"SELECT token FROM [dbo].[Auth] where studentID = @studentID";
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
+                    try
+                    {
+                        //Update the status for the tutorant/coach connection
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        using (SqlCommand command = new SqlCommand(queryString, connection))
+                        {
+                            //Parameters are used to ensure no SQL injection can take place
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.VarChar).Value = studentID;
+
+                            log.LogInformation($"Executing the following query: {queryString}");
+
+                            command.ExecuteNonQueryAsync();
+                        }
+                    }
+                    catch (SqlException e)
+                    {
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
+                        log.LogError(e.Message);
+                        return false;
+                    }
+                }
+            }
+            catch (SqlException e)
+            {
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
+                log.LogError(e.Message);
+                return false;
+            }
+
+            //check if latest token is still usable
+            //if(token == expiredate is to come) 
+            //delete token and make new one.
+
+            return true;
         }
     }
     
