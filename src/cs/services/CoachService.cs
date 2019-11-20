@@ -27,7 +27,7 @@ namespace TinderCloneV1 {
 
         /*Returns the profile of all coaches (from the student table)
           and the workload of all coaches (from the coach table) */
-        public async Task<HttpResponseMessage> GetAllCoachProfiles() {
+        public async string GetAllCoachProfiles() {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             List<CoachProfile> listOfCoachProfiles = new List<CoachProfile>();
 
@@ -90,13 +90,15 @@ namespace TinderCloneV1 {
                 return exceptionHandler.ServiceUnavailable(log); 
             }
 
-            var jsonToReturn = JsonConvert.SerializeObject(listOfCoachProfiles);
+            string jsonToReturn = JsonConvert.SerializeObject(listOfCoachProfiles);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully.");
 
+
+            return jsonToReturn;
             /* Return response code [200 OK] and the requested data. */
-            return new HttpResponseMessage(HttpStatusCode.OK) {
-                Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
-            };
+            // return new HttpResponseMessage(HttpStatusCode.OK) {
+            //     Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
+            // };
         }
 
         /* Creates a new profile based on the data in the requestbody */

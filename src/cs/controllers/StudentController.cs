@@ -25,7 +25,7 @@ namespace TinderCloneV1 {
             userService = new StudentService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
-                return new await userService.GetAllStudents();
+                return await userService.GetAllStudents();
             } 
             else {
                 throw new NotImplementedException();
