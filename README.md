@@ -68,3 +68,6 @@ A list of all files which are completed, tested and (if needed) match their API 
 |                       |            | dd/mm/yyyy              | yes/no         |
 
 -->
+
+## https://www.coreycleary.me/project-structure-for-an-express-rest-api-when-there-is-no-standard-way/
+## https://github.com/rapid7/metasploitable3 
