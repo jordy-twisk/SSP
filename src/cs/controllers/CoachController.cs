@@ -30,6 +30,8 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> CoachProfiles([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "post", Route = "profile/coach")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
+            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+
             coachService = new CoachService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
@@ -53,6 +55,8 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> CoachProfile([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "delete", Route = "profile/coach/{coachID}")] HttpRequestMessage req, HttpRequest request, int coachID, ILogger log) {
 
+            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+
             coachService = new CoachService(req, request, log);
 
             if (req.Method == HttpMethod.Get) {
@@ -74,6 +78,8 @@ namespace TinderCloneV1 {
         [FunctionName("CoachByID")]
         public async Task<HttpResponseMessage> Coach([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "put", Route = "coach/{coachID}")] HttpRequestMessage req, HttpRequest request, int coachID, ILogger log) {
+
+            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
 
             coachService = new CoachService(req, request, log);
 
