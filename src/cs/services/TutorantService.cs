@@ -28,7 +28,7 @@ namespace TinderCloneV1 {
         }
         // Create a new profile based on the data in the request body.
         public async Task<HttpResponseMessage> CreateTutorantProfile() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             TutorantProfile tutorantProfile;
             JObject jObject;
 
@@ -151,7 +151,7 @@ namespace TinderCloneV1 {
         // Deletes the Tutorant from the Tutorant table.
         // then deletes the Tutorant from Student table.
         public async Task<HttpResponseMessage> DeleteTutorantProfileByID(int tutorantID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             // Query string used to delete the tutorant from the Tutorant table.
             string queryStringTutorant = $@"DELETE FROM [dbo].[Tutorant] WHERE studentID = @tutorantID";
@@ -177,7 +177,7 @@ namespace TinderCloneV1 {
                             // The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected while deleting from the Tutorant table.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
 
@@ -192,7 +192,7 @@ namespace TinderCloneV1 {
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected while deleting from the Student table.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {
@@ -217,7 +217,7 @@ namespace TinderCloneV1 {
 
         // Returns the profile of all tutorants (from the student table).
         public async Task<HttpResponseMessage> GetAllTutorantProfiles() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             List<TutorantProfile> listOfTutorantProfiles = new List<TutorantProfile>();
 
             string queryString = $@"SELECT Student.* FROM [dbo].[Student]
@@ -239,7 +239,7 @@ namespace TinderCloneV1 {
                                     // Query was succesfully executed, but returned no data.
                                     // Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 }
                                 while (reader.Read()) {
                                     listOfTutorantProfiles.Add(new TutorantProfile(
@@ -287,7 +287,7 @@ namespace TinderCloneV1 {
 
         // Returns the profile of the tutorant (from the student table).
         public async Task<HttpResponseMessage> GetTutorantProfileByID(int tutorantID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             TutorantProfile newTutorantProfile = new TutorantProfile();
 
             string queryString = $@"SELECT Student.* FROM [dbo].[Student]
@@ -312,7 +312,7 @@ namespace TinderCloneV1 {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 } 
                                 while (reader.Read()) {
                                     newTutorantProfile = new TutorantProfile(

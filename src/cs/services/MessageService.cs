@@ -30,7 +30,7 @@ namespace TinderCloneV1 {
 
         // Creates a new message based on data given in the request body.
         public async Task<HttpResponseMessage> CreateMessage() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             Message message;
             JObject jObject;
 
@@ -96,7 +96,7 @@ namespace TinderCloneV1 {
         }
 
         public async Task<HttpResponseMessage> DeleteMessageByID(int messageID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             string queryString = $@"DELETE FROM [dbo].[Message] WHERE MessageID = @MessageID";
 
@@ -116,7 +116,7 @@ namespace TinderCloneV1 {
                             // The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected while deleting from the Tutorant table.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {
@@ -141,7 +141,7 @@ namespace TinderCloneV1 {
 
         // Get all messages between a coach and a tutorant (a conversation between a coach and a tutorant).
         public async Task<HttpResponseMessage> GetAllMessages(int coachID, int tutorantID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             List<Message> listOfMessages = new List<Message>();
 
             // Get a conversation.
@@ -169,7 +169,7 @@ namespace TinderCloneV1 {
                                     // Query was succesfully executed, but returned no data.
                                     // Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 }
                                 while (reader.Read()) {
                                     listOfMessages.Add(new Message {
@@ -209,7 +209,7 @@ namespace TinderCloneV1 {
         }
 
         public async Task<HttpResponseMessage> GetMessageByID(int messageID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(messageID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             Message newMessage = new Message();
 
             string queryString = $@"SELECT * FROM [dbo].[Message] WHERE MessageID = @messageID;";
@@ -230,7 +230,7 @@ namespace TinderCloneV1 {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 } 
                                 while (reader.Read()) {
                                     newMessage = new Message {
@@ -270,7 +270,7 @@ namespace TinderCloneV1 {
         }
 
         public async Task<HttpResponseMessage> UpdateMessageByID(int messageID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(messageID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             PropertyInfo[] properties = typeof(Message).GetProperties();
             Message newMessage = new Message();
             JObject jObject; 
@@ -325,7 +325,7 @@ namespace TinderCloneV1 {
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     }

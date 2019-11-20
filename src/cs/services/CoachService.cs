@@ -19,16 +19,14 @@ namespace TinderCloneV1 {
         private readonly HttpRequest request;
         private readonly ILogger log;
 
-        public CoachService(HttpRequestMessage req, HttpRequest request, ILogger log) {
-            this.req = req;
-            this.request = request;
+        public CoachService(ILogger log) {
             this.log = log;
         }
 
         /*Returns the profile of all coaches (from the student table)
           and the workload of all coaches (from the coach table) */
-        public async string GetAllCoachProfiles() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+        public async Task<String> GetAllCoachProfiles() {
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             List<CoachProfile> listOfCoachProfiles = new List<CoachProfile>();
 
             string queryString = $@"SELECT Student.*, Coach.workload
@@ -52,7 +50,7 @@ namespace TinderCloneV1 {
                                     /*Query was succesfully executed, but returned no data.
                                     Return response code [404 Not Found] */
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    // return exceptionHandler.NotFoundException(log);
                                 } 
                                 while (reader.Read()) {
                                     listOfCoachProfiles.Add(new CoachProfile(
@@ -80,14 +78,14 @@ namespace TinderCloneV1 {
                         /* The Query may fail, in which case a [400 Bad Request] is returned. */
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return exceptionHandler.BadRequest(log);
+                      //  return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
                 /* The connection may fail to open, in which case a [503 Service Unavailable] is returned. */
                 log.LogError("SQL connection has failed to open.");
                 log.LogError(e.Message);
-                return exceptionHandler.ServiceUnavailable(log); 
+              //  return exceptionHandler.ServiceUnavailable(log); 
             }
 
             string jsonToReturn = JsonConvert.SerializeObject(listOfCoachProfiles);
@@ -103,7 +101,7 @@ namespace TinderCloneV1 {
 
         /* Creates a new profile based on the data in the requestbody */
         public async Task<HttpResponseMessage> CreateCoachProfile() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             CoachProfile coachProfile;
             JObject jObject;
 
@@ -230,7 +228,7 @@ namespace TinderCloneV1 {
         /* Returns the profile of the coach (from the student table) 
           and the workload of the coach (from the coach table) */
         public async Task<HttpResponseMessage> GetCoachProfileByID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             CoachProfile newCoachProfile = new CoachProfile();
 
             string queryString = $@"SELECT Student.*, Coach.workload
@@ -258,7 +256,7 @@ namespace TinderCloneV1 {
                                     /* Query was succesfully executed, but returned no data.
                                        Return response code [404 Not Found] */
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 } 
                                 while (reader.Read()) {
                                     newCoachProfile = new CoachProfile(
@@ -308,7 +306,7 @@ namespace TinderCloneV1 {
         /* Deletes the Coach from the Coach table
            then deletes the Coach from Studen table */
         public async Task<HttpResponseMessage> DeleteCoachProfileByID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             //Query string used to delete the coach from the coach table
             string queryString_Coach = $@"DELETE
@@ -339,7 +337,7 @@ namespace TinderCloneV1 {
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected while deleting from the Coach table.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
 
@@ -355,7 +353,7 @@ namespace TinderCloneV1 {
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected while deleting from the Student table.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {
@@ -380,7 +378,7 @@ namespace TinderCloneV1 {
 
         //Returns the workload of the coach (from the coach table)
         public async Task<HttpResponseMessage> GetCoachByID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             Coach newCoach = new Coach();
 
             string queryString = $@"SELECT *
@@ -406,7 +404,7 @@ namespace TinderCloneV1 {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 } 
                                 while (reader.Read()) {
                                     newCoach = new Coach {
@@ -441,7 +439,7 @@ namespace TinderCloneV1 {
 
         //Updates the workload of the coach (in the coach table)
         public async Task<HttpResponseMessage> UpdateCoachByID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             Coach newCoach;
             JObject jObject;
 
@@ -482,7 +480,7 @@ namespace TinderCloneV1 {
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {

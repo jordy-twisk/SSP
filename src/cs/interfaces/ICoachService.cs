@@ -3,7 +3,7 @@ using System.Net.Http;
 
 namespace TinderCloneV1 {
     public interface ICoachService {
-        string GetAllCoachProfiles();
+        Task<string> GetAllCoachProfiles();
         Task<HttpResponseMessage> CreateCoachProfile();
         Task<HttpResponseMessage> GetCoachProfileByID(int coachID);
         Task<HttpResponseMessage> DeleteCoachProfileByID(int coachID);

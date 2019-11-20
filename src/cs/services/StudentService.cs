@@ -29,7 +29,7 @@ namespace TinderCloneV1 {
         /* Returns the data from all the students that were created (Coaches and Tutorants) 
            based on the filters given by the user through query parameters. */
         public async Task<HttpResponseMessage> GetAllStudents() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             PropertyInfo[] properties = typeof(Student).GetProperties();
             List<Student> listOfStudents = new List<Student>();
 
@@ -114,7 +114,7 @@ namespace TinderCloneV1 {
         given by the studentID in the path.
         */
         public async Task<HttpResponseMessage> GetStudentByID(int studentID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(studentID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             Student newStudent = new Student();
 
             /* Initialize the queryString */
@@ -141,7 +141,7 @@ namespace TinderCloneV1 {
                                 /* If the student does not exist, it returns a notFoundException */
                                 /* Return status code 404 */
                                 if (!reader.HasRows) {
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 }
                                 while (reader.Read()) {
                                     newStudent = new Student {
@@ -187,7 +187,7 @@ namespace TinderCloneV1 {
 
         /* Update the data from the student given by a requestBody */
         public async Task<HttpResponseMessage> UpdateStudentByID(int studentID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(studentID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             PropertyInfo[] properties = typeof(Student).GetProperties();
             Student newStudent;
             JObject jObject;
@@ -254,7 +254,7 @@ namespace TinderCloneV1 {
                             /* The SQL query must have been incorrect if no rows were executed, return a [404 Not Found] */
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {

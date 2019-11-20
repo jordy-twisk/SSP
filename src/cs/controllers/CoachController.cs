@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
@@ -38,21 +33,28 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> CoachProfiles ([HttpTrigger (AuthorizationLevel.Anonymous,
             "get", "post", Route = "profile/coach")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
-            ExceptionHandler exceptionHandler = new ExceptionHandler (0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
-            coachService = new CoachService (req, request, log);
+            coachService = new CoachService (log);
 
             // List<CoachProfile> listOfCoachProfiles = new List<CoachProfile>();
-
+            /* TODO:
+                - READ INPUT (REQUEST BODY && QUERY PARAMTERS)
+                - SEND INPUT TO SERVICE
+                - SERVICE HANDLES THE INPUT AND CALLS THE DATABASE LAYER
+                - SERVICE GETS THE REQUESTED DATA AND RETURNS THE DATA TO THE CONTROLLER 
+                - CONTROLLER RETURNS THE HTTPMESSAGE
+            */
             if (req.Method == HttpMethod.Get) {
                 string listOfCoachProfiles = await coachService.GetAllCoachProfiles();
 
-                if (listOfCoachProfiles.Any()) {
-                    return new HttpRequestMessage (HttpStatusCode.OK) {
+                if (!string.IsNullOrEmpty(listOfCoachProfiles)) {
+                    return new HttpResponseMessage(HttpStatusCode.OK) {
                         Content = new StringContent (listOfCoachProfiles, Encoding.UTF8, "application/json")
                     };
                 } else {
-                    return new HttpRequestMessage (HttpStatusCode.NotFound);
+                    return exceptionHandler.NotFound();
+                   // return new HttpResponseMessage (HttpStatusCode.NotFound);
                 }
                 // return await coachService.GetAllCoachProfiles();
             } else if (req.Method == HttpMethod.Post) {
@@ -72,9 +74,9 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> CoachProfile ([HttpTrigger (AuthorizationLevel.Anonymous,
             "get", "delete", Route = "profile/coach/{coachID}")] HttpRequestMessage req, HttpRequest request, int coachID, ILogger log) {
 
-            ExceptionHandler exceptionHandler = new ExceptionHandler (coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
-            coachService = new CoachService (req, request, log);
+            coachService = new CoachService (log);
 
             if (req.Method == HttpMethod.Get) {
                 return await coachService.GetCoachProfileByID (coachID);
@@ -94,9 +96,9 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> Coach ([HttpTrigger (AuthorizationLevel.Anonymous,
             "get", "put", Route = "coach/{coachID}")] HttpRequestMessage req, HttpRequest request, int coachID, ILogger log) {
 
-            ExceptionHandler exceptionHandler = new ExceptionHandler (coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
-            coachService = new CoachService (req, request, log);
+            coachService = new CoachService (log);
 
             if (req.Method == HttpMethod.Get) {
                 return await coachService.GetCoachByID (coachID);

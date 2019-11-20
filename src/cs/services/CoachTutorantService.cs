@@ -28,7 +28,7 @@ namespace TinderCloneV1 {
 
         //Changes the status of a CoachTutorantConnection.
         public async Task<HttpResponseMessage> UpdateConnection() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             CoachTutorantConnection coachTutorantConnection;
             JObject jObject;
 
@@ -70,7 +70,7 @@ namespace TinderCloneV1 {
                             //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
                             if(affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {
@@ -95,7 +95,7 @@ namespace TinderCloneV1 {
 
         //Returns all connections of a specific coach
         public async Task<HttpResponseMessage> GetAllConnectionsByCoachID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             List<CoachTutorantConnection> listOfCoachTutorantConnections = new List<CoachTutorantConnection>();
 
             string queryString = $@"SELECT *
@@ -121,7 +121,7 @@ namespace TinderCloneV1 {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 } 
                                 while (reader.Read()) {
                                     listOfCoachTutorantConnections.Add(new CoachTutorantConnection {
@@ -159,7 +159,7 @@ namespace TinderCloneV1 {
 
         //Delete all connections of a specific coach
         public async Task<HttpResponseMessage> DeleteConnectionByCoachID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             //Query string used to delete the coach from the coach table
             string queryString = $@"DELETE FROM [dbo].[CoachTutorantConnection]
@@ -184,7 +184,7 @@ namespace TinderCloneV1 {
                             //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {
@@ -209,7 +209,7 @@ namespace TinderCloneV1 {
 
         //Returns the connection of a specific tutorant
         public async Task<HttpResponseMessage> GetConnectionByTutorantID(int tutorantID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             CoachTutorantConnection coachTutorantConnection = new CoachTutorantConnection();
 
             string queryString = $@"SELECT * FROM [dbo].[CoachTutorantConnection]
@@ -235,7 +235,7 @@ namespace TinderCloneV1 {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 }
                                 while (reader.Read()) {
                                     coachTutorantConnection = new CoachTutorantConnection {
@@ -273,7 +273,7 @@ namespace TinderCloneV1 {
 
         //Create a new connection between a tutorant and coach
         public async Task<HttpResponseMessage> CreateConnectionByTutorantID(int tutorantID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             CoachTutorantConnection coachTutorantConnection;
             JObject jObject;
 
@@ -333,7 +333,7 @@ namespace TinderCloneV1 {
 
         //Delete the connections of a specific tutorant
         public async Task<HttpResponseMessage> DeleteConnectionByTutorantID(int tutorantID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             //Query string used to delete the coach from the coach table
             string queryString = $@"DELETE FROM [dbo].[CoachTutorantConnection]
@@ -358,7 +358,7 @@ namespace TinderCloneV1 {
                             //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
 

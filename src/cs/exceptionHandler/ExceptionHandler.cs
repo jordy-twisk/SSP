@@ -15,9 +15,9 @@ namespace TinderCloneV1 {
     public class ExceptionHandler {
 
         private readonly int ID;
-        
-        public ExceptionHandler(int ID){
-            this.ID = ID;
+        private ILogger log;
+        public ExceptionHandler(ILogger log){
+            this.log = log;
         }
         
         /*Undocumented filter parameter*/
@@ -33,7 +33,7 @@ namespace TinderCloneV1 {
         private readonly string ServiceUnavailableMessage = $"{HttpStatusCode.ServiceUnavailable}: External component or service is unavailable at the moment. Our admin is notified by your call, thank you!";
 
         public HttpResponseMessage BadRequest(ILogger log) {
-            LogMessage(ID, badRequestMessage, log);
+            log.LogError(badRequestMessage);
 
             return new HttpResponseMessage(HttpStatusCode.BadRequest) {
                 Content = new StringContent(badRequestMessage)
@@ -41,15 +41,15 @@ namespace TinderCloneV1 {
         }
 
         public HttpResponseMessage NotAuthorized(ILogger log) {
-            LogMessage(ID, notAuthorizedMessage, log);
+            log.LogError(notAuthorizedMessage);
 
             return new HttpResponseMessage(HttpStatusCode.Unauthorized) {
                 Content = new StringContent(notAuthorizedMessage)
             };
         }
 
-        public HttpResponseMessage NotFoundException(ILogger log) {
-            LogMessage(ID, notFoundMessage, log);
+        public HttpResponseMessage NotFound() {
+            log.LogError(notFoundMessage);
 
             return new HttpResponseMessage(HttpStatusCode.NotFound){
                 Content = new StringContent(notFoundMessage)
@@ -57,18 +57,11 @@ namespace TinderCloneV1 {
         }
        
         public HttpResponseMessage ServiceUnavailable(ILogger log){
-            log.LogInformation(ServiceUnavailableMessage);
+            log.LogError(ServiceUnavailableMessage);
 
             return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable){
                 Content = new StringContent(ServiceUnavailableMessage)
             };
-        }
-        
-        public void LogMessage(int ID, string message, ILogger log) {
-            if (ID != 0) {
-                message += $", Primary Key: {ID}";
-            }
-            log.LogError(message);
         }
     }
 }

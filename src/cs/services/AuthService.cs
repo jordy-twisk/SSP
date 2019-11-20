@@ -27,7 +27,7 @@ namespace TinderCloneV1 {
 
         /*Returns */
         public async Task<HttpResponseMessage> CreateAuth() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             UserAuth userAuth;
             JObject jObject;
 
@@ -103,7 +103,7 @@ namespace TinderCloneV1 {
         /*Returns */
         public async Task<HttpResponseMessage> Login()
         {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             UserAuth userAuth;
             JObject jObject;
 
