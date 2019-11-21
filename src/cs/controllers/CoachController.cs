@@ -34,22 +34,15 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> CoachProfiles ([HttpTrigger (AuthorizationLevel.Anonymous,
             "get", "post", Route = "profile/coach")] HttpRequestMessage req, ILogger log) {
 
-            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
-
             coachService = new CoachService(log);
 
             // List<CoachProfile> listOfCoachProfiles = new List<CoachProfile>();
-            /* TODO:
-                - READ INPUT (REQUEST BODY && QUERY PARAMTERS)
-                - SEND INPUT TO SERVICE
-                - SERVICE HANDLES THE INPUT AND CALLS THE DATABASE LAYER
-                - SERVICE GETS THE REQUESTED DATA AND RETURNS THE DATA TO THE CONTROLLER 
-                - CONTROLLER RETURNS THE HTTPMESSAGE
-            */
+           
             if (req.Method == HttpMethod.Get) {
                 return await coachService.GetAllCoachProfiles();
-            } else if (req.Method == HttpMethod.Post) {
-                JObject newCoachProfile;
+            } 
+            else if (req.Method == HttpMethod.Post) {
+                JObject newCoachProfile = null;
 
                 /* Read from the requestBody */
                 using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
@@ -57,9 +50,12 @@ namespace TinderCloneV1 {
                 }
             
                 return await coachService.CreateCoachProfile(newCoachProfile);
-            } else {
+            } 
+            else {
                 throw new NotImplementedException();
             }
+
+         
         }
 
         /*
@@ -70,18 +66,18 @@ namespace TinderCloneV1 {
         */
         [FunctionName ("CoachProfileByID")]
         public async Task<HttpResponseMessage> CoachProfile ([HttpTrigger (AuthorizationLevel.Anonymous,
-            "get", "delete", Route = "profile/coach/{coachID}")] HttpRequestMessage req, HttpRequest request, int coachID, ILogger log) {
-
-            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            "get", "delete", Route = "profile/coach/{coachID}")] HttpRequestMessage req, int coachID, ILogger log) {
 
             coachService = new CoachService (log);
 
             if (req.Method == HttpMethod.Get) {
                 return await coachService.GetCoachProfileByID (coachID);
-            } else if (req.Method == HttpMethod.Delete) {
+            } 
+            else if (req.Method == HttpMethod.Delete) {
                 return await coachService.DeleteCoachProfileByID (coachID);
-            } else {
-                throw new NotImplementedException ();
+            }
+            else {
+                throw new NotImplementedException();
             }
         }
         /*
@@ -92,17 +88,24 @@ namespace TinderCloneV1 {
         */
         [FunctionName ("CoachByID")]
         public async Task<HttpResponseMessage> Coach ([HttpTrigger (AuthorizationLevel.Anonymous,
-            "get", "put", Route = "coach/{coachID}")] HttpRequestMessage req, HttpRequest request, int coachID, ILogger log) {
-
-            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            "get", "put", Route = "coach/{coachID}")] HttpRequestMessage req, int coachID, ILogger log) {
 
             coachService = new CoachService (log);
 
             if (req.Method == HttpMethod.Get) {
                 return await coachService.GetCoachByID (coachID);
-            } else if (req.Method == HttpMethod.Put) {
-                return await coachService.UpdateCoachByID (coachID);
-            } else {
+            } 
+            else if (req.Method == HttpMethod.Put) {
+                JObject coachData = null;
+
+                //Read from the requestBody
+                using(StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
+                    coachData = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                }
+
+                return await coachService.UpdateCoachByID(coachID, coachData);
+            } 
+            else {
                 throw new NotImplementedException ();
             }
         }

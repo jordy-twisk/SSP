@@ -11,15 +11,15 @@ namespace TinderCloneV1 {
             set;
         }
 
-        [JsonProperty("user")]
-        public Student user{
+        [JsonProperty("student")]
+        public Student student {
             get;
             set;
         }
 
-        public CoachProfile(Coach coach, Student user) {
+        public CoachProfile(Coach coach, Student student) {
             this.coach = coach;
-            this.user = user;
+            this.student = student;
         }
 
         public CoachProfile() {

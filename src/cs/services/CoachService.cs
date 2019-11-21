@@ -10,6 +10,7 @@ using System.Text;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace TinderCloneV1 {
     class CoachService : ICoachService {
@@ -100,32 +101,28 @@ namespace TinderCloneV1 {
         /* Creates a new profile based on the data in the requestbody */
         public async Task<HttpResponseMessage> CreateCoachProfile(JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
-            CoachProfile coachProfile;
+            PropertyInfo[] properties = typeof(Student).GetProperties();
 
-            /* Save the request Body in a coachProfile object */
-            coachProfile = requestBodyData.ToObject<CoachProfile>();
-
-            /* Verify if all parameters for the Coach table exist.
-            One or more parameters may be missing, in which case a [400 Bad Request] is returned. */
-            if (requestBodyData["coach"]["studentID"] == null || requestBodyData["coach"]["workload"] == null) {
-                log.LogError("Requestbody is missing data for the coach table!");
+            /* Check if the required data is present in the requestBody 
+               before making the CoachProfile object */
+            if(requestBodyData["coach"]["studentID"] == null 
+             || requestBodyData["coach"]["workload"] == null
+             || requestBodyData["student"]["studentID"] == null){
+                log.LogError("Requestbody is missing the required data");
                 return exceptionHandler.BadRequest(log);
             }
 
-            /* Verify if all required parameters for the Student table exist.
-              One or more parameters may be missing, in which case a [400 Bad Request] is returned. */
-            if (requestBodyData["user"]["studentID"] == null) {
-                log.LogError("Requestbody is missing data for the student table!");
-                return exceptionHandler.BadRequest(log);
-            }
+            /* The requestBody contains at least the required data so
+                Save the request Body in a coachProfile object */
+            CoachProfile coachProfile = requestBodyData.ToObject<CoachProfile>();
 
-            /* Verify if the studentID of the "user" and the "coach" objects match.
+            /* Verify if the studentID of the "student" and the "coach" objects match.
                A [400 Bad Request] is returned if these are mismatching. */
-            if (coachProfile.user.studentID != coachProfile.coach.studentID) {
-                log.LogError("RequestBody has mismatching studentID for user and coach objects!");
+            if (coachProfile.student.studentID != coachProfile.coach.studentID) {
+                log.LogError("RequestBody has mismatching studentID for student and coach objects!");
                 return exceptionHandler.BadRequest(log);
             }
-                 
+
             /* All fields for the Coach table are required */
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
                                             VALUES (@studentID, @workload);";
@@ -136,28 +133,28 @@ namespace TinderCloneV1 {
 
             /* Dynamically create the INSERT INTO line of the SQL statement: */
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
-            if (requestBodyData["user"]["firstName"] != null)       queryString_Student += ", firstName";
-            if (requestBodyData["user"]["surName"] != null)         queryString_Student += ", surName";
-            if (requestBodyData["user"]["phoneNumber"] != null)     queryString_Student += ", phoneNumber";
-            if (requestBodyData["user"]["photo"] != null)           queryString_Student += ", photo";
-            if (requestBodyData["user"]["description"] != null)     queryString_Student += ", description";
-            if (requestBodyData["user"]["degree"] != null)          queryString_Student += ", degree";
-            if (requestBodyData["user"]["study"] != null)           queryString_Student += ", study";
-            if (requestBodyData["user"]["studyYear"] != null)       queryString_Student += ", studyYear";
-            if (requestBodyData["user"]["interests"] != null)       queryString_Student += ", interests";
+            if (coachProfile.student.firstName != null)       queryString_Student += ", firstName";
+            if (requestBodyData["student"]["surName"] != null)         queryString_Student += ", surName";
+            if (requestBodyData["student"]["phoneNumber"] != null)     queryString_Student += ", phoneNumber";
+            if (requestBodyData["student"]["photo"] != null)           queryString_Student += ", photo";
+            if (requestBodyData["student"]["description"] != null)     queryString_Student += ", description";
+            if (requestBodyData["student"]["degree"] != null)          queryString_Student += ", degree";
+            if (requestBodyData["student"]["study"] != null)           queryString_Student += ", study";
+            if (requestBodyData["student"]["studyYear"] != null)       queryString_Student += ", studyYear";
+            if (requestBodyData["student"]["interests"] != null)       queryString_Student += ", interests";
             queryString_Student += ") ";
 
             /* Dynamically create the VALUES line of the SQL statement: */
             queryString_Student += "VALUES (@studentID";
-            if (requestBodyData["user"]["firstName"] != null)       queryString_Student += ", @firstName";
-            if (requestBodyData["user"]["surName"] != null)         queryString_Student += ", @surName";
-            if (requestBodyData["user"]["phoneNumber"] != null)     queryString_Student += ", @phoneNumber";
-            if (requestBodyData["user"]["photo"] != null)           queryString_Student += ", @photo";
-            if (requestBodyData["user"]["description"] != null)     queryString_Student += ", @description";
-            if (requestBodyData["user"]["degree"] != null)          queryString_Student += ", @degree";
-            if (requestBodyData["user"]["study"] != null)           queryString_Student += ", @study";
-            if (requestBodyData["user"]["studyYear"] != null)       queryString_Student += ", @studyYear";
-            if (requestBodyData["user"]["interests"] != null)       queryString_Student += ", @interests";
+            if (requestBodyData["student"]["firstName"] != null)       queryString_Student += ", @firstName";
+            if (requestBodyData["student"]["surName"] != null)         queryString_Student += ", @surName";
+            if (requestBodyData["student"]["phoneNumber"] != null)     queryString_Student += ", @phoneNumber";
+            if (requestBodyData["student"]["photo"] != null)           queryString_Student += ", @photo";
+            if (requestBodyData["student"]["description"] != null)     queryString_Student += ", @description";
+            if (requestBodyData["student"]["degree"] != null)          queryString_Student += ", @degree";
+            if (requestBodyData["student"]["study"] != null)           queryString_Student += ", @study";
+            if (requestBodyData["student"]["studyYear"] != null)       queryString_Student += ", @studyYear";
+            if (requestBodyData["student"]["interests"] != null)       queryString_Student += ", @interests";
             queryString_Student += ");";
 
             try {
@@ -171,20 +168,20 @@ namespace TinderCloneV1 {
                           The Query may fail, in which case a [400 Bad Request] is returned. */
                         using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
                             /* Parameters are used to ensure no SQL injection can take place */
-                            command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = coachProfile.user.studentID;
-                            if (requestBodyData["user"]["firstName"] != null)       command.Parameters.Add("@firstName",    System.Data.SqlDbType.VarChar).Value =      coachProfile.user.firstName;
-                            if (requestBodyData["user"]["surName"] != null)         command.Parameters.Add("@surName",      System.Data.SqlDbType.VarChar).Value =      coachProfile.user.surName;
-                            if (requestBodyData["user"]["phoneNumber"] != null)     command.Parameters.Add("@phoneNumber",  System.Data.SqlDbType.VarChar).Value =      coachProfile.user.phoneNumber;
-                            if (requestBodyData["user"]["photo"] != null)           command.Parameters.Add("@photo",        System.Data.SqlDbType.VarChar).Value =      coachProfile.user.photo;
-                            if (requestBodyData["user"]["description"] != null)     command.Parameters.Add("@description",  System.Data.SqlDbType.VarChar).Value =      coachProfile.user.description;
-                            if (requestBodyData["user"]["degree"] != null)          command.Parameters.Add("@degree",       System.Data.SqlDbType.VarChar).Value =      coachProfile.user.degree;
-                            if (requestBodyData["user"]["study"] != null)           command.Parameters.Add("@study",        System.Data.SqlDbType.VarChar).Value =      coachProfile.user.study;
-                            if (requestBodyData["user"]["studyYear"] != null)       command.Parameters.Add("@studyYear",    System.Data.SqlDbType.Int).Value =          coachProfile.user.studyYear;
-                            if (requestBodyData["user"]["interests"] != null)       command.Parameters.Add("@interests",    System.Data.SqlDbType.VarChar).Value =      coachProfile.user.interests;
+                            command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = coachProfile.student.studentID;
+                            if (requestBodyData["student"]["firstName"] != null)       command.Parameters.Add("@firstName",    System.Data.SqlDbType.VarChar).Value =      coachProfile.student.firstName;
+                            if (requestBodyData["student"]["surName"] != null)         command.Parameters.Add("@surName",      System.Data.SqlDbType.VarChar).Value =      coachProfile.student.surName;
+                            if (requestBodyData["student"]["phoneNumber"] != null)     command.Parameters.Add("@phoneNumber",  System.Data.SqlDbType.VarChar).Value =      coachProfile.student.phoneNumber;
+                            if (requestBodyData["student"]["photo"] != null)           command.Parameters.Add("@photo",        System.Data.SqlDbType.VarChar).Value =      coachProfile.student.photo;
+                            if (requestBodyData["student"]["description"] != null)     command.Parameters.Add("@description",  System.Data.SqlDbType.VarChar).Value =      coachProfile.student.description;
+                            if (requestBodyData["student"]["degree"] != null)          command.Parameters.Add("@degree",       System.Data.SqlDbType.VarChar).Value =      coachProfile.student.degree;
+                            if (requestBodyData["student"]["study"] != null)           command.Parameters.Add("@study",        System.Data.SqlDbType.VarChar).Value =      coachProfile.student.study;
+                            if (requestBodyData["student"]["studyYear"] != null)       command.Parameters.Add("@studyYear",    System.Data.SqlDbType.Int).Value =          coachProfile.student.studyYear;
+                            if (requestBodyData["student"]["interests"] != null)       command.Parameters.Add("@interests",    System.Data.SqlDbType.VarChar).Value =      coachProfile.student.interests;
                             
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            command.ExecuteReader();
+                            // command.ExecuteReader();
                         }
 
                         /*Insert profile into the Coach table.
@@ -196,7 +193,7 @@ namespace TinderCloneV1 {
 
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
-                            command.ExecuteReader();
+                            // command.ExecuteReader();
                         }
                     } catch (SqlException e) {
                         /* The Query may fail, in which case a [400 Bad Request] is returned.
@@ -432,20 +429,13 @@ namespace TinderCloneV1 {
         }
 
         //Updates the workload of the coach (in the coach table)
-        public async Task<HttpResponseMessage> UpdateCoachByID(int coachID) {
+        public async Task<HttpResponseMessage> UpdateCoachByID(int coachID, JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
-            Coach newCoach;
-            JObject jObject;
-
-            //Read from the requestBody
-            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
-                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                newCoach = jObject.ToObject<Coach>();
-            }
+            Coach newCoach = requestBodyData.ToObject<Coach>();
 
             //newCoach.workload will be 0 if the requestbody contains no "workload" parameter,
             //in which case [400 Bad Request] is returned.
-            if (jObject["workload"] == null) {
+            if(requestBodyData["workload"] == null) {
                 log.LogError("Requestbody contains no workload.");
                 return exceptionHandler.BadRequest(log);
             }
