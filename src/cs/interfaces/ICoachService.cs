@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
 using System.Net.Http;
+using Newtonsoft.Json.Linq;
 
 namespace TinderCloneV1 {
     public interface ICoachService {
-        Task<string> GetAllCoachProfiles();
-        Task<HttpResponseMessage> CreateCoachProfile();
+        Task<HttpResponseMessage> GetAllCoachProfiles();
+        Task<HttpResponseMessage> CreateCoachProfile(JObject requestBodyData);
         Task<HttpResponseMessage> GetCoachProfileByID(int coachID);
         Task<HttpResponseMessage> DeleteCoachProfileByID(int coachID);
         Task<HttpResponseMessage> GetCoachByID(int coachID);

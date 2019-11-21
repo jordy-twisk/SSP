@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -31,11 +32,11 @@ namespace TinderCloneV1 {
         */
         [FunctionName ("CoachProfile")]
         public async Task<HttpResponseMessage> CoachProfiles ([HttpTrigger (AuthorizationLevel.Anonymous,
-            "get", "post", Route = "profile/coach")] HttpRequestMessage req, HttpRequest request, ILogger log) {
+            "get", "post", Route = "profile/coach")] HttpRequestMessage req, ILogger log) {
 
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
-            coachService = new CoachService (log);
+            coachService = new CoachService(log);
 
             // List<CoachProfile> listOfCoachProfiles = new List<CoachProfile>();
             /* TODO:
@@ -46,21 +47,18 @@ namespace TinderCloneV1 {
                 - CONTROLLER RETURNS THE HTTPMESSAGE
             */
             if (req.Method == HttpMethod.Get) {
-                string listOfCoachProfiles = await coachService.GetAllCoachProfiles();
-
-                if (!string.IsNullOrEmpty(listOfCoachProfiles)) {
-                    return new HttpResponseMessage(HttpStatusCode.OK) {
-                        Content = new StringContent (listOfCoachProfiles, Encoding.UTF8, "application/json")
-                    };
-                } else {
-                    return exceptionHandler.NotFound();
-                   // return new HttpResponseMessage (HttpStatusCode.NotFound);
-                }
-                // return await coachService.GetAllCoachProfiles();
+                return await coachService.GetAllCoachProfiles();
             } else if (req.Method == HttpMethod.Post) {
-                return await coachService.CreateCoachProfile ();
+                JObject newCoachProfile;
+
+                /* Read from the requestBody */
+                using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
+                    newCoachProfile = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                }
+            
+                return await coachService.CreateCoachProfile(newCoachProfile);
             } else {
-                throw new NotImplementedException ();
+                throw new NotImplementedException();
             }
         }
 
