@@ -69,28 +69,29 @@ A list of all files which are completed, tested and (if needed) match their API 
 
 -->
 
-## https://www.coreycleary.me/project-structure-for-an-express-rest-api-when-there-is-no-standard-way/
-## https://github.com/rapid7/metasploitable3 
+### LINKS
+- https://www.coreycleary.me/project-structure-for-an-express-rest-api-when-there-is-no-standard-way/
+- https://github.com/rapid7/metasploitable3 
 
-## TODO:
-##	- FIND A WAY TO MAKE A GENERIC SOLUTION FOR ALL THE IF STATEMENTS IN COACHSERVICE
-##  - READ INPUT (REQUEST BODY && QUERY PARAMTERS)
-##  - SEND INPUT TO SERVICE
-##  - SERVICE HANDLES THE INPUT AND CALLS THE DATABASE LAYER
-##	- SERVICE GETS THE REQUESTED DATA AND RETURNS THE DATA TO THE CONTROLLER 
-##	- CONTROLLER RETURNS THE HTTPMESSAGE
+### TODO 23:55 21 November 2019 :
+	- FIND A WAY TO MAKE A GENERIC SOLUTION FOR ALL THE IF STATEMENTS IN COACHSERVICE
+  - READ INPUT (REQUEST BODY && QUERY PARAMTERS)
+  - SEND INPUT TO SERVICE
+  - SERVICE HANDLES THE INPUT AND CALLS THE DATABASE LAYER
+	- SERVICE GETS THE REQUESTED DATA AND RETURNS THE DATA TO THE CONTROLLER 
+	- CONTROLLER RETURNS THE HTTPMESSAGE
 
 
-##    Test requestBody for POST:
-##            {
-##                "coach":{
-##	                "studentID": 123124,
-##	                "workload": 0
-##                },
-##                "student": {
-##	                "studentID": 123124,
-##	                "fistName": "Barend",
-##	                "lastName": "Testing"
-##                }
-##            }   
+    Test requestBody for POST:
+            {
+                "coach":{
+	                "studentID": 123124,
+	                "workload": 0
+                },
+                "student": {
+	                "studentID": 123124,
+	                "fistName": "Barend",
+	                "lastName": "Testing"
+                }
+            }   
             
