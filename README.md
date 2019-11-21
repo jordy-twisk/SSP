@@ -67,7 +67,6 @@ A list of all files which are completed, tested and (if needed) match their API 
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |
 
--->
 
 ### LINKS
 - https://www.coreycleary.me/project-structure-for-an-express-rest-api-when-there-is-no-standard-way/
@@ -81,17 +80,4 @@ A list of all files which are completed, tested and (if needed) match their API 
 	- SERVICE GETS THE REQUESTED DATA AND RETURNS THE DATA TO THE CONTROLLER 
 	- CONTROLLER RETURNS THE HTTPMESSAGE
 
-
-    Test requestBody for POST:
-            {
-                "coach":{
-	                "studentID": 123124,
-	                "workload": 0
-                },
-                "student": {
-	                "studentID": 123124,
-	                "fistName": "Barend",
-	                "lastName": "Testing"
-                }
-            }   
-            
+-->

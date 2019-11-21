@@ -55,7 +55,19 @@ namespace TinderCloneV1 {
                 throw new NotImplementedException();
             }
 
-         
+
+            // Test requestBody for POST:
+            // {
+            //     "coach":{
+            //         "studentID": 123124,
+	        //         "workload": 0
+            //     },
+            //     "student": {
+            //         "studentID": 123124,
+	        //         "fistName": "Barend",
+	        //         "lastName": "Testing"
+            //     }
+            // }
         }
 
         /*
