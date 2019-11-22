@@ -126,35 +126,38 @@ namespace TinderCloneV1 {
             /* All fields for the Coach table are required */
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
                                             VALUES (@studentID, @workload);";
-            
+
             /* The SQL query for the Students table has to be dynamically generated, as it contains many optional fields.
                By manually adding the columns to the query string (if they're present in the request body) we prevent
                SQL injection and ensure no illegitimate columnnames are entered into the SQL query. */
 
             /* Dynamically create the INSERT INTO line of the SQL statement: */
-            string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
-            if (coachProfile.student.firstName != null)       queryString_Student += ", firstName";
-            if (requestBodyData["student"]["surName"] != null)         queryString_Student += ", surName";
-            if (requestBodyData["student"]["phoneNumber"] != null)     queryString_Student += ", phoneNumber";
-            if (requestBodyData["student"]["photo"] != null)           queryString_Student += ", photo";
-            if (requestBodyData["student"]["description"] != null)     queryString_Student += ", description";
-            if (requestBodyData["student"]["degree"] != null)          queryString_Student += ", degree";
-            if (requestBodyData["student"]["study"] != null)           queryString_Student += ", study";
-            if (requestBodyData["student"]["studyYear"] != null)       queryString_Student += ", studyYear";
-            if (requestBodyData["student"]["interests"] != null)       queryString_Student += ", interests";
+            JObject studentProfile = requestBodyData.SelectToken("student").ToObject<JObject>();
+            // List<string> sqlInjectionProperties = new List<string>();
+            JObject sqlInjectionProperties = new JObject();
+
+            string queryString_Student = $@"INSERT INTO [dbo].[Student] (";
+            foreach (JProperty property in studentProfile.Properties()) {
+                foreach (PropertyInfo props in properties) {
+                    if (props.Name == property.Name) {
+                        queryString_Coach += $", {property.Name}";
+                        sqlInjectionProperties.Add(property.Name, property.Value);
+                    }
+                }
+            }
+
             queryString_Student += ") ";
 
             /* Dynamically create the VALUES line of the SQL statement: */
             queryString_Student += "VALUES (@studentID";
-            if (requestBodyData["student"]["firstName"] != null)       queryString_Student += ", @firstName";
-            if (requestBodyData["student"]["surName"] != null)         queryString_Student += ", @surName";
-            if (requestBodyData["student"]["phoneNumber"] != null)     queryString_Student += ", @phoneNumber";
-            if (requestBodyData["student"]["photo"] != null)           queryString_Student += ", @photo";
-            if (requestBodyData["student"]["description"] != null)     queryString_Student += ", @description";
-            if (requestBodyData["student"]["degree"] != null)          queryString_Student += ", @degree";
-            if (requestBodyData["student"]["study"] != null)           queryString_Student += ", @study";
-            if (requestBodyData["student"]["studyYear"] != null)       queryString_Student += ", @studyYear";
-            if (requestBodyData["student"]["interests"] != null)       queryString_Student += ", @interests";
+            foreach (JProperty property in studentProfile.Properties()) {
+                foreach (PropertyInfo props in properties) {
+                    if (props.Name == property.Name) {
+                        queryString_Coach += $", @{property.Name}";
+                    }
+                }
+            }
+
             queryString_Student += ");";
 
             try {
@@ -168,16 +171,40 @@ namespace TinderCloneV1 {
                           The Query may fail, in which case a [400 Bad Request] is returned. */
                         using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
                             /* Parameters are used to ensure no SQL injection can take place */
+                            /* FIND A WAY TO PRINT OUT THE TYPE OF property names FOR GENERIC SQL INJECTION WITHIN THE DB LAYER  */
+                            foreach (JProperty p in sqlInjectionProperties.Properties()) {
+                                log.LogError($"{p.Name.GetType()}");
+                                log.LogError($" LEUKE DINGEN: {p.Name} || {p.Value}");
+                            }
+
                             command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = coachProfile.student.studentID;
-                            if (requestBodyData["student"]["firstName"] != null)       command.Parameters.Add("@firstName",    System.Data.SqlDbType.VarChar).Value =      coachProfile.student.firstName;
-                            if (requestBodyData["student"]["surName"] != null)         command.Parameters.Add("@surName",      System.Data.SqlDbType.VarChar).Value =      coachProfile.student.surName;
-                            if (requestBodyData["student"]["phoneNumber"] != null)     command.Parameters.Add("@phoneNumber",  System.Data.SqlDbType.VarChar).Value =      coachProfile.student.phoneNumber;
-                            if (requestBodyData["student"]["photo"] != null)           command.Parameters.Add("@photo",        System.Data.SqlDbType.VarChar).Value =      coachProfile.student.photo;
-                            if (requestBodyData["student"]["description"] != null)     command.Parameters.Add("@description",  System.Data.SqlDbType.VarChar).Value =      coachProfile.student.description;
-                            if (requestBodyData["student"]["degree"] != null)          command.Parameters.Add("@degree",       System.Data.SqlDbType.VarChar).Value =      coachProfile.student.degree;
-                            if (requestBodyData["student"]["study"] != null)           command.Parameters.Add("@study",        System.Data.SqlDbType.VarChar).Value =      coachProfile.student.study;
-                            if (requestBodyData["student"]["studyYear"] != null)       command.Parameters.Add("@studyYear",    System.Data.SqlDbType.Int).Value =          coachProfile.student.studyYear;
-                            if (requestBodyData["student"]["interests"] != null)       command.Parameters.Add("@interests",    System.Data.SqlDbType.VarChar).Value =      coachProfile.student.interests;
+                            if (requestBodyData["student"]["firstName"] != null) {
+                                command.Parameters.Add("@firstName", System.Data.SqlDbType.VarChar).Value = coachProfile.student.firstName;
+                            }
+                            if (requestBodyData["student"]["surName"] != null) {
+                                command.Parameters.Add("@surName", System.Data.SqlDbType.VarChar).Value = coachProfile.student.surName;
+                            }
+                            if (requestBodyData["student"]["phoneNumber"] != null) {
+                                command.Parameters.Add("@phoneNumber", System.Data.SqlDbType.VarChar).Value = coachProfile.student.phoneNumber;
+                            }
+                            if (requestBodyData["student"]["photo"] != null) {
+                                command.Parameters.Add("@photo", System.Data.SqlDbType.VarChar).Value = coachProfile.student.photo;
+                            }
+                            if (requestBodyData["student"]["description"] != null) {
+                                command.Parameters.Add("@description", System.Data.SqlDbType.VarChar).Value = coachProfile.student.description;
+                            }
+                            if (requestBodyData["student"]["degree"] != null) {
+                                command.Parameters.Add("@degree", System.Data.SqlDbType.VarChar).Value = coachProfile.student.degree;
+                            }
+                            if (requestBodyData["student"]["study"] != null) {
+                                command.Parameters.Add("@study", System.Data.SqlDbType.VarChar).Value = coachProfile.student.study;
+                            }
+                            if (requestBodyData["student"]["studyYear"] != null) {
+                                command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value = coachProfile.student.studyYear;
+                            }
+                            if (requestBodyData["student"]["interests"] != null) {
+                                command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value = coachProfile.student.interests;
+                            }
                             
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 

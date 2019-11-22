@@ -5,13 +5,13 @@ using System.Text;
 
 namespace TinderCloneV1 {
     public class CoachProfile {
-        [JsonProperty("coach")]
+        [JsonProperty("coach"), JsonRequired]
         public Coach coach{
             get;
             set;
         }
 
-        [JsonProperty("student")]
+        [JsonProperty("student"), JsonRequired]
         public Student student {
             get;
             set;

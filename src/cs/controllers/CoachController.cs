@@ -55,19 +55,20 @@ namespace TinderCloneV1 {
                 throw new NotImplementedException();
             }
 
-
-            // Test requestBody for POST:
-            // {
-            //     "coach":{
-            //         "studentID": 123124,
-	        //         "workload": 0
-            //     },
-            //     "student": {
-            //         "studentID": 123124,
-	        //         "fistName": "Barend",
-	        //         "lastName": "Testing"
-            //     }
-            // }
+        /*
+             Test requestBody for POST:
+             {
+                 "coach":{
+                     "studentID": 123124,
+	                 "workload": 0
+                 },
+                 "student": {
+                     "studentID": 123124,
+	                 "fistName": "Barend",
+	                 "lastName": "Testing"
+                 }
+             }
+        */
         }
 
         /*
@@ -110,7 +111,7 @@ namespace TinderCloneV1 {
             else if (req.Method == HttpMethod.Put) {
                 JObject coachData = null;
 
-                //Read from the requestBody
+                /* Read from the requestBody */
                 using(StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
                     coachData = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 }
