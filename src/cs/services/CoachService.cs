@@ -135,14 +135,22 @@ namespace TinderCloneV1 {
             JObject studentProfile = requestBodyData.SelectToken("student").ToObject<JObject>();
             // List<string> sqlInjectionProperties = new List<string>();
             JObject sqlInjectionProperties = new JObject();
+            Student sqlInjec = studentProfile.ToObject<Student>();
 
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (";
             foreach (JProperty property in studentProfile.Properties()) {
-                foreach (PropertyInfo props in properties) {
+                foreach (PropertyInfo props in sqlInjec.GetType().GetProperties()) {
                     if (props.Name == property.Name) {
                         queryString_Coach += $", {property.Name}";
                         sqlInjectionProperties.Add(property.Name, property.Value);
+
+                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
+                        if (type == typeof(string)) {
+                            log.LogError($"{props.GetValue(sqlInjec, null).ToString()}");
+                        }
                     }
+                    // log.LogError($"{sqlInjec.firstName.GetType()}");
+                    // log.LogError($"{sqlInjec.studyYear.GetType()}");
                 }
             }
 
@@ -173,8 +181,18 @@ namespace TinderCloneV1 {
                             /* Parameters are used to ensure no SQL injection can take place */
                             /* FIND A WAY TO PRINT OUT THE TYPE OF property names FOR GENERIC SQL INJECTION WITHIN THE DB LAYER  */
                             foreach (JProperty p in sqlInjectionProperties.Properties()) {
-                                log.LogError($"{p.Name.GetType()}");
-                                log.LogError($" LEUKE DINGEN: {p.Name} || {p.Value}");
+
+                                //log.LogError($"{p.Value.GetType()}");
+                                //if (p.Value.GetType() == typeof(String)) {
+                                //    log.LogError($"HALLO STRING");
+                                //}
+                                //else if (p.Value.GetType() == typeof(int)) {
+                                //    log.LogError($"HALLO INT");
+                                //}
+                                //else {
+                                //    log.LogError("DIT IS NIETS");
+                                //}
+                                //log.LogError($" LEUKE DINGEN: {p.Name} || {p.Value}");
                             }
 
                             command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = coachProfile.student.studentID;
