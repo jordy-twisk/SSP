@@ -133,10 +133,12 @@ namespace TinderCloneV1 {
 
             /* Dynamically create the INSERT INTO line of the SQL statement: */
             JObject studentProfile = requestBodyData.SelectToken("student").ToObject<JObject>();
-            // List<string> sqlInjectionProperties = new List<string>();
             JObject sqlInjectionProperties = new JObject();
+
             Student sqlInjec = studentProfile.ToObject<Student>();
 
+
+            /* Try to find a way to generlize this, IE: Better syntax for the for loops */
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (";
             foreach (JProperty property in studentProfile.Properties()) {
                 foreach (PropertyInfo props in sqlInjec.GetType().GetProperties()) {
@@ -144,13 +146,12 @@ namespace TinderCloneV1 {
                         queryString_Coach += $", {property.Name}";
                         sqlInjectionProperties.Add(property.Name, property.Value);
 
+                        /* Try to put the underlying code in the SQL loop to fix the SQL INJECTION SHIT */
                         var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
                         if (type == typeof(string)) {
                             log.LogError($"{props.GetValue(sqlInjec, null).ToString()}");
                         }
                     }
-                    // log.LogError($"{sqlInjec.firstName.GetType()}");
-                    // log.LogError($"{sqlInjec.studyYear.GetType()}");
                 }
             }
 
