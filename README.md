@@ -73,7 +73,6 @@ A list of all files which are completed, tested and (if needed) match their API 
 - https://github.com/rapid7/metasploitable3 
 
 ### TODO 23:55 21 November 2019 :
-	- FIND A WAY TO MAKE A GENERIC SOLUTION FOR ALL THE IF STATEMENTS IN COACHSERVICE
   - READ INPUT (REQUEST BODY && QUERY PARAMTERS)
   - SEND INPUT TO SERVICE
   - SERVICE HANDLES THE INPUT AND CALLS THE DATABASE LAYER

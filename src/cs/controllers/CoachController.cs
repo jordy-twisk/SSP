@@ -1,10 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -36,7 +33,6 @@ namespace TinderCloneV1 {
 
             coachService = new CoachService(log);
 
-            // List<CoachProfile> listOfCoachProfiles = new List<CoachProfile>();
            
             if (req.Method == HttpMethod.Get) {
                 return await coachService.GetAllCoachProfiles();
@@ -55,20 +51,7 @@ namespace TinderCloneV1 {
                 throw new NotImplementedException();
             }
 
-        /*
-             Test requestBody for POST:
-             {
-                 "coach":{
-                     "studentID": 123124,
-	                 "workload": 0
-                 },
-                 "student": {
-                     "studentID": 123124,
-	                 "fistName": "Barend",
-	                 "lastName": "Testing"
-                 }
-             }
-        */
+
         }
 
         /*

@@ -5,6 +5,9 @@ using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace TinderCloneV1 {
     public class CoachTutorantController {
@@ -19,14 +22,21 @@ namespace TinderCloneV1 {
         Route to /api/coachTutorant
         PUT: Updates the status of the connection between the coach and his tutorant. (Pending, Completed etc)
         */
-        [FunctionName("PostCoachTutorant")]
-        public async Task<HttpResponseMessage> PostCoachTutorant([HttpTrigger(AuthorizationLevel.Anonymous,
+        [FunctionName("PutCoachTutorant")]
+        public async Task<HttpResponseMessage> PutCoachTutorant([HttpTrigger(AuthorizationLevel.Anonymous,
             "put", Route = "coachTutorant")] HttpRequestMessage req, HttpRequest request, ILogger log) {
 
-            coachTutorantService = new CoachTutorantService(req, request, log);
+            coachTutorantService = new CoachTutorantService(log);
 
             if (req.Method == HttpMethod.Put) {
-                return await coachTutorantService.UpdateConnection();
+                JObject coachTutorantConnProfile = null;
+
+                /* Read from the requestBody */
+                using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
+                    coachTutorantConnProfile = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                }
+
+                return await coachTutorantService.UpdateConnection(coachTutorantConnProfile);
             } 
             else {
                 throw new NotImplementedException();
@@ -43,7 +53,7 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> GetCoachTutorantCoach([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "delete", Route = "coachTutorant/coach/{studentID}")] HttpRequestMessage req, HttpRequest request, int studentID, ILogger log) {
 
-            coachTutorantService = new CoachTutorantService(req, request, log);
+            coachTutorantService = new CoachTutorantService(log);
 
             if (req.Method == HttpMethod.Get) {
                 return await coachTutorantService.GetAllConnectionsByCoachID(studentID);
@@ -67,13 +77,20 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> GetCoachTutorantTutorant([HttpTrigger(AuthorizationLevel.Anonymous,
             "get", "post", "delete", Route = "coachTutorant/tutorant/{studentID}")] HttpRequestMessage req, HttpRequest request, int studentID, ILogger log) {
 
-            coachTutorantService = new CoachTutorantService(req, request, log);
+            coachTutorantService = new CoachTutorantService(log);
 
             if (req.Method == HttpMethod.Get) {
                 return await coachTutorantService.GetConnectionByTutorantID(studentID);
             } 
             else if (req.Method == HttpMethod.Post) {
-                return await coachTutorantService.CreateConnectionByTutorantID(studentID); 
+                JObject coachTutorantConnProfile = null;
+
+                /* Read from the requestBody */
+                using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
+                    coachTutorantConnProfile = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                }
+
+                return await coachTutorantService.CreateConnectionByTutorantID(studentID, coachTutorantConnProfile); 
             }
             else if (req.Method == HttpMethod.Delete) {
                 return await coachTutorantService.DeleteConnectionByTutorantID(studentID);

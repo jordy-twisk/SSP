@@ -1,0 +1,47 @@
+﻿
+
+PLACE IN CODE: CoachService: CreateCoachProfile
+	command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = coachProfile.student.studentID;
+	if (requestBodyData["student"]["firstName"] != null) {
+		command.Parameters.Add("@firstName", System.Data.SqlDbType.VarChar).Value = coachProfile.student.firstName;
+	}
+	if (requestBodyData["student"]["surName"] != null) {
+		command.Parameters.Add("@surName", System.Data.SqlDbType.VarChar).Value = coachProfile.student.surName;
+	}
+	if (requestBodyData["student"]["phoneNumber"] != null) {
+		command.Parameters.Add("@phoneNumber", System.Data.SqlDbType.VarChar).Value = coachProfile.student.phoneNumber;
+	}
+	if (requestBodyData["student"]["photo"] != null) {
+		command.Parameters.Add("@photo", System.Data.SqlDbType.VarChar).Value = coachProfile.student.photo;
+	}
+	if (requestBodyData["student"]["description"] != null) {
+		command.Parameters.Add("@description", System.Data.SqlDbType.VarChar).Value = coachProfile.student.description;
+	}
+	if (requestBodyData["student"]["degree"] != null) {
+		command.Parameters.Add("@degree", System.Data.SqlDbType.VarChar).Value = coachProfile.student.degree;
+	}
+	if (requestBodyData["student"]["study"] != null) {
+		command.Parameters.Add("@study", System.Data.SqlDbType.VarChar).Value = coachProfile.student.study;
+	}
+	if (requestBodyData["student"]["studyYear"] != null) {
+		command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value = coachProfile.student.studyYear;
+	}
+	if (requestBodyData["student"]["interests"] != null) {
+		command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value = coachProfile.student.interests;
+	}
+
+INSTEAD OF:
+	foreach (JProperty property in studentProfile.Properties()) {
+		foreach (PropertyInfo props in sqlInjec.GetType().GetProperties()) {
+			if (props.Name == property.Name) {
+				var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
+
+				if (type == typeof(string)) {
+					command.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(sqlInjec, null);
+				}
+				if (type == typeof(int)) {
+					command.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(sqlInjec, null);
+				}
+			}
+		}
+	}

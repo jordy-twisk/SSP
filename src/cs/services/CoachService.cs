@@ -1,5 +1,5 @@
 ﻿﻿using System;
-using System.IO;
+using System.Data;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Net.Http;
@@ -8,7 +8,6 @@ using System.Data.SqlClient;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 
@@ -16,8 +15,6 @@ namespace TinderCloneV1 {
     class CoachService : ICoachService {
         private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
-        private readonly HttpRequestMessage req;
-        private readonly HttpRequest request;
         private readonly ILogger log;
 
         public CoachService(ILogger log) {
@@ -101,24 +98,26 @@ namespace TinderCloneV1 {
         /* Creates a new profile based on the data in the requestbody */
         public async Task<HttpResponseMessage> CreateCoachProfile(JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
-            PropertyInfo[] properties = typeof(Student).GetProperties();
+            /* Split the requestBody in a Coach and Student entity */
+            JObject coachProfile = requestBodyData.SelectToken("coach").ToObject<JObject>();
+            JObject studentProfile = requestBodyData.SelectToken("student").ToObject<JObject>();
 
             /* Check if the required data is present in the requestBody 
                before making the CoachProfile object */
-            if(requestBodyData["coach"]["studentID"] == null 
-             || requestBodyData["coach"]["workload"] == null
-             || requestBodyData["student"]["studentID"] == null){
+            if (coachProfile["studentID"] == null 
+             || coachProfile["workload"] == null
+             || studentProfile["studentID"] == null){
                 log.LogError("Requestbody is missing the required data");
                 return exceptionHandler.BadRequest(log);
             }
 
-            /* The requestBody contains at least the required data so
-                Save the request Body in a coachProfile object */
-            CoachProfile coachProfile = requestBodyData.ToObject<CoachProfile>();
+            /* Create the entities from the split-requestBody fro readability */
+            Student newStudent = studentProfile.ToObject<Student>();
+            Coach newCoach = coachProfile.ToObject<Coach>();
 
             /* Verify if the studentID of the "student" and the "coach" objects match.
                A [400 Bad Request] is returned if these are mismatching. */
-            if (coachProfile.student.studentID != coachProfile.coach.studentID) {
+            if (newStudent.studentID != newCoach.studentID) {
                 log.LogError("RequestBody has mismatching studentID for student and coach objects!");
                 return exceptionHandler.BadRequest(log);
             }
@@ -132,25 +131,11 @@ namespace TinderCloneV1 {
                SQL injection and ensure no illegitimate columnnames are entered into the SQL query. */
 
             /* Dynamically create the INSERT INTO line of the SQL statement: */
-            JObject studentProfile = requestBodyData.SelectToken("student").ToObject<JObject>();
-            JObject sqlInjectionProperties = new JObject();
-
-            Student sqlInjec = studentProfile.ToObject<Student>();
-
-
-            /* Try to find a way to generlize this, IE: Better syntax for the for loops */
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (";
             foreach (JProperty property in studentProfile.Properties()) {
-                foreach (PropertyInfo props in sqlInjec.GetType().GetProperties()) {
+                foreach (PropertyInfo props in newStudent.GetType().GetProperties()) {
                     if (props.Name == property.Name) {
-                        queryString_Coach += $", {property.Name}";
-                        sqlInjectionProperties.Add(property.Name, property.Value);
-
-                        /* Try to put the underlying code in the SQL loop to fix the SQL INJECTION SHIT */
-                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
-                        if (type == typeof(string)) {
-                            log.LogError($"{props.GetValue(sqlInjec, null).ToString()}");
-                        }
+                        queryString_Student += $", {property.Name}";
                     }
                 }
             }
@@ -160,15 +145,17 @@ namespace TinderCloneV1 {
             /* Dynamically create the VALUES line of the SQL statement: */
             queryString_Student += "VALUES (@studentID";
             foreach (JProperty property in studentProfile.Properties()) {
-                foreach (PropertyInfo props in properties) {
+                foreach (PropertyInfo props in newStudent.GetType().GetProperties()) {
                     if (props.Name == property.Name) {
-                        queryString_Coach += $", @{property.Name}";
+                        queryString_Student += $", @{property.Name}";
                     }
                 }
             }
 
             queryString_Student += ");";
 
+            /* Optional TODO: Find a way make sure both the command.ExecuteReader executes correctly or none of them do.
+            Not allowed: 1 of them continues*/
             try {
                 using (SqlConnection connection = new SqlConnection(connectionString)) {
                     /*The connection is automatically closed when going out of scope of the using block.
@@ -180,66 +167,36 @@ namespace TinderCloneV1 {
                           The Query may fail, in which case a [400 Bad Request] is returned. */
                         using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
                             /* Parameters are used to ensure no SQL injection can take place */
-                            /* FIND A WAY TO PRINT OUT THE TYPE OF property names FOR GENERIC SQL INJECTION WITHIN THE DB LAYER  */
-                            foreach (JProperty p in sqlInjectionProperties.Properties()) {
+                            foreach (JProperty property in studentProfile.Properties()) {
+                                foreach (PropertyInfo props in newStudent.GetType().GetProperties()) {
+                                    if (props.Name == property.Name) {
+                                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
 
-                                //log.LogError($"{p.Value.GetType()}");
-                                //if (p.Value.GetType() == typeof(String)) {
-                                //    log.LogError($"HALLO STRING");
-                                //}
-                                //else if (p.Value.GetType() == typeof(int)) {
-                                //    log.LogError($"HALLO INT");
-                                //}
-                                //else {
-                                //    log.LogError("DIT IS NIETS");
-                                //}
-                                //log.LogError($" LEUKE DINGEN: {p.Name} || {p.Value}");
-                            }
-
-                            command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = coachProfile.student.studentID;
-                            if (requestBodyData["student"]["firstName"] != null) {
-                                command.Parameters.Add("@firstName", System.Data.SqlDbType.VarChar).Value = coachProfile.student.firstName;
-                            }
-                            if (requestBodyData["student"]["surName"] != null) {
-                                command.Parameters.Add("@surName", System.Data.SqlDbType.VarChar).Value = coachProfile.student.surName;
-                            }
-                            if (requestBodyData["student"]["phoneNumber"] != null) {
-                                command.Parameters.Add("@phoneNumber", System.Data.SqlDbType.VarChar).Value = coachProfile.student.phoneNumber;
-                            }
-                            if (requestBodyData["student"]["photo"] != null) {
-                                command.Parameters.Add("@photo", System.Data.SqlDbType.VarChar).Value = coachProfile.student.photo;
-                            }
-                            if (requestBodyData["student"]["description"] != null) {
-                                command.Parameters.Add("@description", System.Data.SqlDbType.VarChar).Value = coachProfile.student.description;
-                            }
-                            if (requestBodyData["student"]["degree"] != null) {
-                                command.Parameters.Add("@degree", System.Data.SqlDbType.VarChar).Value = coachProfile.student.degree;
-                            }
-                            if (requestBodyData["student"]["study"] != null) {
-                                command.Parameters.Add("@study", System.Data.SqlDbType.VarChar).Value = coachProfile.student.study;
-                            }
-                            if (requestBodyData["student"]["studyYear"] != null) {
-                                command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value = coachProfile.student.studyYear;
-                            }
-                            if (requestBodyData["student"]["interests"] != null) {
-                                command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value = coachProfile.student.interests;
+                                        if (type == typeof(string)) {
+                                            command.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(newStudent, null);
+                                        }
+                                        if (type == typeof(int)) {
+                                            command.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(newStudent, null);
+                                        }
+                                    }
+                                }
                             }
                             
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            // command.ExecuteReader();
+                            command.ExecuteReader();
                         }
 
                         /*Insert profile into the Coach table.
                           The Query may fail, in which case a [400 Bad Request] is returned. */
                         using (SqlCommand command = new SqlCommand(queryString_Coach, connection)) {
                             /* Parameters are used to ensure no SQL injection can take place */
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = coachProfile.coach.studentID;
-                            command.Parameters.Add("@workload", System.Data.SqlDbType.Int).Value = coachProfile.coach.workload;
+                            command.Parameters.Add("@studentID", SqlDbType.Int).Value = newCoach.studentID;
+                            command.Parameters.Add("@workload", SqlDbType.Int).Value = newCoach.workload;
 
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
-                            // command.ExecuteReader();
+                            command.ExecuteReader();
                         }
                     } catch (SqlException e) {
                         /* The Query may fail, in which case a [400 Bad Request] is returned.
@@ -284,7 +241,7 @@ namespace TinderCloneV1 {
                         /* Get profile from the Student and Coach tables */
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             /* Parameters are used to ensure no SQL injection can take place */
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             /* The Query may fail, in which case a [400 Bad Request] is returned. */
@@ -366,7 +323,7 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString_Coach, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
                             int affectedRows = command.ExecuteNonQuery();
@@ -382,7 +339,7 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
                             int affectedRows = command.ExecuteNonQuery();
@@ -432,7 +389,7 @@ namespace TinderCloneV1 {
                         //Get data from the Coach table by studentID
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             //The Query may fail, in which case a [400 Bad Request] is returned.
@@ -477,7 +434,6 @@ namespace TinderCloneV1 {
         //Updates the workload of the coach (in the coach table)
         public async Task<HttpResponseMessage> UpdateCoachByID(int coachID, JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
-            Coach newCoach = requestBodyData.ToObject<Coach>();
 
             //newCoach.workload will be 0 if the requestbody contains no "workload" parameter,
             //in which case [400 Bad Request] is returned.
@@ -485,6 +441,8 @@ namespace TinderCloneV1 {
                 log.LogError("Requestbody contains no workload.");
                 return exceptionHandler.BadRequest(log);
             }
+
+            Coach newCoach = requestBodyData.ToObject<Coach>();
 
             string queryString = $@"UPDATE [dbo].[Coach]
                                     SET workload = @workload
@@ -501,8 +459,8 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@workload", System.Data.SqlDbType.Int).Value = newCoach.workload;
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@workload", SqlDbType.Int).Value = newCoach.workload;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             int affectedRows = command.ExecuteNonQuery();
