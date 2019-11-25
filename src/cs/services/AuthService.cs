@@ -134,6 +134,7 @@ namespace TinderCloneV1 {
             string queryString = $@"SELECT password FROM [dbo].[Auth] where studentID = @studentID";
 
             string databasePassword = null;
+            log.LogInformation("test1");
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -148,9 +149,10 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection))
                         {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.VarChar).Value = userAuth.studentID;
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = userAuth.studentID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
+                            log.LogInformation("test2");
 
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
@@ -179,6 +181,8 @@ namespace TinderCloneV1 {
                 log.LogError(e.Message);
                 return exceptionHandler.ServiceUnavailable(log);
             }
+            log.LogInformation("test3");
+
             log.LogInformation($"{HttpStatusCode.Created} | Connection created succesfully.");
             HttpResponseMessage response;
 
@@ -186,7 +190,7 @@ namespace TinderCloneV1 {
             {
                 //Return response code [201 Created].
                 response = new HttpResponseMessage(HttpStatusCode.OK);
-                response.Content = new StringContent(giveToken(jObject["studentID"].ToString()));
+                response.Content = new StringContent(giveToken(userAuth.studentID.ToString()));
                 return response;
             }
             //Return response code [400 BadRequest].
