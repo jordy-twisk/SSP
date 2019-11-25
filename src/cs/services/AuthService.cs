@@ -98,7 +98,7 @@ namespace TinderCloneV1 {
 
             //Return response code [201 Created].
             HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
-            response.Content = new StringContent(getToken(jObject["studentID"].ToString()));
+            response.Content = new StringContent(giveToken(jObject["studentID"].ToString()));
             return response;
         }
 
@@ -175,29 +175,96 @@ namespace TinderCloneV1 {
             
             //Return response code [201 Created].
             HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
-            response.Content = new StringContent(getToken(jObject["studentID"].ToString()));
+            response.Content = new StringContent(giveToken(jObject["studentID"].ToString()));
             return response;
         }
 
-        public string getToken(string studentID)
+        /*Returns */
+        public async Task<HttpResponseMessage> Login()
         {
-            if (checkForToken(studentID))
+            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            UserAuth userAuth;
+            JObject jObject;
+
+            /* Read from the requestBody */
+            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync()))
             {
-                string token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-                //https://stackoverflow.com/questions/14643735/how-to-generate-a-unique-token-which-expires-after-24-hours
-
-                //post token
-
-                return token;
+                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                userAuth = jObject.ToObject<UserAuth>();
             }
 
-            return "";
+            /* Verify if all parameters for the Auth table exist.
+            One or more parameters may be missing, in which case a [400 Bad Request] is returned. */
+            if (jObject["studentID"] == null || jObject["password"] == null)
+            {
+                log.LogError("Requestbody is missing data for the Auth table!");
+                return exceptionHandler.BadRequest(log);
+            }
+
+            
+
+
+            //Return response code [201 Created].
+            HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
+            response.Content = new StringContent(giveToken(jObject["studentID"].ToString()));
+            return response;
         }
 
-        private bool checkForToken(string studentID)
-        {
-            string queryString = $@"SELECT token FROM [dbo].[Auth] where studentID = @studentID";
+        // ************************************ Function, to do split into another class ************************************************
 
+        public string giveToken(string studentID)
+        {
+            // to do: check if there is an old token.
+            // to do: make token specific on ip // session // mac adres???
+            Tokens oldToken = getOldToken(studentID);
+            if (oldToken == null)
+            {
+                return "error";
+            }
+
+            if (checkTokenExpired(oldToken))
+            {
+                // to do: delete on specific token, instead of a new lookup.
+                deleteToken(studentID);
+
+                string newToken = createNewToken();
+
+                postToken(studentID, newToken);
+
+                return newToken;
+            }
+            return oldToken.token;
+        }
+        public bool checkTokenValid(string givenToken)
+        {
+            Tokens Token = getToken(givenToken);
+            if(checkTokenExpired(Token))
+            {
+                return false;
+            }
+            return true;
+        }
+        private string createNewToken()
+        {
+            // to do: make the token better protected, more randomness and stuff like that.
+            string token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            //https://stackoverflow.com/questions/14643735/how-to-generate-a-unique-token-which-expires-after-24-hours
+            return token;
+        }
+        private bool checkTokenExpired(Tokens curToken)
+        {
+            //check if latest token is still usable
+            if ((DateTime.Now - curToken.created_at).TotalHours < 24)
+            {
+                return true;
+            }
+            return false;
+        }
+        private Tokens getToken(String token)
+        {
+            string queryString = $@"SELECT token, created_at FROM [dbo].[Tokens]
+                                    WHERE token = @token;";
+            Tokens curToken = null;
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -212,9 +279,121 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection))
                         {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.VarChar).Value = studentID;
+                            command.Parameters.Add("@token", System.Data.SqlDbType.VarChar).Value = token;
 
                             log.LogInformation($"Executing the following query: {queryString}");
+
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                /* If the student does not exist, it returns a notFoundException */
+                                /* Return status code 404 */
+                                while (reader.Read())
+                                {
+                                    curToken = new Tokens
+                                    {
+                                        tokenID = reader.GetInt32(0),
+                                        created_at = reader.GetDateTime(1)
+                                    };
+                                }
+                            }
+                        }
+                    }
+                    catch (SqlException e)
+                    {
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
+                        log.LogError(e.Message);
+                    }
+                }
+            }
+            catch (SqlException e)
+            {
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
+                log.LogError(e.Message);
+            }
+            return curToken;
+        }
+        private Tokens getOldToken(string studentID)
+        {
+            string queryString = $@"SELECT token, created_at FROM [dbo].[Tokens]
+                                    INNER JOIN Auth ON Auth.pwID = Tokens.pwID
+                                    WHERE studentID = @studentID";
+            Tokens curToken = null;
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
+                    try
+                    {
+                        //Update the status for the tutorant/coach connection
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        using (SqlCommand command = new SqlCommand(queryString, connection))
+                        {
+                            //Parameters are used to ensure no SQL injection can take place
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = studentID;
+
+                            log.LogInformation($"Executing the following query: {queryString}");
+
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                /* If the student does not exist, it returns a notFoundException */
+                                /* Return status code 404 */
+                                while (reader.Read())
+                                {
+                                    curToken = new Tokens
+                                    {
+                                        tokenID = reader.GetInt32(0),
+                                        created_at = reader.GetDateTime(1)
+                                    };
+                                }
+                            }
+                        }
+                    }
+                    catch (SqlException e)
+                    {
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
+                        log.LogError(e.Message);
+                    }
+                }
+            }
+            catch (SqlException e)
+            {
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
+                log.LogError(e.Message);
+            }
+            return curToken;
+        }
+        private void deleteToken(string studentID)
+        {
+            //delete token
+            string queryDelete = $@"DELETE t
+                                    FROM Tokens t
+                                    INNER JOIN Auth a
+                                        ON a.pwID=t.pwID
+                                    WHERE studentID = @studentID";
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
+                    try
+                    {
+                        //Update the status for the tutorant/coach connection
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        using (SqlCommand command = new SqlCommand(queryDelete, connection))
+                        {
+                            //Parameters are used to ensure no SQL injection can take place
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = studentID;
+
+                            log.LogInformation($"Executing the following query: {queryDelete}");
 
                             command.ExecuteNonQueryAsync();
                         }
@@ -224,7 +403,6 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
                         log.LogError(e.Message);
-                        return false;
                     }
                 }
             }
@@ -233,14 +411,52 @@ namespace TinderCloneV1 {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
                 log.LogError(e.Message);
-                return false;
             }
+        }
+        private void postToken(string studentID, string token)
+        {
+            //delete token
+            string queryDelete = $@"INSERT INTO Tokens (pwID, token)
+                                        (SELECT pwID, @token
+                                        FROM Auth
+                                        WHERE studentID = @studentID
+                                            );";
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    //The connection is automatically closed when going out of scope of the using block.
+                    //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                    connection.Open();
+                    try
+                    {
+                        //Update the status for the tutorant/coach connection
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        using (SqlCommand command = new SqlCommand(queryDelete, connection))
+                        {
+                            //Parameters are used to ensure no SQL injection can take place
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = studentID;
+                            command.Parameters.Add("@token", System.Data.SqlDbType.VarChar).Value = token;
 
-            //check if latest token is still usable
-            //if(token == expiredate is to come) 
-            //delete token and make new one.
+                            log.LogInformation($"Executing the following query: {queryDelete}");
 
-            return true;
+                            command.ExecuteNonQueryAsync();
+                        }
+                    }
+                    catch (SqlException e)
+                    {
+                        //The Query may fail, in which case a [400 Bad Request] is returned.
+                        log.LogError("SQL Query has failed to execute.");
+                        log.LogError(e.Message);
+                    }
+                }
+            }
+            catch (SqlException e)
+            {
+                //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
+                log.LogError("SQL has failed to open.");
+                log.LogError(e.Message);
+            }
         }
     }
     
