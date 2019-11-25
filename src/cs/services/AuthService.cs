@@ -102,7 +102,7 @@ namespace TinderCloneV1 {
             HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
             try
             {
-                response.Content = new StringContent(giveToken(userAuth.studentID.ToString()));
+                response.Content = new StringContent(leaseToken(userAuth.studentID.ToString()));
             }
             catch (Exception e)
             {
@@ -199,7 +199,7 @@ namespace TinderCloneV1 {
                 response = new HttpResponseMessage(HttpStatusCode.OK);
                 try
                 {
-                    response.Content = new StringContent(giveToken(userAuth.studentID.ToString()));
+                    response.Content = new StringContent(leaseToken(userAuth.studentID.ToString()));
                 } 
                 catch (Exception e)
                 {
@@ -237,7 +237,7 @@ namespace TinderCloneV1 {
             }
 
             HttpResponseMessage response;
-            if (checkTokenValid(jObject["token"].ToString()))
+            if (checkTokenValid(token.token))
             {
                 //Return response code [200 OK].
                 response = new HttpResponseMessage(HttpStatusCode.BadRequest);
@@ -258,7 +258,7 @@ namespace TinderCloneV1 {
              * ********************************* */
             return password;
         }
-        public string giveToken(string studentID)
+        public string leaseToken(string studentID)
         {
             // to do: check if there is an old token.
             // to do: make token specific on ip // session // mac adres???
@@ -268,7 +268,7 @@ namespace TinderCloneV1 {
             if (oldToken != null && checkTokenExpired(oldToken))
             {
                 // to do: delete on specific token, instead of a new lookup.
-                deleteToken(studentID);
+                deleteToken(oldToken);
                 deletedToken = true;
             }
             if (oldToken == null | deletedToken)
@@ -415,14 +415,12 @@ namespace TinderCloneV1 {
             }
             return curToken;
         }
-        private void deleteToken(string studentID)
+        private void deleteToken(Tokens oldToken)
         {
             //delete token
-            string queryDelete = $@"DELETE t
-                                    FROM Tokens t
-                                    INNER JOIN Auth a
-                                        ON a.pwID=t.pwID
-                                    WHERE studentID = @studentID";
+            string queryDelete = $@"DELETE token
+                                    FROM [dbo].[Tokens]
+                                    WHERE token = @Token";
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -437,7 +435,7 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryDelete, connection))
                         {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = studentID;
+                            command.Parameters.Add("@Token", System.Data.SqlDbType.VarChar).Value = oldToken.token;
 
                             log.LogInformation($"Executing the following query: {queryDelete}");
 

@@ -57,5 +57,21 @@ namespace TinderCloneV1 {
             }
         }
 
+        [FunctionName("TestToken")]
+        public async Task<HttpResponseMessage> TestToken([HttpTrigger(AuthorizationLevel.Anonymous,
+            "post", Route = "auth/testToken")] HttpRequestMessage req, HttpRequest request, ILogger log)
+        {
+
+            authService = new AuthService(req, request, log);
+
+            if (req.Method == HttpMethod.Post)
+            {
+                return await authService.TestToken();
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }
