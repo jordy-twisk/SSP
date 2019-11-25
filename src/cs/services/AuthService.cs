@@ -51,7 +51,7 @@ namespace TinderCloneV1 {
              * Encrypt password (make function for)
              * ********************************* */
             //encrypt password
-            string encryptedPassword = encryptPassword(jObject["password"].ToString());
+            string encryptedPassword = encryptPassword(userAuth.password);
 
             /* Create query for setting the data into the database */
             string queryString = $@"INSERT INTO [dbo].[Auth] (studentID, password)
@@ -100,7 +100,15 @@ namespace TinderCloneV1 {
 
             //Return response code [201 Created].
             HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
-            response.Content = new StringContent(giveToken(jObject["studentID"].ToString()));
+            try
+            {
+                response.Content = new StringContent(giveToken(userAuth.studentID.ToString()));
+            }
+            catch (Exception e)
+            {
+                log.LogError("Somthing went wrong within the token system");
+                log.LogError(e.Message);
+            }
             return response;
         }
 
@@ -128,13 +136,12 @@ namespace TinderCloneV1 {
             }
 
             //encrypt password
-            string encryptedPassword = encryptPassword(jObject["password"].ToString());
+            string encryptedPassword = encryptPassword(userAuth.password);
 
             /* Create query for selecting data from the database */
             string queryString = $@"SELECT password FROM [dbo].[Auth] where studentID = @studentID";
 
             string databasePassword = null;
-            log.LogInformation("test1");
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -190,11 +197,20 @@ namespace TinderCloneV1 {
             {
                 //Return response code [201 Created].
                 response = new HttpResponseMessage(HttpStatusCode.OK);
-                response.Content = new StringContent(giveToken(userAuth.studentID.ToString()));
+                try
+                {
+                    response.Content = new StringContent(giveToken(userAuth.studentID.ToString()));
+                } 
+                catch (Exception e)
+                {
+                    log.LogError("Somthing went wrong within the token system");
+                    log.LogError(e.Message);
+                }
                 return response;
             }
             //Return response code [400 BadRequest].
             response = new HttpResponseMessage(HttpStatusCode.BadRequest);
+            log.LogInformation("test4");
             return response;
         }
 
@@ -202,19 +218,19 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> TestToken()
         {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            UserAuth userAuth;
             JObject jObject;
+            Tokens token;
 
             /* Read from the requestBody */
             using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync()))
             {
                 jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                userAuth = jObject.ToObject<UserAuth>();
+                token = jObject.ToObject<Tokens>();
             }
 
             /* Verify if all parameters for the Auth table exist.
             One or more parameters may be missing, in which case a [400 Bad Request] is returned. */
-            if (jObject["token"] == null)
+            if (token.token == null)
             {
                 log.LogError("Requestbody is missing data for the Auth table!");
                 return exceptionHandler.BadRequest(log);
@@ -247,16 +263,16 @@ namespace TinderCloneV1 {
             // to do: check if there is an old token.
             // to do: make token specific on ip // session // mac adres???
             Tokens oldToken = getOldToken(studentID);
-            if (oldToken == null)
-            {
-                return "error";
-            }
+            bool deletedToken = false;
 
-            if (checkTokenExpired(oldToken))
+            if (oldToken != null && checkTokenExpired(oldToken))
             {
                 // to do: delete on specific token, instead of a new lookup.
                 deleteToken(studentID);
-
+                deletedToken = true;
+            }
+            if (oldToken == null | deletedToken)
+            {
                 string newToken = createNewToken();
 
                 postToken(studentID, newToken);
@@ -286,9 +302,9 @@ namespace TinderCloneV1 {
             //check if latest token is still usable
             if ((DateTime.Now - curToken.created_at).TotalHours < 24)
             {
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }
         private Tokens getToken(String token)
         {
@@ -321,7 +337,7 @@ namespace TinderCloneV1 {
                                 {
                                     curToken = new Tokens
                                     {
-                                        tokenID = reader.GetInt32(0),
+                                        token = reader.GetString(0),
                                         created_at = reader.GetDateTime(1)
                                     };
                                 }
@@ -376,7 +392,7 @@ namespace TinderCloneV1 {
                                 {
                                     curToken = new Tokens
                                     {
-                                        tokenID = reader.GetInt32(0),
+                                        token = reader.GetString(0),
                                         created_at = reader.GetDateTime(1)
                                     };
                                 }
