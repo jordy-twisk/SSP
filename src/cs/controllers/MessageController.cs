@@ -5,6 +5,9 @@ using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace TinderCloneV1 {
     public class MessageController {
@@ -22,9 +25,9 @@ namespace TinderCloneV1 {
         */
         [FunctionName("GetMessagesByID")]
         public async Task<HttpResponseMessage> GetMessages([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", Route = "messages/{coachID}/{tutorantID}")] HttpRequestMessage req, HttpRequest request, int coachID, int tutorantID, ILogger log) {
+            "get", Route = "messages/{coachID}/{tutorantID}")]HttpRequestMessage req, int coachID, int tutorantID, ILogger log) {
 
-            messageService = new MessageService(req, request, log);
+            messageService = new MessageService(log);
 
             if (req.Method == HttpMethod.Get) {
                 return await messageService.GetAllMessages(coachID, tutorantID);
@@ -43,15 +46,22 @@ namespace TinderCloneV1 {
         */
         [FunctionName("MessageByID")]
         public async Task<HttpResponseMessage> GetMessage([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", "put", "delete", Route = "message/{messageID}")] HttpRequestMessage req, HttpRequest request, int messageID, ILogger log) {
+            "get", "put", "delete", Route = "message/{messageID}")] HttpRequestMessage req, int messageID, ILogger log) {
 
-            messageService = new MessageService(req, request, log);
+            messageService = new MessageService(log);
 
             if (req.Method == HttpMethod.Get) {
                 return await messageService.GetMessageByID(messageID);
             } 
             else if (req.Method == HttpMethod.Put) {
-                return await messageService.UpdateMessageByID(messageID);
+                JObject newMessageProfile = null;
+
+                /* Read from the requestBody */
+                using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
+                    newMessageProfile = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                }
+
+                return await messageService.UpdateMessageByID(messageID, newMessageProfile);
             } 
             else if (req.Method == HttpMethod.Delete) {
                 return await messageService.DeleteMessageByID(messageID);
@@ -67,12 +77,19 @@ namespace TinderCloneV1 {
         */
         [FunctionName("PostMessage")]
         public async Task<HttpResponseMessage> PostMessage([HttpTrigger(AuthorizationLevel.Anonymous,
-            "post", Route = "message")] HttpRequestMessage req, HttpRequest request, ILogger log) {
+            "post", Route = "message")] HttpRequestMessage req, ILogger log) {
 
-            messageService = new MessageService(req, request, log);
+            messageService = new MessageService(log);
 
             if (req.Method == HttpMethod.Post) {
-                return await messageService.CreateMessage();
+                JObject newMessageProfile = null;
+
+                /* Read from the requestBody */
+                using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
+                    newMessageProfile = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                }
+
+                return await messageService.CreateMessage(newMessageProfile);
             } 
             else {
                 throw new NotImplementedException();

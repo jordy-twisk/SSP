@@ -18,36 +18,26 @@ namespace TinderCloneV1 {
 
         private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
-        private readonly HttpRequestMessage req;
-        private readonly HttpRequest request;
         private readonly ILogger log;
 
-        public MessageService(HttpRequestMessage req, HttpRequest request, ILogger log) {
-            this.req = req;
-            this.request = request;
+        public MessageService(ILogger log) {
             this.log = log;
         }
 
         // Creates a new message based on data given in the request body.
-        public async Task<HttpResponseMessage> CreateMessage() {
+        public async Task<HttpResponseMessage> CreateMessage(JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
-            Message message;
-            JObject jObject;
-
-            // Read from the request body.
-            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
-                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                message = jObject.ToObject<Message>();
-            }
 
             // Verify if all parameters for the Message table exist,
             // return response code 400 if one or more of the parameters are missing.
-            if (jObject["type"] == null     || jObject["payload"] == null      ||
-                jObject["created"] == null  || jObject["lastModified"] == null ||
-                jObject["senderID"] == null || jObject["receiverID"] == null)  {
+            if (requestBodyData["type"] == null     || requestBodyData["payload"] == null      ||
+                requestBodyData["created"] == null  || requestBodyData["lastModified"] == null ||
+                requestBodyData["senderID"] == null || requestBodyData["receiverID"] == null)  {
                     log.LogError($"Requestbody is missing data for the Message table!");
                     return exceptionHandler.BadRequest(log);
-             }
+            }
+
+            Message message = requestBodyData.ToObject<Message>();
 
             // All fields for the Message table are required.
             string queryString = $@"INSERT INTO [dbo].[Message] (type, payload, created, lastModified, senderID, receiverID)" +
@@ -269,22 +259,15 @@ namespace TinderCloneV1 {
             };
         }
 
-        public async Task<HttpResponseMessage> UpdateMessageByID(int messageID) {
+        public async Task<HttpResponseMessage> UpdateMessageByID(int messageID, JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             PropertyInfo[] properties = typeof(Message).GetProperties();
-            Message newMessage = new Message();
-            JObject jObject; 
 
-            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
-                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                newMessage = jObject.ToObject<Message>();
-            }
-
-            // if there is no data in the requestBody, return a badRequest exception
-            if (jObject.Properties() == null) {
-                log.LogError($"Requestbody is missing data for the message table! Cant change {messageID}");
+            if () { 
                 return exceptionHandler.BadRequest(log);
             }
+
+            Message message = requestBodyData.ToObject<Message>();
 
             string queryString = $"UPDATE [dbo].[Message] SET ";
 

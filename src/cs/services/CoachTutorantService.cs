@@ -16,31 +16,25 @@ namespace TinderCloneV1 {
     class CoachTutorantService : ICoachTutorantService {
         private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
-        private readonly HttpRequestMessage req;
-        private readonly HttpRequest request;
         private readonly ILogger log;
 
-        public CoachTutorantService(HttpRequestMessage req, HttpRequest request, ILogger log) {
-            this.req = req;
-            this.request = request;
+        public CoachTutorantService(ILogger log) {
             this.log = log;
         }
 
         //Changes the status of a CoachTutorantConnection.
-        public async Task<HttpResponseMessage> UpdateConnection(JObject ctObject) {
+        public async Task<HttpResponseMessage> UpdateConnection(JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             //Verify if all parameters for the CoachTutorantConnection exist.
             //One or more parameters may be missing, in which case a [400 Bad Request] is returned.
-            if (ctObject["studentIDTutorant"] == null 
-                || ctObject["studentIDCoach"] == null 
-                || ctObject["status"] == null) {
+            if (requestBodyData["status"] == null) {
                 log.LogError("Requestbody is missing data for the CoachTutorantConnection table!");
                 return exceptionHandler.BadRequest(log);
             }
             
             /* Make a Connection entity from the requestBody after checking the required fields */
-            CoachTutorantConnection coachTutorantConnection = ctObject.ToObject<CoachTutorantConnection>();
+            CoachTutorantConnection coachTutorantConnection = requestBodyData.ToObject<CoachTutorantConnection>();
 
             string queryString = $@"UPDATE [dbo].[CoachTutorantConnection]
                                     SET status = @status
@@ -343,7 +337,7 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+                            command.Parameters.Add("@tutorantID", SqlDbType.Int).Value = tutorantID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
