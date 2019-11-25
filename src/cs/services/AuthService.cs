@@ -50,6 +50,8 @@ namespace TinderCloneV1 {
              * Check password length and stuff
              * Encrypt password (make function for)
              * ********************************* */
+            //encrypt password
+            string encryptedPassword = encryptPassword(jObject["password"].ToString());
 
             /* Create query for setting the data into the database */
             string queryString = $@"INSERT INTO [dbo].[Auth] (studentID, password)
@@ -70,7 +72,7 @@ namespace TinderCloneV1 {
                         {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = userAuth.studentID;
-                            command.Parameters.Add("@password", System.Data.SqlDbType.VarChar).Value = userAuth.password;
+                            command.Parameters.Add("@password", System.Data.SqlDbType.VarChar).Value = encryptedPassword;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -125,13 +127,13 @@ namespace TinderCloneV1 {
                 return exceptionHandler.BadRequest(log);
             }
 
-            /* ******** To do ******************
-             * encrypt password (make function for)
-             * ********************************* */
+            //encrypt password
+            string encryptedPassword = encryptPassword(jObject["password"].ToString());
 
             /* Create query for selecting data from the database */
             string queryString = $@"SELECT password FROM [dbo].[Auth] where studentID = @studentID";
 
+            string databasePassword = null;
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -150,7 +152,15 @@ namespace TinderCloneV1 {
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
-                            await command.ExecuteNonQueryAsync();
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                /* If the student does not exist, it returns a notFoundException */
+                                /* Return status code 404 */
+                                while (reader.Read())
+                                {
+                                    databasePassword = reader.GetString(0);
+                                }
+                            }
                         }
                     }
                     catch (SqlException e)
@@ -169,18 +179,23 @@ namespace TinderCloneV1 {
                 log.LogError(e.Message);
                 return exceptionHandler.ServiceUnavailable(log);
             }
-
             log.LogInformation($"{HttpStatusCode.Created} | Connection created succesfully.");
+            HttpResponseMessage response;
 
-            
-            //Return response code [201 Created].
-            HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
-            response.Content = new StringContent(giveToken(jObject["studentID"].ToString()));
+            if (databasePassword == encryptedPassword)
+            {
+                //Return response code [201 Created].
+                response = new HttpResponseMessage(HttpStatusCode.OK);
+                response.Content = new StringContent(giveToken(jObject["studentID"].ToString()));
+                return response;
+            }
+            //Return response code [400 BadRequest].
+            response = new HttpResponseMessage(HttpStatusCode.BadRequest);
             return response;
         }
 
         /*Returns */
-        public async Task<HttpResponseMessage> Login()
+        public async Task<HttpResponseMessage> TestToken()
         {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             UserAuth userAuth;
@@ -195,23 +210,34 @@ namespace TinderCloneV1 {
 
             /* Verify if all parameters for the Auth table exist.
             One or more parameters may be missing, in which case a [400 Bad Request] is returned. */
-            if (jObject["studentID"] == null || jObject["password"] == null)
+            if (jObject["token"] == null)
             {
                 log.LogError("Requestbody is missing data for the Auth table!");
                 return exceptionHandler.BadRequest(log);
             }
 
-            
-
-
-            //Return response code [201 Created].
-            HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
-            response.Content = new StringContent(giveToken(jObject["studentID"].ToString()));
+            HttpResponseMessage response;
+            if (checkTokenValid(jObject["token"].ToString()))
+            {
+                //Return response code [200 OK].
+                response = new HttpResponseMessage(HttpStatusCode.BadRequest);
+                response.Content = new StringContent("Token is valid");
+                return response;
+            }
+            //Return response code [200 OK].
+            response = new HttpResponseMessage(HttpStatusCode.OK);
+            response.Content = new StringContent("Token is not valid");
             return response;
         }
 
         // ************************************ Function, to do split into another class ************************************************
-
+        private string encryptPassword(string password)
+        {
+            /* ******** To do ******************
+             * encrypt password
+             * ********************************* */
+            return password;
+        }
         public string giveToken(string studentID)
         {
             // to do: check if there is an old token.
