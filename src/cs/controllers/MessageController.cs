@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using System.Net.Http;
@@ -49,6 +50,11 @@ namespace TinderCloneV1 {
             "get", "put", "delete", Route = "message/{messageID}")] HttpRequestMessage req, int messageID, ILogger log) {
 
             messageService = new MessageService(log);
+
+            if (messageID == 0) {
+                log.LogError($"MessageID not in path parameter");
+                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+            }
 
             if (req.Method == HttpMethod.Get) {
                 return await messageService.GetMessageByID(messageID);

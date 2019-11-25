@@ -12,6 +12,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Data;
 
 namespace TinderCloneV1 {
     class MessageService : IMessageService {
@@ -53,12 +54,12 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
                             // command.Parameters.Add("@MessageID", System.Data.SqlDbType.Int).Value = message.MessageID;
-                            command.Parameters.Add("@type", System.Data.SqlDbType.VarChar).Value = message.type;
-                            command.Parameters.Add("@payload", System.Data.SqlDbType.VarChar).Value = message.payload;
-                            command.Parameters.Add("@created", System.Data.SqlDbType.DateTime).Value = message.created;
-                            command.Parameters.Add("@lastModified", System.Data.SqlDbType.DateTime).Value = message.lastModified;
-                            command.Parameters.Add("@senderID", System.Data.SqlDbType.Int).Value = message.senderID;
-                            command.Parameters.Add("@receiverID", System.Data.SqlDbType.Int).Value = message.receiverID;
+                            command.Parameters.Add("@type", SqlDbType.VarChar).Value = message.type;
+                            command.Parameters.Add("@payload", SqlDbType.VarChar).Value = message.payload;
+                            command.Parameters.Add("@created", SqlDbType.DateTime).Value = message.created;
+                            command.Parameters.Add("@lastModified", SqlDbType.DateTime).Value = message.lastModified;
+                            command.Parameters.Add("@senderID", SqlDbType.Int).Value = message.senderID;
+                            command.Parameters.Add("@receiverID", SqlDbType.Int).Value = message.receiverID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -261,21 +262,16 @@ namespace TinderCloneV1 {
 
         public async Task<HttpResponseMessage> UpdateMessageByID(int messageID, JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
-            PropertyInfo[] properties = typeof(Message).GetProperties();
 
-            if () { 
-                return exceptionHandler.BadRequest(log);
-            }
-
-            Message message = requestBodyData.ToObject<Message>();
+            Message newMessage = requestBodyData.ToObject<Message>();
 
             string queryString = $"UPDATE [dbo].[Message] SET ";
 
             /* Loop through the properties of the jObject Object which contains the values given in the requestBody
                loop through the hardcoded properties in the Message Entity to check if they correspond with the requestBody 
                to prevent SQL injection. */
-            foreach (JProperty property in jObject.Properties()) {
-                foreach (PropertyInfo props in properties) {
+            foreach (JProperty property in requestBodyData.Properties()) {
+                foreach (PropertyInfo props in newMessage.GetType().GetProperties()) {
                     if (props.Name == property.Name) {
                         /* fill the queryString with the property names from the Message and their values */
                         queryString += $"{props.Name} = @{property.Name},";
@@ -294,13 +290,26 @@ namespace TinderCloneV1 {
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
-                            command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
-                            if (jObject["type"] != null) command.Parameters.Add("@type", System.Data.SqlDbType.VarChar).Value = newMessage.type;
-                            if (jObject["payload"] != null) command.Parameters.Add("@payload", System.Data.SqlDbType.VarChar).Value = newMessage.payload;
-                            if (jObject["created"] != null) command.Parameters.Add("@created", System.Data.SqlDbType.DateTime).Value = newMessage.created;
-                            if (jObject["lastModified"] != null) command.Parameters.Add("@lastModified", System.Data.SqlDbType.DateTime).Value = newMessage.lastModified;
-                            if (jObject["senderID"] != null) command.Parameters.Add("@senderID", System.Data.SqlDbType.Int).Value = newMessage.senderID;
-                            if (jObject["receiverID"] != null) command.Parameters.Add("@receiverID", System.Data.SqlDbType.Int).Value = newMessage.receiverID;
+
+                            addSqlInjection(requestBodyData, newMessage);
+
+                            foreach (JProperty property in requestBodyData.Properties()) {
+                                foreach (PropertyInfo props in newMessage.GetType().GetProperties()) {
+                                    if (props.Name == property.Name) {
+                                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
+
+                                        if (type == typeof(string)) {
+                                            command.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(newMessage, null);
+                                        }
+                                        if (type == typeof(int)) {
+                                            command.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(newMessage, null);
+                                        }
+                                        if (type == typeof(DateTime)) {
+                                            command.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(newMessage, null);
+                                        }
+                                    }
+                                }
+                            }
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -331,5 +340,7 @@ namespace TinderCloneV1 {
             //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
+
+        private void addSqlInjection()
     }
 }
