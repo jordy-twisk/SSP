@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Net.Http;
@@ -9,9 +8,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 using System.Data;
 
 namespace TinderCloneV1 {
@@ -38,7 +35,7 @@ namespace TinderCloneV1 {
                     return exceptionHandler.BadRequest(log);
             }
 
-            Message message = requestBodyData.ToObject<Message>();
+            Message newMessage = requestBodyData.ToObject<Message>();
 
             // All fields for the Message table are required.
             string queryString = $@"INSERT INTO [dbo].[Message] (type, payload, created, lastModified, senderID, receiverID)" +
@@ -53,13 +50,8 @@ namespace TinderCloneV1 {
                         // Insert new message into the Message table.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
-                            // command.Parameters.Add("@MessageID", System.Data.SqlDbType.Int).Value = message.MessageID;
-                            command.Parameters.Add("@type", SqlDbType.VarChar).Value = message.type;
-                            command.Parameters.Add("@payload", SqlDbType.VarChar).Value = message.payload;
-                            command.Parameters.Add("@created", SqlDbType.DateTime).Value = message.created;
-                            command.Parameters.Add("@lastModified", SqlDbType.DateTime).Value = message.lastModified;
-                            command.Parameters.Add("@senderID", SqlDbType.Int).Value = message.senderID;
-                            command.Parameters.Add("@receiverID", SqlDbType.Int).Value = message.receiverID;
+                            dynamic dObject = newMessage;
+                            AddSqlInjection(requestBodyData, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -96,9 +88,10 @@ namespace TinderCloneV1 {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
+
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
-                            command.Parameters.Add("@MessageID", System.Data.SqlDbType.DateTime).Value = messageID;
+                            command.Parameters.Add("@MessageID", SqlDbType.DateTime).Value = messageID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -113,14 +106,12 @@ namespace TinderCloneV1 {
                     } catch (SqlException e) {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         log.LogError("SQL Query has failed to execute.");
-                        log.LogError(e.Message);
                         return exceptionHandler.BadRequest(log);
                     }
                 }
             } catch (SqlException e) {
                 //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                 log.LogError("SQL has failed to open.");
-                log.LogError(e.Message);
                 return exceptionHandler.ServiceUnavailable(log);
             }
 
@@ -150,8 +141,8 @@ namespace TinderCloneV1 {
                     connection.Open();
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
-                            command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@tutorantID", SqlDbType.Int).Value = tutorantID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -212,7 +203,7 @@ namespace TinderCloneV1 {
                     connection.Open();
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
-                            command.Parameters.Add("@messageID", System.Data.SqlDbType.Int).Value = messageID;
+                            command.Parameters.Add("@messageID", SqlDbType.Int).Value = messageID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -279,7 +270,7 @@ namespace TinderCloneV1 {
                 }
             }
 
-            queryString = queryString.Remove(queryString.Length - 1);
+            queryString = RemoveLastCharacters(queryString, 1);
             queryString += $@" WHERE MessageID = @messageID;";
 
             try {
@@ -291,25 +282,9 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
 
-                            addSqlInjection(requestBodyData, newMessage);
-
-                            foreach (JProperty property in requestBodyData.Properties()) {
-                                foreach (PropertyInfo props in newMessage.GetType().GetProperties()) {
-                                    if (props.Name == property.Name) {
-                                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
-
-                                        if (type == typeof(string)) {
-                                            command.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(newMessage, null);
-                                        }
-                                        if (type == typeof(int)) {
-                                            command.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(newMessage, null);
-                                        }
-                                        if (type == typeof(DateTime)) {
-                                            command.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(newMessage, null);
-                                        }
-                                    }
-                                }
-                            }
+                            /* pass the requestBody, the entity with the corresponding properties and the SqlCommand to the method 
+                               to ensure working SqlInjection for the incoming values*/
+                            AddSqlInjection(requestBodyData, newMessage, command);
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -340,7 +315,28 @@ namespace TinderCloneV1 {
             //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
+        public string RemoveLastCharacters(string queryString, int NumberOfCharacters) {
+            queryString = queryString.Remove(queryString.Length - NumberOfCharacters);
+            return queryString;
+        }
+        public void AddSqlInjection(JObject rboy, dynamic dynaObject, SqlCommand cmd) {
+            foreach (JProperty property in rboy.Properties()) {
+                foreach (PropertyInfo props in dynaObject.GetType().GetProperties()) {
+                    if (props.Name == property.Name) {
+                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
 
-        private void addSqlInjection()
+                        if (type == typeof(string)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(dynaObject, null);
+                        }
+                        if (type == typeof(int)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(dynaObject, null);
+                        }
+                        if (type == typeof(DateTime)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(dynaObject, null);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

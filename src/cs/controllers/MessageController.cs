@@ -26,11 +26,11 @@ namespace TinderCloneV1 {
         */
         [FunctionName("GetMessagesByID")]
         public async Task<HttpResponseMessage> GetMessages([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", Route = "messages/{coachID}/{tutorantID}")]HttpRequestMessage req, int coachID, int tutorantID, ILogger log) {
+            "get", Route = "messages/{coachID}/{tutorantID}")]HttpRequestMessage request, int coachID, int tutorantID, ILogger log) {
 
             messageService = new MessageService(log);
 
-            if (req.Method == HttpMethod.Get) {
+            if (request.Method == HttpMethod.Get) {
                 return await messageService.GetAllMessages(coachID, tutorantID);
             } 
             else {
@@ -47,29 +47,24 @@ namespace TinderCloneV1 {
         */
         [FunctionName("MessageByID")]
         public async Task<HttpResponseMessage> GetMessage([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", "put", "delete", Route = "message/{messageID}")] HttpRequestMessage req, int messageID, ILogger log) {
+            "get", "put", "delete", Route = "message/{messageID}")] HttpRequestMessage request, int messageID, ILogger log) {
 
             messageService = new MessageService(log);
 
-            if (messageID == 0) {
-                log.LogError($"MessageID not in path parameter");
-                return new HttpResponseMessage(HttpStatusCode.BadRequest);
-            }
-
-            if (req.Method == HttpMethod.Get) {
+            if (request.Method == HttpMethod.Get) {
                 return await messageService.GetMessageByID(messageID);
             } 
-            else if (req.Method == HttpMethod.Put) {
+            else if (request.Method == HttpMethod.Put) {
                 JObject newMessageProfile = null;
 
                 /* Read from the requestBody */
-                using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
+                using (StringReader reader = new StringReader(await request.Content.ReadAsStringAsync())) {
                     newMessageProfile = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 }
 
                 return await messageService.UpdateMessageByID(messageID, newMessageProfile);
             } 
-            else if (req.Method == HttpMethod.Delete) {
+            else if (request.Method == HttpMethod.Delete) {
                 return await messageService.DeleteMessageByID(messageID);
             }
             else {
@@ -83,15 +78,15 @@ namespace TinderCloneV1 {
         */
         [FunctionName("PostMessage")]
         public async Task<HttpResponseMessage> PostMessage([HttpTrigger(AuthorizationLevel.Anonymous,
-            "post", Route = "message")] HttpRequestMessage req, ILogger log) {
+            "post", Route = "message")] HttpRequestMessage request, ILogger log) {
 
             messageService = new MessageService(log);
 
-            if (req.Method == HttpMethod.Post) {
+            if (request.Method == HttpMethod.Post) {
                 JObject newMessageProfile = null;
 
                 /* Read from the requestBody */
-                using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
+                using (StringReader reader = new StringReader(await request.Content.ReadAsStringAsync())) {
                     newMessageProfile = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
                 }
 

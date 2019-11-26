@@ -1,6 +1,6 @@
 ﻿
 
-PLACE IN CODE: CoachService: CreateCoachProfile
+OLD CODE: PLACE: CoachService: CreateCoachProfile
 	command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = coachProfile.student.studentID;
 	if (requestBodyData["student"]["firstName"] != null) {
 		command.Parameters.Add("@firstName", System.Data.SqlDbType.VarChar).Value = coachProfile.student.firstName;
@@ -30,7 +30,7 @@ PLACE IN CODE: CoachService: CreateCoachProfile
 		command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value = coachProfile.student.interests;
 	}
 
-INSTEAD OF:
+NEW CODE:
 	foreach (JProperty property in studentProfile.Properties()) {
 		foreach (PropertyInfo props in sqlInjec.GetType().GetProperties()) {
 			if (props.Name == property.Name) {
@@ -45,3 +45,28 @@ INSTEAD OF:
 			}
 		}
 	}
+
+OLD CODE: PLACE TutorantService: CreateTutorantProfile
+	  if (jObject["user"]["firstName"] != null) queryString_Student += ", firstName";
+            if (jObject["user"]["surName"] != null) queryString_Student += ", surName";
+            if (jObject["user"]["phoneNumber"] != null) queryString_Student += ", phoneNumber";
+            if (jObject["user"]["photo"] != null) queryString_Student += ", photo";
+            if (jObject["user"]["description"] != null) queryString_Student += ", description";
+            if (jObject["user"]["degree"] != null) queryString_Student += ", degree";
+            if (jObject["user"]["study"] != null) queryString_Student += ", study";
+            if (jObject["user"]["studyYear"] != null) queryString_Student += ", studyYear";
+            if (jObject["user"]["interests"] != null) queryString_Student += ", interests";
+
+NEW CODE:
+	            foreach (JProperty property in studentProfile.Properties()) {
+                foreach (PropertyInfo props in newStudent.GetType().GetProperties()) {
+                    if (props.Name == property.Name) {
+                        queryString_Student += $"{property.Name}, ";
+                    }
+                }
+            }
+
+
+	 command.Parameters.Add("@status", SqlDbType.VarChar).Value = coachTutorantConnection.status;
+                            command.Parameters.Add("@studentIDTutorant", SqlDbType.Int).Value = coachTutorantConnection.studentIDTutorant;
+                            command.Parameters.Add("@studentIDCoach", SqlDbType.Int).Value = coachTutorantConnection.studentIDCoach;

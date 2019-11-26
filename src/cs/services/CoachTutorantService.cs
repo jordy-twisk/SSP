@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Data;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -9,8 +8,8 @@ using System.Data.SqlClient;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace TinderCloneV1 {
     class CoachTutorantService : ICoachTutorantService {
@@ -50,16 +49,15 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@studentIDTutorant", SqlDbType.Int).Value = coachTutorantConnection.studentIDTutorant;
-                            command.Parameters.Add("@studentIDCoach", SqlDbType.Int).Value = coachTutorantConnection.studentIDCoach;
-                            command.Parameters.Add("@status", SqlDbType.VarChar).Value = coachTutorantConnection.status;
+                            dynamic dObject = coachTutorantConnection;
+                            AddSqlInjection(requestBodyData, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             int affectedRows = await command.ExecuteNonQueryAsync();
 
                             //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
-                            if(affectedRows == 0) {
+                            if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
                                 return exceptionHandler.NotFound();
                             }
@@ -216,7 +214,7 @@ namespace TinderCloneV1 {
                         //Get connection from the CoachTutorantConnections table for a specific tutorant
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+                            command.Parameters.Add("@tutorantID", SqlDbType.Int).Value = tutorantID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -263,6 +261,7 @@ namespace TinderCloneV1 {
         }
 
         //Create a new connection between a tutorant and coach
+        /* TODO: MAKE SURE THAT YOU CAN ONLY MAKE A CONNECTION WHEN THE STUDENTS EXISTS */
         public async Task<HttpResponseMessage> CreateConnectionByTutorantID(int tutorantID, JObject tTocConnection) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
@@ -291,10 +290,9 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@status", SqlDbType.VarChar).Value = coachTutorantConnection.status;
-                            command.Parameters.Add("@studentIDTutorant", SqlDbType.Int).Value = coachTutorantConnection.studentIDTutorant;
-                            command.Parameters.Add("@studentIDCoach", SqlDbType.Int).Value = coachTutorantConnection.studentIDCoach;
-
+                            dynamic dObject = coachTutorantConnection;
+                            AddSqlInjection(tTocConnection, dObject, command);
+                           
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             await command.ExecuteNonQueryAsync();
@@ -368,6 +366,26 @@ namespace TinderCloneV1 {
 
             //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
+        }
+
+        public void AddSqlInjection(JObject rboy, dynamic dynaObject, SqlCommand cmd) {
+            foreach (JProperty property in rboy.Properties()) {
+                foreach (PropertyInfo props in dynaObject.GetType().GetProperties()) {
+                    if (props.Name == property.Name) {
+                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
+
+                        if (type == typeof(string)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(dynaObject, null);
+                        }
+                        if (type == typeof(int)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(dynaObject, null);
+                        }
+                        if (type == typeof(DateTime)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(dynaObject, null);
+                        }
+                    }
+                }
+            }
         }
     }
 }
