@@ -11,7 +11,34 @@ namespace TinderCloneV1 {
             set;
         }
         [JsonProperty("password")]
-        public int password {
+        public string password {
+            get;
+            set;
+        }
+    }
+    public class Tokens
+    {
+        [JsonProperty("tokenID")]
+        public int tokenID
+        {
+            get;
+            set;
+        }
+        [JsonProperty("pwID")]
+        public int pwID
+        {
+            get;
+            set;
+        }
+        [JsonProperty("token")]
+        public string token
+        {
+            get;
+            set;
+        }
+        [JsonProperty("created_at")]
+        public DateTime created_at
+        {
             get;
             set;
         }
