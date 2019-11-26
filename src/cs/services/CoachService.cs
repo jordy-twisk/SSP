@@ -1,34 +1,30 @@
-﻿﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using System.Net.Http;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Net;
+﻿using System;
+using System.Data;
 using System.Text;
+using System.Net;
+using System.Net.Http;
+using System.Reflection;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace TinderCloneV1 {
     class CoachService : ICoachService {
         private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
-        private readonly HttpRequestMessage req;
-        private readonly HttpRequest request;
         private readonly ILogger log;
 
-        public CoachService(HttpRequestMessage req, HttpRequest request, ILogger log) {
-            this.req = req;
-            this.request = request;
+        public CoachService(ILogger log) {
             this.log = log;
         }
 
-        /*Returns the profile of all coaches (from the student table)
-          and the workload of all coaches (from the coach table) */
+        /* Returns the profile of all coaches (from the student table)
+           and the workload of all coaches (from the coach table) */
         public async Task<HttpResponseMessage> GetAllCoachProfiles() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             List<CoachProfile> listOfCoachProfiles = new List<CoachProfile>();
 
             string queryString = $@"SELECT Student.*, Coach.workload
@@ -52,7 +48,7 @@ namespace TinderCloneV1 {
                                     /*Query was succesfully executed, but returned no data.
                                     Return response code [404 Not Found] */
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 } 
                                 while (reader.Read()) {
                                     listOfCoachProfiles.Add(new CoachProfile(
@@ -90,7 +86,7 @@ namespace TinderCloneV1 {
                 return exceptionHandler.ServiceUnavailable(log); 
             }
 
-            var jsonToReturn = JsonConvert.SerializeObject(listOfCoachProfiles);
+            string jsonToReturn = JsonConvert.SerializeObject(listOfCoachProfiles);
             log.LogInformation($"{HttpStatusCode.OK} | Data shown succesfully.");
 
             /* Return response code [200 OK] and the requested data. */
@@ -100,109 +96,109 @@ namespace TinderCloneV1 {
         }
 
         /* Creates a new profile based on the data in the requestbody */
-        public async Task<HttpResponseMessage> CreateCoachProfile() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            CoachProfile coachProfile;
-            JObject jObject;
+        public async Task<HttpResponseMessage> CreateCoachProfile(JObject requestBodyData) {
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            /* Split the requestBody in a Coach and Student entity */
+            JObject coachProfile = requestBodyData.SelectToken("coach").ToObject<JObject>();
+            JObject studentProfile = requestBodyData.SelectToken("student").ToObject<JObject>();
 
-            /* Read from the requestBody */
-            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
-                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                coachProfile = jObject.ToObject<CoachProfile>();
-            }
-
-            /* Verify if all parameters for the Coach table exist.
-            One or more parameters may be missing, in which case a [400 Bad Request] is returned. */
-            if (jObject["coach"]["studentID"] == null || jObject["coach"]["workload"] == null) {
-                log.LogError("Requestbody is missing data for the coach table!");
+            /* Check if the required data is present in the requestBody 
+               before making the CoachProfile object */
+            if (coachProfile["studentID"] == null 
+             || coachProfile["workload"] == null
+             || studentProfile["studentID"] == null){
+                log.LogError("Requestbody is missing the required data");
                 return exceptionHandler.BadRequest(log);
             }
 
-            /* Verify if all required parameters for the Student table exist.
-              One or more parameters may be missing, in which case a [400 Bad Request] is returned. */
-            if (jObject["user"]["studentID"] == null) {
-                log.LogError("Requestbody is missing data for the student table!");
-                return exceptionHandler.BadRequest(log);
-            }
+            /* Create the entities from the split-requestBody fro readability */
+            Coach newCoach = coachProfile.ToObject<Coach>();
+            Student newStudent = studentProfile.ToObject<Student>();
 
-            /* Verify if the studentID of the "user" and the "coach" objects match.
+            /* Verify if the studentID of the "student" and the "coach" objects match.
                A [400 Bad Request] is returned if these are mismatching. */
-            if (coachProfile.user.studentID != coachProfile.coach.studentID) {
-                log.LogError("RequestBody has mismatching studentID for user and coach objects!");
+            if (newStudent.studentID != newCoach.studentID) {
+                log.LogError("RequestBody has mismatching studentID for student and coach objects!");
                 return exceptionHandler.BadRequest(log);
             }
-                 
+
             /* All fields for the Coach table are required */
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
                                             VALUES (@studentID, @workload);";
-            
+
             /* The SQL query for the Students table has to be dynamically generated, as it contains many optional fields.
                By manually adding the columns to the query string (if they're present in the request body) we prevent
                SQL injection and ensure no illegitimate columnnames are entered into the SQL query. */
 
             /* Dynamically create the INSERT INTO line of the SQL statement: */
-            string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
-            if (jObject["user"]["firstName"] != null)       queryString_Student += ", firstName";
-            if (jObject["user"]["surName"] != null)         queryString_Student += ", surName";
-            if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", phoneNumber";
-            if (jObject["user"]["photo"] != null)           queryString_Student += ", photo";
-            if (jObject["user"]["description"] != null)     queryString_Student += ", description";
-            if (jObject["user"]["degree"] != null)          queryString_Student += ", degree";
-            if (jObject["user"]["study"] != null)           queryString_Student += ", study";
-            if (jObject["user"]["studyYear"] != null)       queryString_Student += ", studyYear";
-            if (jObject["user"]["interests"] != null)       queryString_Student += ", interests";
+            string queryString_Student = $@"INSERT INTO [dbo].[Student] (";
+            foreach (JProperty property in studentProfile.Properties()) {
+                foreach (PropertyInfo props in newStudent.GetType().GetProperties()) {
+                    if (props.Name == property.Name) {
+                        queryString_Student += $"{property.Name}, ";
+                    }
+                }
+            }
+
+            queryString_Student = RemoveLastCharacters(queryString_Student, 2);
             queryString_Student += ") ";
 
             /* Dynamically create the VALUES line of the SQL statement: */
-            queryString_Student += "VALUES (@studentID";
-            if (jObject["user"]["firstName"] != null)       queryString_Student += ", @firstName";
-            if (jObject["user"]["surName"] != null)         queryString_Student += ", @surName";
-            if (jObject["user"]["phoneNumber"] != null)     queryString_Student += ", @phoneNumber";
-            if (jObject["user"]["photo"] != null)           queryString_Student += ", @photo";
-            if (jObject["user"]["description"] != null)     queryString_Student += ", @description";
-            if (jObject["user"]["degree"] != null)          queryString_Student += ", @degree";
-            if (jObject["user"]["study"] != null)           queryString_Student += ", @study";
-            if (jObject["user"]["studyYear"] != null)       queryString_Student += ", @studyYear";
-            if (jObject["user"]["interests"] != null)       queryString_Student += ", @interests";
+            queryString_Student += "VALUES (";
+            foreach (JProperty property in studentProfile.Properties()) {
+                foreach (PropertyInfo props in newStudent.GetType().GetProperties()) {
+                    if (props.Name == property.Name) {
+                        queryString_Student += $"@{property.Name}, ";
+                    }
+                }
+            }
+
+            queryString_Student = RemoveLastCharacters(queryString_Student, 2);
             queryString_Student += ");";
 
             try {
                 using (SqlConnection connection = new SqlConnection(connectionString)) {
                     /*The connection is automatically closed when going out of scope of the using block.
                       The connection may fail to open, in which case return a [503 Service Unavailable]. */
+                    int studentCreated = 0;
+
                     connection.Open();
 
                     try {
                         /*Insert profile into the Student table.
                           The Query may fail, in which case a [400 Bad Request] is returned. */
                         using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
-                            /* Parameters are used to ensure no SQL injection can take place */
-                            command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = coachProfile.user.studentID;
-                            if (jObject["user"]["firstName"] != null)       command.Parameters.Add("@firstName",    System.Data.SqlDbType.VarChar).Value =      coachProfile.user.firstName;
-                            if (jObject["user"]["surName"] != null)         command.Parameters.Add("@surName",      System.Data.SqlDbType.VarChar).Value =      coachProfile.user.surName;
-                            if (jObject["user"]["phoneNumber"] != null)     command.Parameters.Add("@phoneNumber",  System.Data.SqlDbType.VarChar).Value =      coachProfile.user.phoneNumber;
-                            if (jObject["user"]["photo"] != null)           command.Parameters.Add("@photo",        System.Data.SqlDbType.VarChar).Value =      coachProfile.user.photo;
-                            if (jObject["user"]["description"] != null)     command.Parameters.Add("@description",  System.Data.SqlDbType.VarChar).Value =      coachProfile.user.description;
-                            if (jObject["user"]["degree"] != null)          command.Parameters.Add("@degree",       System.Data.SqlDbType.VarChar).Value =      coachProfile.user.degree;
-                            if (jObject["user"]["study"] != null)           command.Parameters.Add("@study",        System.Data.SqlDbType.VarChar).Value =      coachProfile.user.study;
-                            if (jObject["user"]["studyYear"] != null)       command.Parameters.Add("@studyYear",    System.Data.SqlDbType.Int).Value =          coachProfile.user.studyYear;
-                            if (jObject["user"]["interests"] != null)       command.Parameters.Add("@interests",    System.Data.SqlDbType.VarChar).Value =      coachProfile.user.interests;
-                            
+                            /* Parameters are used to ensure no SQL injection can take place 
+                            To ensure generic code, a dynamic object is made to make a new Entity and be passed into the injection function */
+                            dynamic dObject = newStudent;
+                            AddSqlInjection(studentProfile, dObject, command);
+
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            command.ExecuteReader();
+                            // PREVIOUSLY: await command.ExecuteReaderAsync();
+                            studentCreated =  command.ExecuteNonQuery();
                         }
 
                         /*Insert profile into the Coach table.
                           The Query may fail, in which case a [400 Bad Request] is returned. */
                         using (SqlCommand command = new SqlCommand(queryString_Coach, connection)) {
-                            /* Parameters are used to ensure no SQL injection can take place */
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = coachProfile.coach.studentID;
-                            command.Parameters.Add("@workload", System.Data.SqlDbType.Int).Value = coachProfile.coach.workload;
+                            /* Parameters are used to ensure no SQL injection can take place
+                               To ensure generic code, a dynamic object is made to make a new Entity and be passed into the injection function*/
+                            dynamic dObject = newCoach;
+                            AddSqlInjection(coachProfile, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
-                            command.ExecuteReader();
+                            /* Is the student query affected 0 rows (i.e.: Student did not create then
+                               the coach cannot exists as well, so dont make the coach*/
+                            if (studentCreated == 1) {
+                                // PREVIOUSLY: await command.ExecuteReaderAsync();
+                                command.ExecuteNonQuery();
+                            }
+                            else {
+                                log.LogError($"Cannot create coach profile, student does not exists");
+                                return exceptionHandler.BadRequest(log);
+                            }
                         }
                     } catch (SqlException e) {
                         /* The Query may fail, in which case a [400 Bad Request] is returned.
@@ -226,9 +222,9 @@ namespace TinderCloneV1 {
         }
 
         /* Returns the profile of the coach (from the student table) 
-          and the workload of the coach (from the coach table) */
+           and the workload of the coach (from the coach table) */
         public async Task<HttpResponseMessage> GetCoachProfileByID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             CoachProfile newCoachProfile = new CoachProfile();
 
             string queryString = $@"SELECT Student.*, Coach.workload
@@ -247,7 +243,8 @@ namespace TinderCloneV1 {
                         /* Get profile from the Student and Coach tables */
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             /* Parameters are used to ensure no SQL injection can take place */
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
+
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             /* The Query may fail, in which case a [400 Bad Request] is returned. */
@@ -256,7 +253,7 @@ namespace TinderCloneV1 {
                                     /* Query was succesfully executed, but returned no data.
                                        Return response code [404 Not Found] */
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 } 
                                 while (reader.Read()) {
                                     newCoachProfile = new CoachProfile(
@@ -306,7 +303,7 @@ namespace TinderCloneV1 {
         /* Deletes the Coach from the Coach table
            then deletes the Coach from Studen table */
         public async Task<HttpResponseMessage> DeleteCoachProfileByID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             //Query string used to delete the coach from the coach table
             string queryString_Coach = $@"DELETE
@@ -329,7 +326,8 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString_Coach, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
+
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
                             int affectedRows = command.ExecuteNonQuery();
@@ -337,7 +335,7 @@ namespace TinderCloneV1 {
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected while deleting from the Coach table.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
 
@@ -345,7 +343,8 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
+
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
                             int affectedRows = command.ExecuteNonQuery();
@@ -353,7 +352,7 @@ namespace TinderCloneV1 {
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected while deleting from the Student table.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {
@@ -376,9 +375,9 @@ namespace TinderCloneV1 {
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
-        //Returns the workload of the coach (from the coach table)
+        /* Returns the workload of the coach (from the coach table) */
         public async Task<HttpResponseMessage> GetCoachByID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             Coach newCoach = new Coach();
 
             string queryString = $@"SELECT *
@@ -395,7 +394,8 @@ namespace TinderCloneV1 {
                         //Get data from the Coach table by studentID
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
+
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             //The Query may fail, in which case a [400 Bad Request] is returned.
@@ -404,7 +404,7 @@ namespace TinderCloneV1 {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 } 
                                 while (reader.Read()) {
                                     newCoach = new Coach {
@@ -437,24 +437,18 @@ namespace TinderCloneV1 {
             };
         }
 
-        //Updates the workload of the coach (in the coach table)
-        public async Task<HttpResponseMessage> UpdateCoachByID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
-            Coach newCoach;
-            JObject jObject;
-
-            //Read from the requestBody
-            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
-                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                newCoach = jObject.ToObject<Coach>();
-            }
+        /* Updates the workload of the coach (in the coach table) */ 
+        public async Task<HttpResponseMessage> UpdateCoachByID(int coachID, JObject requestBodyData) {
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             //newCoach.workload will be 0 if the requestbody contains no "workload" parameter,
             //in which case [400 Bad Request] is returned.
-            if (jObject["workload"] == null) {
+            if(requestBodyData["workload"] == null) {
                 log.LogError("Requestbody contains no workload.");
                 return exceptionHandler.BadRequest(log);
             }
+
+            Coach newCoach = requestBodyData.ToObject<Coach>();
 
             string queryString = $@"UPDATE [dbo].[Coach]
                                     SET workload = @workload
@@ -471,8 +465,13 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@workload", System.Data.SqlDbType.Int).Value = newCoach.workload;
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                                /* PREVIOUSLY: */
+                            //command.Parameters.Add("@workload", SqlDbType.Int).Value = newCoach.workload;
+                            //command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
+                                /* CHANGED to: due to consistency and scalability */
+                            dynamic dObject = newCoach;
+                            AddSqlInjection(requestBodyData, dObject, command);
+
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             int affectedRows = command.ExecuteNonQuery();
@@ -480,7 +479,7 @@ namespace TinderCloneV1 {
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {
@@ -501,6 +500,30 @@ namespace TinderCloneV1 {
 
             //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
+        }
+
+        public string RemoveLastCharacters(string queryString, int NumberOfCharacters) {
+            queryString = queryString.Remove(queryString.Length - NumberOfCharacters);
+            return queryString;
+        }
+        public void AddSqlInjection(JObject rboy, dynamic dynaObject, SqlCommand cmd) {
+            foreach (JProperty property in rboy.Properties()) {
+                foreach (PropertyInfo props in dynaObject.GetType().GetProperties()) {
+                    if (props.Name == property.Name) {
+                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
+
+                        if (type == typeof(string)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(dynaObject, null);
+                        }
+                        if (type == typeof(int)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(dynaObject, null);
+                        }
+                        if (type == typeof(DateTime)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(dynaObject, null);
+                        }
+                    }
+                }
+            }
         }
     }
 }

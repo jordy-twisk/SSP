@@ -1,61 +1,47 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.IO;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Net;
+﻿using System;
+using System.Data;
 using System.Text;
+using System.Net;
+using System.Net.Http;
+using System.Reflection;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
+using Microsoft.Extensions.Logging;
 
 namespace TinderCloneV1 {
     class TutorantService : ITutorantService {
 
         private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
-        private readonly HttpRequestMessage req;
-        private readonly HttpRequest request;
         private readonly ILogger log;
 
-        public TutorantService(HttpRequestMessage req, HttpRequest request, ILogger log) {
-            this.req = req;
-            this.request = request;
+        public TutorantService(ILogger log) {
             this.log = log;
         }
         // Create a new profile based on the data in the request body.
-        public async Task<HttpResponseMessage> CreateTutorantProfile() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            TutorantProfile tutorantProfile;
-            JObject jObject;
+        public async Task<HttpResponseMessage> CreateTutorantProfile(JObject requestBodyData) {
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            JObject tutorantProfile = requestBodyData.SelectToken("tutorant").ToObject<JObject>();
+            JObject studentProfile = requestBodyData.SelectToken("student").ToObject<JObject>();
 
-            // Read from the request body.
-            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
-                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                tutorantProfile = jObject.ToObject<TutorantProfile>();
-            }
-
-            // Verify if all parameters for the Tutorant table exist.
+            // Verify if all parameters for the tables exist.
             // One or more parameters may be missing, in which case a [400 Bad Request] is returned.
-            if (jObject["tutorant"]["studentID"] == null) {
-                log.LogError("Requestbody is missing data for the tutorant table!");
+            if (tutorantProfile["studentID"] == null ||
+                studentProfile["studentID"] == null) {
+                log.LogError("Requestbody is missing the required data");
                 return exceptionHandler.BadRequest(log);
             }
 
-            // Verify if all required parameters for the Student table exist,
-            // return response code 400 if one or more is missing.
-            if (jObject["user"]["studentID"] == null) {
-                log.LogError("Requestbody is missing data for the student table!");
-                return exceptionHandler.BadRequest(log);
-            }
+            Tutorant newTutorant = tutorantProfile.ToObject<Tutorant>();
+            Student newStudent = studentProfile.ToObject<Student>();
 
             // Verify if the studentID of the "user" and the "tutorant" objects match.
             // A [400 Bad Request] is returned if these are mismatching.
-            if (tutorantProfile.tutorant.studentID != tutorantProfile.user.studentID){
-                log.LogError("RequestBody has mismatching studentID for user and tutorant objects!");
+            if (newTutorant.studentID != newStudent.studentID){
+                log.LogError("RequestBody has mismatching studentID for student and tutorant objects!");
                 return exceptionHandler.BadRequest(log);
             }
             
@@ -67,65 +53,66 @@ namespace TinderCloneV1 {
             // SQL injection and ensure no illegitimate columnnames are entered into the SQL query.
 
             // Dynamically create the INSERT INTO line of the SQL statement:
-            string queryString_Student = $@"INSERT INTO [dbo].[Student] (studentID";
-            if (jObject["user"]["firstName"] != null) queryString_Student += ", firstName";
-            if (jObject["user"]["surName"] != null) queryString_Student += ", surName";
-            if (jObject["user"]["phoneNumber"] != null) queryString_Student += ", phoneNumber";
-            if (jObject["user"]["photo"] != null) queryString_Student += ", photo";
-            if (jObject["user"]["description"] != null) queryString_Student += ", description";
-            if (jObject["user"]["degree"] != null) queryString_Student += ", degree";
-            if (jObject["user"]["study"] != null) queryString_Student += ", study";
-            if (jObject["user"]["studyYear"] != null) queryString_Student += ", studyYear";
-            if (jObject["user"]["interests"] != null) queryString_Student += ", interests";
+            string queryString_Student = $@"INSERT INTO [dbo].[Student] (";
+            foreach (JProperty property in studentProfile.Properties()) {
+                foreach (PropertyInfo props in newStudent.GetType().GetProperties()) {
+                    if (props.Name == property.Name) {
+                        queryString_Student += $"{property.Name}, ";
+                    }
+                }
+            }
+            queryString_Student = RemoveLastCharacters(queryString_Student, 2);
             queryString_Student += ") ";
 
             // Dynamically create the VALUES line of the SQL statement:
-            queryString_Student += "VALUES (@studentID";
-            if (jObject["user"]["firstName"] != null) queryString_Student += ", @firstName";
-            if (jObject["user"]["surName"] != null) queryString_Student += ", @surName";
-            if (jObject["user"]["phoneNumber"] != null) queryString_Student += ", @phoneNumber";
-            if (jObject["user"]["photo"] != null) queryString_Student += ", @photo";
-            if (jObject["user"]["description"] != null) queryString_Student += ", @description";
-            if (jObject["user"]["degree"] != null) queryString_Student += ", @degree";
-            if (jObject["user"]["study"] != null) queryString_Student += ", @study";
-            if (jObject["user"]["studyYear"] != null) queryString_Student += ", @studyYear";
-            if (jObject["user"]["interests"] != null) queryString_Student += ", @interests";
+            queryString_Student += "VALUES (";
+            foreach (JProperty property in studentProfile.Properties()) {
+                foreach (PropertyInfo props in newStudent.GetType().GetProperties()) {
+                    if (props.Name == property.Name) {
+                        queryString_Student += $"@{property.Name}, ";
+                    }
+                }
+            }
+
+            queryString_Student = RemoveLastCharacters(queryString_Student, 2);
             queryString_Student += ");";
 
             try {
                 using (SqlConnection connection = new SqlConnection(connectionString)) {
                     // The connection is automatically closed when going out of scope of the using block.
                     // The connection may fail to open, in which case return a [503 Service Unavailable].
+                    int studentCreated = 0;
+
                     connection.Open();
 
                     try {
                         // Insert profile into the Student table
                         using (SqlCommand command = new SqlCommand(queryString_Student, connection)) {
+
                             // Parameters are used to ensure no SQL injection can take place.
-                            command.Parameters.Add("studentID", System.Data.SqlDbType.Int).Value = tutorantProfile.user.studentID;
-                            if (jObject["user"]["firstName"] != null)   command.Parameters.Add("@firstName", System.Data.SqlDbType.NVarChar).Value =     tutorantProfile.user.firstName;
-                            if (jObject["user"]["surName"] != null)     command.Parameters.Add("@surName", System.Data.SqlDbType.NVarChar).Value =       tutorantProfile.user.surName;
-                            if (jObject["user"]["phoneNumber"] != null) command.Parameters.Add("@phoneNumber", System.Data.SqlDbType.NVarChar).Value =   tutorantProfile.user.phoneNumber;
-                            if (jObject["user"]["photo"] != null)       command.Parameters.Add("@photo", System.Data.SqlDbType.VarChar).Value =          tutorantProfile.user.photo;
-                            if (jObject["user"]["description"] != null) command.Parameters.Add("@description", System.Data.SqlDbType.VarChar).Value =    tutorantProfile.user.description;
-                            if (jObject["user"]["degree"] != null)      command.Parameters.Add("@degree", System.Data.SqlDbType.NVarChar).Value =        tutorantProfile.user.degree;
-                            if (jObject["user"]["study"] != null)       command.Parameters.Add("@study", System.Data.SqlDbType.NVarChar).Value =         tutorantProfile.user.study;
-                            if (jObject["user"]["studyYear"] != null)   command.Parameters.Add("@studyYear", System.Data.SqlDbType.Int).Value =          tutorantProfile.user.studyYear;
-                            if (jObject["user"]["interests"] != null)   command.Parameters.Add("@interests", System.Data.SqlDbType.VarChar).Value =      tutorantProfile.user.interests;
+                            dynamic dObject = newStudent;
+                            AddSqlInjection(studentProfile, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
-                            await command.ExecuteNonQueryAsync();
+                            studentCreated = command.ExecuteNonQuery();
                         }
 
                         // Insert profile into the Tutorant table.
                         using (SqlCommand command = new SqlCommand(queryStringTutorant, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = tutorantProfile.tutorant.studentID;
+                            dynamic dObject = newTutorant;
+                            AddSqlInjection(tutorantProfile, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryStringTutorant}");
 
-                            await command.ExecuteNonQueryAsync();
+                            if (studentCreated == 1) {
+                                command.ExecuteNonQuery();
+                            }
+                            else {
+                                log.LogError($"Cannot create tutorant profile, student does not exists");
+                                return exceptionHandler.BadRequest(log);
+                            }
                         }
                     } catch (SqlException e) {
                         // The Query may fail, in which case a [400 Bad Request] is returned.
@@ -151,7 +138,7 @@ namespace TinderCloneV1 {
         // Deletes the Tutorant from the Tutorant table.
         // then deletes the Tutorant from Student table.
         public async Task<HttpResponseMessage> DeleteTutorantProfileByID(int tutorantID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             // Query string used to delete the tutorant from the Tutorant table.
             string queryStringTutorant = $@"DELETE FROM [dbo].[Tutorant] WHERE studentID = @tutorantID";
@@ -164,11 +151,12 @@ namespace TinderCloneV1 {
                     //The connection is automatically closed when going out of scope of the using block.
                     //The connection may fail to open, in which case a [503 Service Unavailable] is returned.
                     connection.Open();
+
                     try {
                         // Delete the tutorant from the tutorant table.
                         using (SqlCommand command = new SqlCommand(queryStringTutorant, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
-                            command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+                            command.Parameters.Add("@tutorantID", SqlDbType.Int).Value = tutorantID;
 
                             log.LogInformation($"Executing the following query: {queryStringTutorant}");
 
@@ -177,7 +165,7 @@ namespace TinderCloneV1 {
                             // The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected while deleting from the Tutorant table.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
 
@@ -192,7 +180,7 @@ namespace TinderCloneV1 {
                             //The SQL query must have been incorrect if no rows were executed, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected while deleting from the Student table.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {
@@ -217,7 +205,7 @@ namespace TinderCloneV1 {
 
         // Returns the profile of all tutorants (from the student table).
         public async Task<HttpResponseMessage> GetAllTutorantProfiles() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             List<TutorantProfile> listOfTutorantProfiles = new List<TutorantProfile>();
 
             string queryString = $@"SELECT Student.* FROM [dbo].[Student]
@@ -239,7 +227,7 @@ namespace TinderCloneV1 {
                                     // Query was succesfully executed, but returned no data.
                                     // Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 }
                                 while (reader.Read()) {
                                     listOfTutorantProfiles.Add(new TutorantProfile(
@@ -287,7 +275,7 @@ namespace TinderCloneV1 {
 
         // Returns the profile of the tutorant (from the student table).
         public async Task<HttpResponseMessage> GetTutorantProfileByID(int tutorantID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             TutorantProfile newTutorantProfile = new TutorantProfile();
 
             string queryString = $@"SELECT Student.* FROM [dbo].[Student]
@@ -303,7 +291,7 @@ namespace TinderCloneV1 {
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
-                            command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+                            command.Parameters.Add("@tutorantID", SqlDbType.Int).Value = tutorantID;
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             //The Query may fail, in which case a [400 Bad Request] is returned.
@@ -312,7 +300,7 @@ namespace TinderCloneV1 {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 } 
                                 while (reader.Read()) {
                                     newTutorantProfile = new TutorantProfile(
@@ -356,6 +344,30 @@ namespace TinderCloneV1 {
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
+        }
+
+        public string RemoveLastCharacters(string queryString, int NumberOfCharacters) {
+            queryString = queryString.Remove(queryString.Length - NumberOfCharacters);
+            return queryString;
+        }
+        public void AddSqlInjection(JObject rboy, dynamic dynaObject, SqlCommand cmd) {
+            foreach (JProperty property in rboy.Properties()) {
+                foreach (PropertyInfo props in dynaObject.GetType().GetProperties()) {
+                    if (props.Name == property.Name) {
+                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
+
+                        if (type == typeof(string)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(dynaObject, null);
+                        }
+                        if (type == typeof(int)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(dynaObject, null);
+                        }
+                        if (type == typeof(DateTime)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(dynaObject, null);
+                        }
+                    }
+                }
+            }
         }
     }
 }

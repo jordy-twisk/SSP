@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Data;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Net.Http;
@@ -8,42 +8,32 @@ using System.Data.SqlClient;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
-using System.Reflection;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace TinderCloneV1 {
     class CoachTutorantService : ICoachTutorantService {
         private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
-        private readonly HttpRequestMessage req;
-        private readonly HttpRequest request;
         private readonly ILogger log;
 
-        public CoachTutorantService(HttpRequestMessage req, HttpRequest request, ILogger log) {
-            this.req = req;
-            this.request = request;
+        public CoachTutorantService(ILogger log) {
             this.log = log;
         }
 
         //Changes the status of a CoachTutorantConnection.
-        public async Task<HttpResponseMessage> UpdateConnection() {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            CoachTutorantConnection coachTutorantConnection;
-            JObject jObject;
-
-            //Read from the requestBody
-            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
-                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                coachTutorantConnection = jObject.ToObject<CoachTutorantConnection>();
-            }
+        public async Task<HttpResponseMessage> UpdateConnection(JObject requestBodyData) {
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             //Verify if all parameters for the CoachTutorantConnection exist.
             //One or more parameters may be missing, in which case a [400 Bad Request] is returned.
-            if (jObject["studentIDTutorant"] == null || jObject["studentIDCoach"] == null || jObject["status"] == null) {
+            if (requestBodyData["status"] == null) {
                 log.LogError("Requestbody is missing data for the CoachTutorantConnection table!");
                 return exceptionHandler.BadRequest(log);
             }
+            
+            /* Make a Connection entity from the requestBody after checking the required fields */
+            CoachTutorantConnection coachTutorantConnection = requestBodyData.ToObject<CoachTutorantConnection>();
 
             string queryString = $@"UPDATE [dbo].[CoachTutorantConnection]
                                     SET status = @status
@@ -59,18 +49,17 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@status", System.Data.SqlDbType.VarChar).Value = coachTutorantConnection.status;
-                            command.Parameters.Add("@studentIDTutorant", System.Data.SqlDbType.Int).Value = coachTutorantConnection.studentIDTutorant;
-                            command.Parameters.Add("@studentIDCoach", System.Data.SqlDbType.Int).Value = coachTutorantConnection.studentIDCoach;
+                            dynamic dObject = coachTutorantConnection;
+                            AddSqlInjection(requestBodyData, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             int affectedRows = await command.ExecuteNonQueryAsync();
 
                             //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
-                            if(affectedRows == 0) {
+                            if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {
@@ -95,7 +84,7 @@ namespace TinderCloneV1 {
 
         //Returns all connections of a specific coach
         public async Task<HttpResponseMessage> GetAllConnectionsByCoachID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             List<CoachTutorantConnection> listOfCoachTutorantConnections = new List<CoachTutorantConnection>();
 
             string queryString = $@"SELECT *
@@ -111,7 +100,7 @@ namespace TinderCloneV1 {
                         //Get all connections from the CoachTutorantConnections table for a specific coach
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -121,7 +110,7 @@ namespace TinderCloneV1 {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 } 
                                 while (reader.Read()) {
                                     listOfCoachTutorantConnections.Add(new CoachTutorantConnection {
@@ -159,7 +148,7 @@ namespace TinderCloneV1 {
 
         //Delete all connections of a specific coach
         public async Task<HttpResponseMessage> DeleteConnectionByCoachID(int coachID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(coachID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             //Query string used to delete the coach from the coach table
             string queryString = $@"DELETE FROM [dbo].[CoachTutorantConnection]
@@ -184,7 +173,7 @@ namespace TinderCloneV1 {
                             //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
                     } catch (SqlException e) {
@@ -209,7 +198,7 @@ namespace TinderCloneV1 {
 
         //Returns the connection of a specific tutorant
         public async Task<HttpResponseMessage> GetConnectionByTutorantID(int tutorantID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             CoachTutorantConnection coachTutorantConnection = new CoachTutorantConnection();
 
             string queryString = $@"SELECT * FROM [dbo].[CoachTutorantConnection]
@@ -225,7 +214,7 @@ namespace TinderCloneV1 {
                         //Get connection from the CoachTutorantConnections table for a specific tutorant
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+                            command.Parameters.Add("@tutorantID", SqlDbType.Int).Value = tutorantID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -235,7 +224,7 @@ namespace TinderCloneV1 {
                                     //Query was succesfully executed, but returned no data.
                                     //Return response code [404 Not Found]
                                     log.LogError("SQL Query was succesfully executed, but returned no data.");
-                                    return exceptionHandler.NotFoundException(log);
+                                    return exceptionHandler.NotFound();
                                 }
                                 while (reader.Read()) {
                                     coachTutorantConnection = new CoachTutorantConnection {
@@ -272,23 +261,21 @@ namespace TinderCloneV1 {
         }
 
         //Create a new connection between a tutorant and coach
-        public async Task<HttpResponseMessage> CreateConnectionByTutorantID(int tutorantID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
-            CoachTutorantConnection coachTutorantConnection;
-            JObject jObject;
-
-            //Read from the requestBody
-            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync())) {
-                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                coachTutorantConnection = jObject.ToObject<CoachTutorantConnection>();
-            }
+        /* TODO: MAKE SURE THAT YOU CAN ONLY MAKE A CONNECTION WHEN THE STUDENTS EXISTS */
+        public async Task<HttpResponseMessage> CreateConnectionByTutorantID(int tutorantID, JObject tTocConnection) {
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             //Verify if all parameters for the CoachTutorantConnection exist.
             //One or more parameters may be missing, in which case a [400 Bad Request] is returned.
-            if (jObject["studentIDTutorant"] == null || jObject["studentIDCoach"] == null || jObject["status"] == null) {
+            if (tTocConnection["studentIDTutorant"] == null 
+                || tTocConnection["studentIDCoach"] == null 
+                || tTocConnection["status"] == null) {
                 log.LogError("Requestbody is missing data for the CoachTutorantConnection table!");
                 return exceptionHandler.BadRequest(log);
             }
+
+            /* Make a Connection entity from the requestBody after checking the required fields */
+            CoachTutorantConnection coachTutorantConnection = tTocConnection.ToObject<CoachTutorantConnection>();
 
             string queryString = $@"INSERT INTO [dbo].[CoachTutorantConnection] (studentIDTutorant, studentIDCoach, status)
                                     VALUES (@studentIDTutorant, @studentIDCoach, @status);";
@@ -303,10 +290,9 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@status", System.Data.SqlDbType.VarChar).Value = coachTutorantConnection.status;
-                            command.Parameters.Add("@studentIDTutorant", System.Data.SqlDbType.Int).Value = coachTutorantConnection.studentIDTutorant;
-                            command.Parameters.Add("@studentIDCoach", System.Data.SqlDbType.Int).Value = coachTutorantConnection.studentIDCoach;
-
+                            dynamic dObject = coachTutorantConnection;
+                            AddSqlInjection(tTocConnection, dObject, command);
+                           
                             log.LogInformation($"Executing the following query: {queryString}");
 
                             await command.ExecuteNonQueryAsync();
@@ -333,7 +319,7 @@ namespace TinderCloneV1 {
 
         //Delete the connections of a specific tutorant
         public async Task<HttpResponseMessage> DeleteConnectionByTutorantID(int tutorantID) {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(tutorantID);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
 
             //Query string used to delete the coach from the coach table
             string queryString = $@"DELETE FROM [dbo].[CoachTutorantConnection]
@@ -349,7 +335,7 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@tutorantID", System.Data.SqlDbType.Int).Value = tutorantID;
+                            command.Parameters.Add("@tutorantID", SqlDbType.Int).Value = tutorantID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -358,7 +344,7 @@ namespace TinderCloneV1 {
                             //The studentIDs must be incorrect if no rows were affected, return a [404 Not Found].
                             if (affectedRows == 0) {
                                 log.LogError("Zero rows were affected.");
-                                return exceptionHandler.NotFoundException(log);
+                                return exceptionHandler.NotFound();
                             }
                         }
 
@@ -380,6 +366,26 @@ namespace TinderCloneV1 {
 
             //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
+        }
+
+        public void AddSqlInjection(JObject rboy, dynamic dynaObject, SqlCommand cmd) {
+            foreach (JProperty property in rboy.Properties()) {
+                foreach (PropertyInfo props in dynaObject.GetType().GetProperties()) {
+                    if (props.Name == property.Name) {
+                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
+
+                        if (type == typeof(string)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(dynaObject, null);
+                        }
+                        if (type == typeof(int)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(dynaObject, null);
+                        }
+                        if (type == typeof(DateTime)) {
+                            cmd.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(dynaObject, null);
+                        }
+                    }
+                }
+            }
         }
     }
 }
