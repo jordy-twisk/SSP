@@ -15,6 +15,18 @@ namespace TinderCloneV1 {
             get;
             set;
         }
+        [JsonProperty("hash")]
+        public string hash
+        {
+            get;
+            set;
+        }
+        [JsonProperty("salt")]
+        public string salt
+        {
+            get;
+            set;
+        }
     }
     public class Tokens
     {

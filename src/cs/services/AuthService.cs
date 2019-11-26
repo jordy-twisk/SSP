@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -11,22 +11,26 @@ using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
-namespace TinderCloneV1 {
-    class AuthService : IAuthService {
+namespace TinderCloneV1
+{
+    class AuthService : IAuthService
+    {
         private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
         private readonly HttpRequestMessage req;
         private readonly HttpRequest request;
         private readonly ILogger log;
 
-        public AuthService(HttpRequestMessage req, HttpRequest request, ILogger log) {
+        public AuthService(HttpRequestMessage req, HttpRequest request, ILogger log)
+        {
             this.req = req;
             this.request = request;
             this.log = log;
         }
 
         /*Returns */
-        public async Task<HttpResponseMessage> CreateAuth() {
+        public async Task<HttpResponseMessage> CreateAuth()
+        {
             ExceptionHandler exceptionHandler = new ExceptionHandler(0);
             UserAuth userAuth;
             JObject jObject;
@@ -40,7 +44,8 @@ namespace TinderCloneV1 {
 
             /* Verify if all parameters for the Auth table exist.
             One or more parameters may be missing, in which case a [400 Bad Request] is returned. */
-            if (jObject["studentID"] == null || jObject["password"] == null) {
+            if (jObject["studentID"] == null || jObject["password"] == null)
+            {
                 log.LogError("Requestbody is missing data for the Auth table!");
                 return exceptionHandler.BadRequest(log);
             }
@@ -51,11 +56,11 @@ namespace TinderCloneV1 {
              * Encrypt password (make function for)
              * ********************************* */
             //encrypt password
-            string encryptedPassword = encryptPassword(userAuth.password);
+            userAuth = encryptPassword(userAuth);
 
             /* Create query for setting the data into the database */
-            string queryString = $@"INSERT INTO [dbo].[Auth] (studentID, password)
-                                    VALUES (@studentID, @password);";
+            string queryString = $@"INSERT INTO [dbo].[Auth] (studentID, part1, part2)
+                                    VALUES (@studentID, @salt, @hash);";
 
             try
             {
@@ -72,7 +77,8 @@ namespace TinderCloneV1 {
                         {
                             //Parameters are used to ensure no SQL injection can take place
                             command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = userAuth.studentID;
-                            command.Parameters.Add("@password", System.Data.SqlDbType.VarChar).Value = encryptedPassword;
+                            command.Parameters.Add("@salt", System.Data.SqlDbType.VarChar).Value = userAuth.salt;
+                            command.Parameters.Add("@hash", System.Data.SqlDbType.VarChar).Value = userAuth.hash;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -135,13 +141,9 @@ namespace TinderCloneV1 {
                 return exceptionHandler.BadRequest(log);
             }
 
-            //encrypt password
-            string encryptedPassword = encryptPassword(userAuth.password);
-
             /* Create query for selecting data from the database */
-            string queryString = $@"SELECT password FROM [dbo].[Auth] where studentID = @studentID";
+            string queryString = $@"SELECT part1, part2 FROM [dbo].[Auth] where studentID = @studentID";
 
-            string databasePassword = null;
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -159,7 +161,6 @@ namespace TinderCloneV1 {
                             command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = userAuth.studentID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
-                            log.LogInformation("test2");
 
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
@@ -167,7 +168,9 @@ namespace TinderCloneV1 {
                                 /* Return status code 404 */
                                 while (reader.Read())
                                 {
-                                    databasePassword = reader.GetString(0);
+                                    //part1 = salt, part2 = hash
+                                    userAuth.salt = reader.GetString(0);
+                                    userAuth.hash = reader.GetString(1);
                                 }
                             }
                         }
@@ -188,19 +191,18 @@ namespace TinderCloneV1 {
                 log.LogError(e.Message);
                 return exceptionHandler.ServiceUnavailable(log);
             }
-            log.LogInformation("test3");
 
             log.LogInformation($"{HttpStatusCode.Created} | Connection created succesfully.");
             HttpResponseMessage response;
 
-            if (databasePassword == encryptedPassword)
+            if (userAuth.hash == encryptPassword(userAuth).hash)
             {
                 //Return response code [201 Created].
                 response = new HttpResponseMessage(HttpStatusCode.OK);
                 try
                 {
                     response.Content = new StringContent(leaseToken(userAuth.studentID.ToString()));
-                } 
+                }
                 catch (Exception e)
                 {
                     log.LogError("Somthing went wrong within the token system");
@@ -251,12 +253,32 @@ namespace TinderCloneV1 {
         }
 
         // ************************************ Function, to do split into another class ************************************************
-        private string encryptPassword(string password)
+        private UserAuth encryptPassword(UserAuth user)
         {
             /* ******** To do ******************
              * encrypt password
              * ********************************* */
-            return password;
+            //https://stackoverflow.com/questions/2138429/hash-and-salt-passwords-in-c-sharp
+            //https://stackoverflow.com/questions/420843/how-does-password-salt-help-against-a-rainbow-table-attack
+            //https://stackoverflow.com/questions/1054022/best-way-to-store-password-in-database
+            /*
+             * //There is no need of a hash already inside here!
+             * user.hash = empty;
+             *  
+             * if (user.salt == empty) {
+             *      user.salt = createSalt();
+             *  }
+             * user.hash = createHash(user.salt, user.password)
+             * user.hash = shuffleHash(user.hash, user.salt, user.password)
+                   func: shuffle hash -> 
+                        //take something from the salt, encrypt it, put it in the middle of the hash
+             */
+
+            //for fixing code, now the password == hash
+            user.hash = user.password;
+            //for fixing code, now the salt is static, should be user different.
+            user.salt = "not a real salt";
+            return user;
         }
         public string leaseToken(string studentID)
         {
@@ -285,7 +307,7 @@ namespace TinderCloneV1 {
         {
             //use this inside a API call to check if token is valid.
             Tokens Token = getToken(givenToken);
-            if(checkTokenExpired(Token))
+            if (checkTokenExpired(Token))
             {
                 return false;
             }
@@ -504,5 +526,5 @@ namespace TinderCloneV1 {
             }
         }
     }
-    
+
 }
