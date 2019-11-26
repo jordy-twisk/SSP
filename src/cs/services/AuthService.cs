@@ -283,6 +283,7 @@ namespace TinderCloneV1 {
         }
         public bool checkTokenValid(string givenToken)
         {
+            //use this inside a API call to check if token is valid.
             Tokens Token = getToken(givenToken);
             if(checkTokenExpired(Token))
             {
