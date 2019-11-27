@@ -24,6 +24,7 @@ namespace TinderCloneV1 {
         // Create a new profile based on the data in the request body.
         public async Task<HttpResponseMessage> CreateTutorantProfile(JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            DatabaseFunctions databaseFunctions = new DatabaseFunctions();
             JObject tutorantProfile = requestBodyData.SelectToken("tutorant").ToObject<JObject>();
             JObject studentProfile = requestBodyData.SelectToken("student").ToObject<JObject>();
 
@@ -61,7 +62,7 @@ namespace TinderCloneV1 {
                     }
                 }
             }
-            queryString_Student = RemoveLastCharacters(queryString_Student, 2);
+            queryString_Student = databaseFunctions.RemoveLastCharacters(queryString_Student, 2);
             queryString_Student += ") ";
 
             // Dynamically create the VALUES line of the SQL statement:
@@ -74,7 +75,7 @@ namespace TinderCloneV1 {
                 }
             }
 
-            queryString_Student = RemoveLastCharacters(queryString_Student, 2);
+            queryString_Student = databaseFunctions.RemoveLastCharacters(queryString_Student, 2);
             queryString_Student += ");";
 
             try {
@@ -91,7 +92,7 @@ namespace TinderCloneV1 {
 
                             // Parameters are used to ensure no SQL injection can take place.
                             dynamic dObject = newStudent;
-                            AddSqlInjection(studentProfile, dObject, command);
+                            databaseFunctions.AddSqlInjection(studentProfile, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
@@ -232,19 +233,19 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     listOfTutorantProfiles.Add(new TutorantProfile(
                                         new Tutorant {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
+                                            studentID = SafeReader.SafeGetInt(reader, 0),
                                         },
                                         new Student {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                            firstName = GeneralFunctions.SafeGetString(reader, 1),
-                                            surName = GeneralFunctions.SafeGetString(reader, 2),
-                                            phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
-                                            photo = GeneralFunctions.SafeGetString(reader, 4),
-                                            description = GeneralFunctions.SafeGetString(reader, 5),
-                                            degree = GeneralFunctions.SafeGetString(reader, 6),
-                                            study = GeneralFunctions.SafeGetString(reader, 7),
-                                            studyYear = GeneralFunctions.SafeGetInt(reader, 8),
-                                            interests = GeneralFunctions.SafeGetString(reader, 9)
+                                            studentID = SafeReader.SafeGetInt(reader, 0),
+                                            firstName = SafeReader.SafeGetString(reader, 1),
+                                            surName = SafeReader.SafeGetString(reader, 2),
+                                            phoneNumber = SafeReader.SafeGetString(reader, 3),
+                                            photo = SafeReader.SafeGetString(reader, 4),
+                                            description = SafeReader.SafeGetString(reader, 5),
+                                            degree = SafeReader.SafeGetString(reader, 6),
+                                            study = SafeReader.SafeGetString(reader, 7),
+                                            studyYear = SafeReader.SafeGetInt(reader, 8),
+                                            interests = SafeReader.SafeGetString(reader, 9)
                                         }
                                     ));
                                 }
@@ -305,19 +306,19 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     newTutorantProfile = new TutorantProfile(
                                         new Tutorant {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0)
+                                            studentID = SafeReader.SafeGetInt(reader, 0)
                                         },
                                         new Student {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                            firstName = GeneralFunctions.SafeGetString(reader, 1),
-                                            surName = GeneralFunctions.SafeGetString(reader, 2),
-                                            phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
-                                            photo = GeneralFunctions.SafeGetString(reader, 4),
-                                            description = GeneralFunctions.SafeGetString(reader, 5),
-                                            degree = GeneralFunctions.SafeGetString(reader, 6),
-                                            study = GeneralFunctions.SafeGetString(reader, 7),
-                                            studyYear = GeneralFunctions.SafeGetInt(reader, 8),
-                                            interests = GeneralFunctions.SafeGetString(reader, 9)
+                                            studentID = SafeReader.SafeGetInt(reader, 0),
+                                            firstName = SafeReader.SafeGetString(reader, 1),
+                                            surName = SafeReader.SafeGetString(reader, 2),
+                                            phoneNumber = SafeReader.SafeGetString(reader, 3),
+                                            photo = SafeReader.SafeGetString(reader, 4),
+                                            description = SafeReader.SafeGetString(reader, 5),
+                                            degree = SafeReader.SafeGetString(reader, 6),
+                                            study = SafeReader.SafeGetString(reader, 7),
+                                            studyYear = SafeReader.SafeGetInt(reader, 8),
+                                            interests = SafeReader.SafeGetString(reader, 9)
                                         }
                                     );
                                 }
@@ -344,30 +345,6 @@ namespace TinderCloneV1 {
             return new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(jsonToReturn, Encoding.UTF8, "application/json")
             };
-        }
-
-        public string RemoveLastCharacters(string queryString, int NumberOfCharacters) {
-            queryString = queryString.Remove(queryString.Length - NumberOfCharacters);
-            return queryString;
-        }
-        public void AddSqlInjection(JObject rboy, dynamic dynaObject, SqlCommand cmd) {
-            foreach (JProperty property in rboy.Properties()) {
-                foreach (PropertyInfo props in dynaObject.GetType().GetProperties()) {
-                    if (props.Name == property.Name) {
-                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
-
-                        if (type == typeof(string)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(dynaObject, null);
-                        }
-                        if (type == typeof(int)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(dynaObject, null);
-                        }
-                        if (type == typeof(DateTime)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(dynaObject, null);
-                        }
-                    }
-                }
-            }
         }
     }
 }

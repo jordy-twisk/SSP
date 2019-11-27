@@ -53,20 +53,20 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     listOfCoachProfiles.Add(new CoachProfile(
                                         new Coach {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                            workload = GeneralFunctions.SafeGetInt(reader, 10)
+                                            studentID = SafeReader.SafeGetInt(reader, 0),
+                                            workload = SafeReader.SafeGetInt(reader, 10)
                                         },
                                         new Student {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                            firstName = GeneralFunctions.SafeGetString(reader, 1),
-                                            surName = GeneralFunctions.SafeGetString(reader, 2),
-                                            phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
-                                            photo = GeneralFunctions.SafeGetString(reader, 4),
-                                            description = GeneralFunctions.SafeGetString(reader, 5),
-                                            degree = GeneralFunctions.SafeGetString(reader, 6),
-                                            study = GeneralFunctions.SafeGetString(reader, 7),
-                                            studyYear = GeneralFunctions.SafeGetInt(reader, 8),
-                                            interests = GeneralFunctions.SafeGetString(reader, 9)
+                                            studentID = SafeReader.SafeGetInt(reader, 0),
+                                            firstName = SafeReader.SafeGetString(reader, 1),
+                                            surName = SafeReader.SafeGetString(reader, 2),
+                                            phoneNumber = SafeReader.SafeGetString(reader, 3),
+                                            photo = SafeReader.SafeGetString(reader, 4),
+                                            description = SafeReader.SafeGetString(reader, 5),
+                                            degree = SafeReader.SafeGetString(reader, 6),
+                                            study = SafeReader.SafeGetString(reader, 7),
+                                            studyYear = SafeReader.SafeGetInt(reader, 8),
+                                            interests = SafeReader.SafeGetString(reader, 9)
                                         }
                                     ));
                                 }
@@ -98,6 +98,7 @@ namespace TinderCloneV1 {
         /* Creates a new profile based on the data in the requestbody */
         public async Task<HttpResponseMessage> CreateCoachProfile(JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            DatabaseFunctions databaseFunctions = new DatabaseFunctions();
             /* Split the requestBody in a Coach and Student entity */
             JObject coachProfile = requestBodyData.SelectToken("coach").ToObject<JObject>();
             JObject studentProfile = requestBodyData.SelectToken("student").ToObject<JObject>();
@@ -140,7 +141,7 @@ namespace TinderCloneV1 {
                 }
             }
 
-            queryString_Student = RemoveLastCharacters(queryString_Student, 2);
+            queryString_Student = databaseFunctions.RemoveLastCharacters(queryString_Student, 2);
             queryString_Student += ") ";
 
             /* Dynamically create the VALUES line of the SQL statement: */
@@ -153,7 +154,7 @@ namespace TinderCloneV1 {
                 }
             }
 
-            queryString_Student = RemoveLastCharacters(queryString_Student, 2);
+            queryString_Student = databaseFunctions.RemoveLastCharacters(queryString_Student, 2);
             queryString_Student += ");";
 
             try {
@@ -171,7 +172,7 @@ namespace TinderCloneV1 {
                             /* Parameters are used to ensure no SQL injection can take place 
                             To ensure generic code, a dynamic object is made to make a new Entity and be passed into the injection function */
                             dynamic dObject = newStudent;
-                            AddSqlInjection(studentProfile, dObject, command);
+                            databaseFunctions.AddSqlInjection(studentProfile, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
@@ -185,7 +186,7 @@ namespace TinderCloneV1 {
                             /* Parameters are used to ensure no SQL injection can take place
                                To ensure generic code, a dynamic object is made to make a new Entity and be passed into the injection function*/
                             dynamic dObject = newCoach;
-                            AddSqlInjection(coachProfile, dObject, command);
+                            databaseFunctions.AddSqlInjection(coachProfile, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryString_Coach}");
 
@@ -258,20 +259,20 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     newCoachProfile = new CoachProfile(
                                         new Coach {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                            workload = GeneralFunctions.SafeGetInt(reader, 10)
+                                            studentID = SafeReader.SafeGetInt(reader, 0),
+                                            workload = SafeReader.SafeGetInt(reader, 10)
                                         },
                                         new Student {
-                                            studentID = GeneralFunctions.SafeGetInt(reader, 0),
-                                            firstName = GeneralFunctions.SafeGetString(reader, 1),
-                                            surName = GeneralFunctions.SafeGetString(reader, 2),
-                                            phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
-                                            photo = GeneralFunctions.SafeGetString(reader, 4),
-                                            description = GeneralFunctions.SafeGetString(reader, 5),
-                                            degree = GeneralFunctions.SafeGetString(reader, 6),
-                                            study = GeneralFunctions.SafeGetString(reader, 7),
-                                            studyYear = GeneralFunctions.SafeGetInt(reader, 8),
-                                            interests = GeneralFunctions.SafeGetString(reader, 9)
+                                            studentID = SafeReader.SafeGetInt(reader, 0),
+                                            firstName = SafeReader.SafeGetString(reader, 1),
+                                            surName = SafeReader.SafeGetString(reader, 2),
+                                            phoneNumber = SafeReader.SafeGetString(reader, 3),
+                                            photo = SafeReader.SafeGetString(reader, 4),
+                                            description = SafeReader.SafeGetString(reader, 5),
+                                            degree = SafeReader.SafeGetString(reader, 6),
+                                            study = SafeReader.SafeGetString(reader, 7),
+                                            studyYear = SafeReader.SafeGetInt(reader, 8),
+                                            interests = SafeReader.SafeGetString(reader, 9)
                                         }
                                     );
                                 }
@@ -408,8 +409,8 @@ namespace TinderCloneV1 {
                                 } 
                                 while (reader.Read()) {
                                     newCoach = new Coach {
-                                        studentID = GeneralFunctions.SafeGetInt(reader, 1),
-                                        workload = GeneralFunctions.SafeGetInt(reader, 2)
+                                        studentID = SafeReader.SafeGetInt(reader, 1),
+                                        workload = SafeReader.SafeGetInt(reader, 2)
                                     };
                                 }
                             }
@@ -502,28 +503,6 @@ namespace TinderCloneV1 {
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
-        public string RemoveLastCharacters(string queryString, int NumberOfCharacters) {
-            queryString = queryString.Remove(queryString.Length - NumberOfCharacters);
-            return queryString;
-        }
-        public void AddSqlInjection(JObject rboy, dynamic dynaObject, SqlCommand cmd) {
-            foreach (JProperty property in rboy.Properties()) {
-                foreach (PropertyInfo props in dynaObject.GetType().GetProperties()) {
-                    if (props.Name == property.Name) {
-                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
-
-                        if (type == typeof(string)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(dynaObject, null);
-                        }
-                        if (type == typeof(int)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(dynaObject, null);
-                        }
-                        if (type == typeof(DateTime)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(dynaObject, null);
-                        }
-                    }
-                }
-            }
-        }
+        
     }
 }

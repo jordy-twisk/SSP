@@ -25,6 +25,7 @@ namespace TinderCloneV1 {
         // Creates a new message based on data given in the request body.
         public async Task<HttpResponseMessage> CreateMessage(JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            DatabaseFunctions databaseFunctions = new DatabaseFunctions();
 
             // Verify if all parameters for the Message table exist,
             // return response code 400 if one or more of the parameters are missing.
@@ -51,7 +52,7 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
                             dynamic dObject = newMessage;
-                            AddSqlInjection(requestBodyData, dObject, command);
+                            databaseFunctions.AddSqlInjection(requestBodyData, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -156,12 +157,12 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     listOfMessages.Add(new Message {
                                         MessageID = reader.GetInt32(0),
-                                        type = GeneralFunctions.SafeGetString(reader, 1),
-                                        payload = GeneralFunctions.SafeGetString(reader, 2),
-                                        created = GeneralFunctions.SafeGetDateTime(reader, 3),
-                                        lastModified = GeneralFunctions.SafeGetDateTime(reader, 4),
-                                        senderID = GeneralFunctions.SafeGetInt(reader, 5),
-                                        receiverID = GeneralFunctions.SafeGetInt(reader, 6)
+                                        type = SafeReader.SafeGetString(reader, 1),
+                                        payload = SafeReader.SafeGetString(reader, 2),
+                                        created = SafeReader.SafeGetDateTime(reader, 3),
+                                        lastModified = SafeReader.SafeGetDateTime(reader, 4),
+                                        senderID = SafeReader.SafeGetInt(reader, 5),
+                                        receiverID = SafeReader.SafeGetInt(reader, 6)
                                     });
                                 }
                             }
@@ -217,12 +218,12 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     newMessage = new Message {
                                         MessageID = reader.GetInt32(0),
-                                        type = GeneralFunctions.SafeGetString(reader, 1),
-                                        payload = GeneralFunctions.SafeGetString(reader, 2),
-                                        created = GeneralFunctions.SafeGetDateTime(reader, 3),
-                                        lastModified = GeneralFunctions.SafeGetDateTime(reader, 4),
-                                        senderID = GeneralFunctions.SafeGetInt(reader, 5),
-                                        receiverID = GeneralFunctions.SafeGetInt(reader, 6)
+                                        type = SafeReader.SafeGetString(reader, 1),
+                                        payload = SafeReader.SafeGetString(reader, 2),
+                                        created = SafeReader.SafeGetDateTime(reader, 3),
+                                        lastModified = SafeReader.SafeGetDateTime(reader, 4),
+                                        senderID = SafeReader.SafeGetInt(reader, 5),
+                                        receiverID = SafeReader.SafeGetInt(reader, 6)
                                     };
                                 }
                             }
@@ -253,6 +254,7 @@ namespace TinderCloneV1 {
 
         public async Task<HttpResponseMessage> UpdateMessageByID(int messageID, JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            DatabaseFunctions databaseFunctions = new DatabaseFunctions();
 
             Message newMessage = requestBodyData.ToObject<Message>();
 
@@ -270,7 +272,7 @@ namespace TinderCloneV1 {
                 }
             }
 
-            queryString = RemoveLastCharacters(queryString, 1);
+            queryString = databaseFunctions.RemoveLastCharacters(queryString, 1);
             queryString += $@" WHERE MessageID = @messageID;";
 
             try {
@@ -284,7 +286,7 @@ namespace TinderCloneV1 {
 
                             /* pass the requestBody, the entity with the corresponding properties and the SqlCommand to the method 
                                to ensure working SqlInjection for the incoming values*/
-                            AddSqlInjection(requestBodyData, newMessage, command);
+                            databaseFunctions.AddSqlInjection(requestBodyData, newMessage, command);
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -314,29 +316,6 @@ namespace TinderCloneV1 {
 
             //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
-        }
-        public string RemoveLastCharacters(string queryString, int NumberOfCharacters) {
-            queryString = queryString.Remove(queryString.Length - NumberOfCharacters);
-            return queryString;
-        }
-        public void AddSqlInjection(JObject rboy, dynamic dynaObject, SqlCommand cmd) {
-            foreach (JProperty property in rboy.Properties()) {
-                foreach (PropertyInfo props in dynaObject.GetType().GetProperties()) {
-                    if (props.Name == property.Name) {
-                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
-
-                        if (type == typeof(string)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(dynaObject, null);
-                        }
-                        if (type == typeof(int)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(dynaObject, null);
-                        }
-                        if (type == typeof(DateTime)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(dynaObject, null);
-                        }
-                    }
-                }
-            }
         }
     }
 }

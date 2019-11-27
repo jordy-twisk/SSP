@@ -9,7 +9,6 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 
 namespace TinderCloneV1 {
     class CoachTutorantService : ICoachTutorantService {
@@ -24,6 +23,7 @@ namespace TinderCloneV1 {
         //Changes the status of a CoachTutorantConnection.
         public async Task<HttpResponseMessage> UpdateConnection(JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            DatabaseFunctions databaseFunctions = new DatabaseFunctions();
 
             //Verify if all parameters for the CoachTutorantConnection exist.
             //One or more parameters may be missing, in which case a [400 Bad Request] is returned.
@@ -50,7 +50,7 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             dynamic dObject = coachTutorantConnection;
-                            AddSqlInjection(requestBodyData, dObject, command);
+                            databaseFunctions.AddSqlInjection(requestBodyData, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -116,9 +116,9 @@ namespace TinderCloneV1 {
                                     listOfCoachTutorantConnections.Add(new CoachTutorantConnection {
                                         //Reader 0 contains coachTutorantConnectionID key (of the database),
                                         //this data is irrelevant for the user.
-                                        studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 1),
-                                        studentIDCoach = GeneralFunctions.SafeGetInt(reader, 2),
-                                        status = GeneralFunctions.SafeGetString(reader, 3)
+                                        studentIDTutorant = SafeReader.SafeGetInt(reader, 1),
+                                        studentIDCoach = SafeReader.SafeGetInt(reader, 2),
+                                        status = SafeReader.SafeGetString(reader, 3)
                                     });
                                 }
                             }
@@ -164,7 +164,7 @@ namespace TinderCloneV1 {
                         //The Query may fail, in which case a [400 Bad Request] is returned.
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@coachID", System.Data.SqlDbType.Int).Value = coachID;
+                            command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -230,9 +230,9 @@ namespace TinderCloneV1 {
                                     coachTutorantConnection = new CoachTutorantConnection {
                                         //Reader 0 contains coachTutorantConnectionID key (of the database),
                                         //this data is irrelevant for the user.
-                                        studentIDTutorant = GeneralFunctions.SafeGetInt(reader, 1),
-                                        studentIDCoach = GeneralFunctions.SafeGetInt(reader, 2),
-                                        status = GeneralFunctions.SafeGetString(reader, 3)
+                                        studentIDTutorant = SafeReader.SafeGetInt(reader, 1),
+                                        studentIDCoach = SafeReader.SafeGetInt(reader, 2),
+                                        status = SafeReader.SafeGetString(reader, 3)
                                     };
                                 }
                             }
@@ -264,6 +264,7 @@ namespace TinderCloneV1 {
         /* TODO: MAKE SURE THAT YOU CAN ONLY MAKE A CONNECTION WHEN THE STUDENTS EXISTS */
         public async Task<HttpResponseMessage> CreateConnectionByTutorantID(int tutorantID, JObject tTocConnection) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            DatabaseFunctions databaseFunctions = new DatabaseFunctions();
 
             //Verify if all parameters for the CoachTutorantConnection exist.
             //One or more parameters may be missing, in which case a [400 Bad Request] is returned.
@@ -291,7 +292,7 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             //Parameters are used to ensure no SQL injection can take place
                             dynamic dObject = coachTutorantConnection;
-                            AddSqlInjection(tTocConnection, dObject, command);
+                            databaseFunctions.AddSqlInjection(tTocConnection, dObject, command);
                            
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -366,26 +367,6 @@ namespace TinderCloneV1 {
 
             //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
-        }
-
-        public void AddSqlInjection(JObject rboy, dynamic dynaObject, SqlCommand cmd) {
-            foreach (JProperty property in rboy.Properties()) {
-                foreach (PropertyInfo props in dynaObject.GetType().GetProperties()) {
-                    if (props.Name == property.Name) {
-                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
-
-                        if (type == typeof(string)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(dynaObject, null);
-                        }
-                        if (type == typeof(int)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(dynaObject, null);
-                        }
-                        if (type == typeof(DateTime)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(dynaObject, null);
-                        }
-                    }
-                }
-            }
         }
     }
 }

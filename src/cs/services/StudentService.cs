@@ -25,6 +25,7 @@ namespace TinderCloneV1 {
            based on the filters given by the user through query parameters. */
         public async Task<HttpResponseMessage> GetAllStudents(List<string> parameters, List<string> propertyNames) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            DatabaseFunctions databaseFunctions = new DatabaseFunctions();
             List<Student> listOfStudents = new List<Student>();
 
             string queryString = $"SELECT * FROM [dbo].[Student]";
@@ -44,7 +45,7 @@ namespace TinderCloneV1 {
                     }
                }
                 /* Remove ' AND' from the queryString to ensure this is the end of the filtering */
-                queryString = RemoveLastCharacters(queryString, 4);
+                queryString = databaseFunctions.RemoveLastCharacters(queryString, 4);
             }
 
             try {
@@ -62,15 +63,15 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     listOfStudents.Add(new Student {
                                         studentID = reader.GetInt32(0),
-                                        firstName = GeneralFunctions.SafeGetString(reader, 1),
-                                        surName = GeneralFunctions.SafeGetString(reader, 2),
-                                        phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
-                                        photo = GeneralFunctions.SafeGetString(reader, 4),
-                                        description = GeneralFunctions.SafeGetString(reader, 5),
-                                        degree = GeneralFunctions.SafeGetString(reader, 6),
-                                        study = GeneralFunctions.SafeGetString(reader, 7),
-                                        studyYear = GeneralFunctions.SafeGetInt(reader, 8),
-                                        interests = GeneralFunctions.SafeGetString(reader, 9)
+                                        firstName = SafeReader.SafeGetString(reader, 1),
+                                        surName = SafeReader.SafeGetString(reader, 2),
+                                        phoneNumber = SafeReader.SafeGetString(reader, 3),
+                                        photo = SafeReader.SafeGetString(reader, 4),
+                                        description = SafeReader.SafeGetString(reader, 5),
+                                        degree = SafeReader.SafeGetString(reader, 6),
+                                        study = SafeReader.SafeGetString(reader, 7),
+                                        studyYear = SafeReader.SafeGetInt(reader, 8),
+                                        interests = SafeReader.SafeGetString(reader, 9)
                                     });
                                 }
                             }
@@ -139,15 +140,15 @@ namespace TinderCloneV1 {
                                 while (reader.Read()) {
                                     newStudent = new Student {
                                         studentID = reader.GetInt32(0),
-                                        firstName = GeneralFunctions.SafeGetString(reader, 1),
-                                        surName = GeneralFunctions.SafeGetString(reader, 2),
-                                        phoneNumber = GeneralFunctions.SafeGetString(reader, 3),
-                                        photo = GeneralFunctions.SafeGetString(reader, 4),
-                                        description = GeneralFunctions.SafeGetString(reader, 5),
-                                        degree = GeneralFunctions.SafeGetString(reader, 6),
-                                        study = GeneralFunctions.SafeGetString(reader, 7),
-                                        studyYear = GeneralFunctions.SafeGetInt(reader, 8),
-                                        interests = GeneralFunctions.SafeGetString(reader, 9)
+                                        firstName = SafeReader.SafeGetString(reader, 1),
+                                        surName = SafeReader.SafeGetString(reader, 2),
+                                        phoneNumber = SafeReader.SafeGetString(reader, 3),
+                                        photo = SafeReader.SafeGetString(reader, 4),
+                                        description = SafeReader.SafeGetString(reader, 5),
+                                        degree = SafeReader.SafeGetString(reader, 6),
+                                        study = SafeReader.SafeGetString(reader, 7),
+                                        studyYear = SafeReader.SafeGetInt(reader, 8),
+                                        interests = SafeReader.SafeGetString(reader, 9)
                                     };
                                 }
                             }
@@ -181,6 +182,7 @@ namespace TinderCloneV1 {
         /* Update the data from the student given by a requestBody */
         public async Task<HttpResponseMessage> UpdateStudentByID(int studentID, JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            DatabaseFunctions databaseFunctions = new DatabaseFunctions();
             
             /* Read the requestBody and put the response into a jObject which can be read later
             Also make a new user object and store the data in the user */
@@ -212,7 +214,7 @@ namespace TinderCloneV1 {
 
             /* Remove the last character from the queryString, which is ','  
             And add the WHERE statement*/
-            queryString = RemoveLastCharacters(queryString, 2);
+            queryString = databaseFunctions.RemoveLastCharacters(queryString, 2);
             queryString += $" WHERE studentID = @studentID;";
 
             try {
@@ -226,7 +228,7 @@ namespace TinderCloneV1 {
                     try {
                         using (SqlCommand command = new SqlCommand(queryString, connection)) {
                             /* Parameters are used to prevent SQLInjection */
-                            AddSqlInjection(requestBodyData, newStudent, command);
+                            databaseFunctions.AddSqlInjection(requestBodyData, newStudent, command);
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -257,29 +259,6 @@ namespace TinderCloneV1 {
             
             //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
-        }
-        public string RemoveLastCharacters(string queryString, int NumberOfCharacters) {
-            queryString = queryString.Remove(queryString.Length - NumberOfCharacters);
-            return queryString;
-        }
-        public void AddSqlInjection(JObject rboy, dynamic dynaObject, SqlCommand cmd) {
-            foreach (JProperty property in rboy.Properties()) {
-                foreach (PropertyInfo props in dynaObject.GetType().GetProperties()) {
-                    if (props.Name == property.Name) {
-                        var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
-
-                        if (type == typeof(string)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.VarChar).Value = props.GetValue(dynaObject, null);
-                        }
-                        if (type == typeof(int)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.Int).Value = props.GetValue(dynaObject, null);
-                        }
-                        if (type == typeof(DateTime)) {
-                            cmd.Parameters.Add(property.Name, SqlDbType.DateTime).Value = props.GetValue(dynaObject, null);
-                        }
-                    }
-                }
-            }
         }
     }
 }

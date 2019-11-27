@@ -73,7 +73,6 @@ A list of all files which are completed, tested and (if needed) match their API 
 - https://github.com/rapid7/metasploitable3 
 
 ### TODO 23:55 21 November 2019 :
-  - READ INPUT (REQUEST BODY && QUERY PARAMTERS)
   - SEND INPUT TO SERVICE
   - SERVICE HANDLES THE INPUT AND CALLS THE DATABASE LAYER
 	- SERVICE GETS THE REQUESTED DATA AND RETURNS THE DATA TO THE CONTROLLER 
