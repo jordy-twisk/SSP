@@ -1,11 +1,10 @@
 ﻿using System.Data.SqlClient;
 using System;
-using System.Text;
 
 namespace TinderCloneV1 {
 
     /* Some functions to prevent inserting nullable data in de entity properties from the requestBody */
-    public class GeneralFunctions {
+    public class SafeReader {
         static public string SafeGetString(SqlDataReader reader, int index) {
             if (!reader.IsDBNull(index))
                 return reader.GetString(index);

@@ -1,0 +1,32 @@
+﻿
+http://localhost:7071/api/profile/coach :
+{
+    "coach":{
+        "studentID": 31214,
+	    "workload": 4
+    },
+    "student": {
+        "studentID": 31214,
+	    "firstName": "Barend",
+	    "surName": "Testing"
+    }
+}
+
+http://localhost:7071/api/coachTutorant/tutorant/{studentID :
+{
+	"studentIDTutorant": 59012,
+	"studentIDCoach": 23123,
+	"status": "pending"
+}
+
+http://localhost:7071/api/profile/tutorant
+{
+    "tutorant": {
+        "studentID": 231452
+    },
+    "student": {
+        "studentID": 231452,
+	    "firstName": "Barend",
+	    "surName": "Testing"
+    }
+}

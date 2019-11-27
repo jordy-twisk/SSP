@@ -3,10 +3,8 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Net.Http;
-using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Net;
-using System.Text;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -18,20 +16,17 @@ namespace TinderCloneV1
         private readonly string connectionString = Environment.GetEnvironmentVariable("sqldb_connection");
 
         private readonly HttpRequestMessage req;
-        private readonly HttpRequest request;
         private readonly ILogger log;
 
         public AuthService(HttpRequestMessage req, HttpRequest request, ILogger log)
         {
             this.req = req;
-            this.request = request;
             this.log = log;
         }
 
         /*Returns */
-        public async Task<HttpResponseMessage> CreateAuth()
-        {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+        public async Task<HttpResponseMessage> CreateAuth() {
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             UserAuth userAuth;
             JObject jObject;
 
@@ -122,7 +117,7 @@ namespace TinderCloneV1
         /*Returns */
         public async Task<HttpResponseMessage> Login()
         {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             UserAuth userAuth;
             JObject jObject;
 
@@ -219,7 +214,7 @@ namespace TinderCloneV1
         /*Returns */
         public async Task<HttpResponseMessage> TestToken()
         {
-            ExceptionHandler exceptionHandler = new ExceptionHandler(0);
+            ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             JObject jObject;
             Tokens token;
 

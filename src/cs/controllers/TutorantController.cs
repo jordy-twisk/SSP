@@ -3,8 +3,10 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using System.Net.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.IO;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace TinderCloneV1 {
     public class TutorantController {
@@ -22,15 +24,22 @@ namespace TinderCloneV1 {
         */
         [FunctionName("TutorantProfile")]
         public async Task<HttpResponseMessage> GetTutorants([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", "post", Route = "profile/tutorant")] HttpRequestMessage req, HttpRequest request, ILogger log) {
+            "get", "post", Route = "profile/tutorant")] HttpRequestMessage request, ILogger log) {
 
-            tutorantService = new TutorantService(req, request, log);
+            tutorantService = new TutorantService(log);
 
-            if (req.Method == HttpMethod.Get) {
+            if (request.Method == HttpMethod.Get) {
                 return await tutorantService.GetAllTutorantProfiles();
             }
-            else if (req.Method == HttpMethod.Post) {
-                return await tutorantService.CreateTutorantProfile();
+            else if (request.Method == HttpMethod.Post) {
+                JObject newTutorantProfile = null;
+
+                /* Read from the request body */
+                using (StringReader reader = new StringReader(await request.Content.ReadAsStringAsync())) {
+                    newTutorantProfile = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                }
+
+                return await tutorantService.CreateTutorantProfile(newTutorantProfile);
             }
             else {
                 throw new NotImplementedException();
@@ -45,14 +54,14 @@ namespace TinderCloneV1 {
         */
         [FunctionName("TutorantProfileByID")]
         public async Task<HttpResponseMessage> GetTutorantProfile([HttpTrigger(AuthorizationLevel.Anonymous,
-            "get", "delete", Route = "profile/tutorant/{tutorantID}")] HttpRequestMessage req, HttpRequest request, int tutorantID, ILogger log) {
+            "get", "delete", Route = "profile/tutorant/{tutorantID}")]HttpRequestMessage request, int tutorantID, ILogger log) {
 
-            tutorantService = new TutorantService(req, request, log);
+            tutorantService = new TutorantService(log);
 
-            if (req.Method == HttpMethod.Get) {
+            if (request.Method == HttpMethod.Get) {
                 return await tutorantService.GetTutorantProfileByID(tutorantID);
             } 
-            else if (req.Method == HttpMethod.Delete) {
+            else if (request.Method == HttpMethod.Delete) {
                 return await tutorantService.DeleteTutorantProfileByID(tutorantID);
             } 
             else {

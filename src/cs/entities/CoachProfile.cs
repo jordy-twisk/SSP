@@ -5,21 +5,21 @@ using System.Text;
 
 namespace TinderCloneV1 {
     public class CoachProfile {
-        [JsonProperty("coach")]
+        [JsonProperty("coach"), JsonRequired]
         public Coach coach{
             get;
             set;
         }
 
-        [JsonProperty("user")]
-        public Student user{
+        [JsonProperty("student"), JsonRequired]
+        public Student student {
             get;
             set;
         }
 
-        public CoachProfile(Coach coach, Student user) {
+        public CoachProfile(Coach coach, Student student) {
             this.coach = coach;
-            this.user = user;
+            this.student = student;
         }
 
         public CoachProfile() {

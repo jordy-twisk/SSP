@@ -67,4 +67,14 @@ A list of all files which are completed, tested and (if needed) match their API 
 |                       |            | dd/mm/yyyy              | yes/no         |
 |                       |            | dd/mm/yyyy              | yes/no         |
 
+
+### LINKS
+- https://www.coreycleary.me/project-structure-for-an-express-rest-api-when-there-is-no-standard-way/
+- https://github.com/rapid7/metasploitable3 
+
+### TODO 23:55 21 November 2019 :
+  - SEND INPUT TO SERVICE
+  - SERVICE HANDLES THE INPUT AND CALLS THE DATABASE LAYER
+	- SERVICE GETS THE REQUESTED DATA AND RETURNS THE DATA TO THE CONTROLLER 
+	- CONTROLLER RETURNS THE HTTPMESSAGE
 -->
