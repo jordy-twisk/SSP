@@ -103,7 +103,7 @@ namespace TinderCloneV1 {
                         using (SqlCommand command = new SqlCommand(queryStringTutorant, connection)) {
                             // Parameters are used to ensure no SQL injection can take place.
                             dynamic dObject = newTutorant;
-                            AddSqlInjection(tutorantProfile, dObject, command);
+                            databaseFunctions.AddSqlInjection(tutorantProfile, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryStringTutorant}");
 
