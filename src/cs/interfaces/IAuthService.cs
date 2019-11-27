@@ -5,6 +5,6 @@ namespace TinderCloneV1 {
     public interface IAuthService {
         Task<HttpResponseMessage> CreateAuth();
         Task<HttpResponseMessage> Login();
-        Task<HttpResponseMessage> TestToken();
+        Task<HttpResponseMessage> TestToken(Newtonsoft.Json.Linq.JObject jObject);
     }
 }

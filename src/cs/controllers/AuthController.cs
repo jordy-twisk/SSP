@@ -5,6 +5,9 @@ using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 /*
  * Note:
@@ -66,7 +69,13 @@ namespace TinderCloneV1 {
 
             if (req.Method == HttpMethod.Post)
             {
-                return await authService.TestToken();
+                /* Read from the requestBody */
+                JObject jObject = null;
+                using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync()))
+                {
+                    jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                }
+                return await authService.TestToken(jObject);
             }
             else
             {

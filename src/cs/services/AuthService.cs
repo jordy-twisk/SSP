@@ -39,7 +39,7 @@ namespace TinderCloneV1
 
             /* Verify if all parameters for the Auth table exist.
             One or more parameters may be missing, in which case a [400 Bad Request] is returned. */
-            if (jObject["studentID"] == null || jObject["password"] == null)
+            if (jObject["studentID"] == null || jObject["password"] == null || jObject["role"] == null || jObject.Count > 3)
             {
                 log.LogError("Requestbody is missing data for the Auth table!");
                 return exceptionHandler.BadRequest(log);
@@ -54,8 +54,8 @@ namespace TinderCloneV1
             userAuth = encryptPassword(userAuth);
 
             /* Create query for setting the data into the database */
-            string queryString = $@"INSERT INTO [dbo].[Auth] (studentID, part1, part2)
-                                    VALUES (@studentID, @salt, @hash);";
+            string queryString = $@"INSERT INTO [dbo].[Auth] (studentID, part1, part2, role)
+                                    VALUES (@studentID, @salt, @hash, @role);";
 
             try
             {
@@ -71,9 +71,10 @@ namespace TinderCloneV1
                         using (SqlCommand command = new SqlCommand(queryString, connection))
                         {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = userAuth.studentID;
-                            command.Parameters.Add("@salt", System.Data.SqlDbType.VarChar).Value = userAuth.salt;
-                            command.Parameters.Add("@hash", System.Data.SqlDbType.VarChar).Value = userAuth.hash;
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = userAuth.StudentID;
+                            command.Parameters.Add("@salt", System.Data.SqlDbType.VarChar).Value = userAuth.Salt;
+                            command.Parameters.Add("@hash", System.Data.SqlDbType.VarChar).Value = userAuth.Hash;
+                            command.Parameters.Add("@role", System.Data.SqlDbType.VarChar).Value = userAuth.Role;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -103,7 +104,7 @@ namespace TinderCloneV1
             HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
             try
             {
-                response.Content = new StringContent(leaseToken(userAuth.studentID.ToString()));
+                response.Content = new StringContent(leaseToken(userAuth.StudentID));
             }
             catch (Exception e)
             {
@@ -130,7 +131,7 @@ namespace TinderCloneV1
 
             /* Verify if all parameters for the Auth table exist.
             One or more parameters may be missing, in which case a [400 Bad Request] is returned. */
-            if (jObject["studentID"] == null || jObject["password"] == null)
+            if (jObject["studentID"] == null || jObject["password"] == null || jObject.Count > 2)
             {
                 log.LogError("Requestbody is missing data for the Auth table!");
                 return exceptionHandler.BadRequest(log);
@@ -153,7 +154,7 @@ namespace TinderCloneV1
                         using (SqlCommand command = new SqlCommand(queryString, connection))
                         {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = userAuth.studentID;
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = userAuth.StudentID;
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
@@ -164,8 +165,8 @@ namespace TinderCloneV1
                                 while (reader.Read())
                                 {
                                     //part1 = salt, part2 = hash
-                                    userAuth.salt = reader.GetString(0);
-                                    userAuth.hash = reader.GetString(1);
+                                    userAuth.Salt = reader.GetString(0);
+                                    userAuth.Hash = reader.GetString(1);
                                 }
                             }
                         }
@@ -190,13 +191,13 @@ namespace TinderCloneV1
             log.LogInformation($"{HttpStatusCode.Created} | Connection created succesfully.");
             HttpResponseMessage response;
 
-            if (userAuth.hash == encryptPassword(userAuth).hash)
+            if (userAuth.Hash == encryptPassword(userAuth).Hash)
             {
                 //Return response code [201 Created].
                 response = new HttpResponseMessage(HttpStatusCode.OK);
                 try
                 {
-                    response.Content = new StringContent(leaseToken(userAuth.studentID.ToString()));
+                    response.Content = new StringContent(leaseToken(userAuth.StudentID));
                 }
                 catch (Exception e)
                 {
@@ -212,37 +213,31 @@ namespace TinderCloneV1
         }
 
         /*Returns */
-        public async Task<HttpResponseMessage> TestToken()
+        public async Task<HttpResponseMessage> TestToken(JObject jObject)
         {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
-            JObject jObject;
-            Tokens token;
-
-            /* Read from the requestBody */
-            using (StringReader reader = new StringReader(await req.Content.ReadAsStringAsync()))
-            {
-                jObject = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
-                token = jObject.ToObject<Tokens>();
-            }
 
             /* Verify if all parameters for the Auth table exist.
             One or more parameters may be missing, in which case a [400 Bad Request] is returned. */
-            if (token.token == null)
+            if (jObject["studentID"] == null || jObject["token"] == null || jObject.Count > 2)
             {
                 log.LogError("Requestbody is missing data for the Auth table!");
                 return exceptionHandler.BadRequest(log);
             }
 
+            Token token = jObject.ToObject<Token>();
+            UserAuth userAuth = jObject.ToObject<UserAuth>();
+
             HttpResponseMessage response;
-            if (checkTokenValid(token.token))
+            if (checkTokenValid(userAuth.StudentID, token.TokenString))
             {
                 //Return response code [200 OK].
-                response = new HttpResponseMessage(HttpStatusCode.BadRequest);
+                response = new HttpResponseMessage(HttpStatusCode.OK);
                 response.Content = new StringContent("Token is valid");
                 return response;
             }
             //Return response code [200 OK].
-            response = new HttpResponseMessage(HttpStatusCode.OK);
+            response = new HttpResponseMessage(HttpStatusCode.Unauthorized);
             response.Content = new StringContent("Token is not valid");
             return response;
         }
@@ -270,26 +265,22 @@ namespace TinderCloneV1
              */
 
             //for fixing code, now the password == hash
-            user.hash = user.password;
+            user.Hash = user.Password;
             //for fixing code, now the salt is static, should be user different.
-            user.salt = "not a real salt";
+            user.Salt = "not a real salt";
             return user;
         }
-        private string leaseToken(string studentID)
+        private string leaseToken(int studentID)
         {
             // to do: check if there is an old token.
             // to do: make token specific on ip // session // mac adres???
-            Tokens oldToken = getOldToken(studentID);
-            //bool deletedToken = false;
+            Token oldToken = getOldToken(studentID);
 
-            if (oldToken != null && checkTokenExpired(oldToken))
+            if (oldToken != null && checkTokenExpired(oldToken.Created_at))
             {
-                // to do: delete on specific token, instead of a new lookup.
-                deleteToken(oldToken);
-                //deletedToken = true;
+                deleteToken(studentID, oldToken.TokenString);
                 oldToken = null;
             }
-            //check if the token is really null
             if (oldToken == null)
             {
                 string newToken = createNewToken();
@@ -298,17 +289,17 @@ namespace TinderCloneV1
 
                 return newToken;
             }
-            return oldToken.token;
+            return oldToken.TokenString;
         }
-        public bool checkTokenValid(string givenToken)
+        public bool checkTokenValid(int studentID, string givenToken)
         {
             //use this inside a API call to check if token is valid.
-            Tokens Token = getToken(givenToken);
-            if (checkTokenExpired(Token))
+            Token token = getToken(studentID, givenToken);
+            if (token != null && !checkTokenExpired(token.Created_at))
             {
-                return false;
+                return true;
             }
-            return true;
+            return false;
         }
         private string createNewToken()
         {
@@ -317,20 +308,23 @@ namespace TinderCloneV1
             //https://stackoverflow.com/questions/14643735/how-to-generate-a-unique-token-which-expires-after-24-hours
             return token;
         }
-        private bool checkTokenExpired(Tokens curToken)
+        private bool checkTokenExpired(DateTime created_at)
         {
             //check if latest token is still usable
-            if ((DateTime.Now - curToken.created_at).TotalHours < 24)
+            if (created_at != null && (DateTime.Now - created_at).TotalHours < 24)
             {
                 return false;
             }
             return true;
         }
-        private Tokens getToken(String token)
+        private Token getToken(int studentID, string token)
         {
             string queryString = $@"SELECT token, created_at FROM [dbo].[Tokens]
-                                    WHERE token = @token;";
-            Tokens curToken = null;
+                                    INNER JOIN [dbo].[Auth] 
+	                                    ON Auth.pwID = Tokens.pwID
+                                    WHERE studentID = @studentID 
+	                                    AND token = @token";
+            Token curToken = null;
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -345,6 +339,7 @@ namespace TinderCloneV1
                         using (SqlCommand command = new SqlCommand(queryString, connection))
                         {
                             //Parameters are used to ensure no SQL injection can take place
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = studentID;
                             command.Parameters.Add("@token", System.Data.SqlDbType.VarChar).Value = token;
 
                             log.LogInformation($"Executing the following query: {queryString}");
@@ -355,10 +350,10 @@ namespace TinderCloneV1
                                 /* Return status code 404 */
                                 while (reader.Read())
                                 {
-                                    curToken = new Tokens
+                                    curToken = new Token
                                     {
-                                        token = reader.GetString(0),
-                                        created_at = reader.GetDateTime(1)
+                                        TokenString = reader.GetString(0),
+                                        Created_at = reader.GetDateTime(1)
                                     };
                                 }
                             }
@@ -380,12 +375,12 @@ namespace TinderCloneV1
             }
             return curToken;
         }
-        private Tokens getOldToken(string studentID)
+        private Token getOldToken(int studentID)
         {
             string queryString = $@"SELECT token, created_at FROM [dbo].[Tokens]
                                     INNER JOIN Auth ON Auth.pwID = Tokens.pwID
                                     WHERE studentID = @studentID";
-            Tokens curToken = null;
+            Token curToken = null;
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -410,10 +405,10 @@ namespace TinderCloneV1
                                 /* Return status code 404 */
                                 while (reader.Read())
                                 {
-                                    curToken = new Tokens
+                                    curToken = new Token
                                     {
-                                        token = reader.GetString(0),
-                                        created_at = reader.GetDateTime(1)
+                                        TokenString = reader.GetString(0),
+                                        Created_at = reader.GetDateTime(1)
                                     };
                                 }
                             }
@@ -435,12 +430,15 @@ namespace TinderCloneV1
             }
             return curToken;
         }
-        private void deleteToken(Tokens oldToken)
+        private void deleteToken(int studentID, string oldToken)
         {
             //delete token
-            string queryDelete = $@"DELETE token
-                                    FROM [dbo].[Tokens]
-                                    WHERE token = @Token";
+            string queryDelete = $@"DELETE t
+                                    FROM [dbo].[Tokens] t
+                                    INNER JOIN [dbo].[Auth]  a
+	                                    ON t.pwID = a.pwID
+                                    WHERE studentID = @studentID 
+	                                    AND token = @token";
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -455,7 +453,8 @@ namespace TinderCloneV1
                         using (SqlCommand command = new SqlCommand(queryDelete, connection))
                         {
                             //Parameters are used to ensure no SQL injection can take place
-                            command.Parameters.Add("@Token", System.Data.SqlDbType.VarChar).Value = oldToken.token;
+                            command.Parameters.Add("@studentID", System.Data.SqlDbType.Int).Value = studentID;
+                            command.Parameters.Add("@token", System.Data.SqlDbType.VarChar).Value = oldToken;
 
                             log.LogInformation($"Executing the following query: {queryDelete}");
 
@@ -477,7 +476,7 @@ namespace TinderCloneV1
                 log.LogError(e.Message);
             }
         }
-        private void postToken(string studentID, string token)
+        private void postToken(int studentID, string token)
         {
             //delete token
             string queryDelete = $@"INSERT INTO Tokens (pwID, token)
