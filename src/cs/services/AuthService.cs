@@ -280,20 +280,22 @@ namespace TinderCloneV1
             user.salt = "not a real salt";
             return user;
         }
-        public string leaseToken(string studentID)
+        private string leaseToken(string studentID)
         {
             // to do: check if there is an old token.
             // to do: make token specific on ip // session // mac adres???
             Tokens oldToken = getOldToken(studentID);
-            bool deletedToken = false;
+            //bool deletedToken = false;
 
             if (oldToken != null && checkTokenExpired(oldToken))
             {
                 // to do: delete on specific token, instead of a new lookup.
                 deleteToken(oldToken);
-                deletedToken = true;
+                //deletedToken = true;
+                oldToken = null;
             }
-            if (oldToken == null | deletedToken)
+            //check if the token is really null
+            if (oldToken == null)
             {
                 string newToken = createNewToken();
 
