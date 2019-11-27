@@ -100,7 +100,7 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> CreateCoachProfile(JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             DatabaseFunctions databaseFunctions = new DatabaseFunctions();
-            CoachDB coachDB = new CoachDB();
+            CoachDB coachDB = new CoachDB(log);
             /* Split the requestBody in a Coach and Student entity */
             JObject coachProfile = requestBodyData.SelectToken("coach").ToObject<JObject>();
             JObject studentProfile = requestBodyData.SelectToken("student").ToObject<JObject>();
@@ -126,7 +126,7 @@ namespace TinderCloneV1 {
             }
 
 
-            bool created = coachDB.CreateProfile(newCoach, newStudent);
+            //bool created = coachDB.CreateProfile(newCoach, newStudent);
 
             /* All fields for the Coach table are required */
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
@@ -140,6 +140,10 @@ namespace TinderCloneV1 {
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (";
             foreach (JProperty property in studentProfile.Properties()) {
                 foreach (PropertyInfo props in newStudent.GetType().GetProperties()) {
+                    if (props.GetValue(newStudent, null) == null) {
+                        log.LogError($"{props.GetValue(newStudent, null)} || {props.Name}");
+                    }
+                    log.LogInformation($"{props.GetValue(newStudent, null)}");
                     if (props.Name == property.Name) {
                         queryString_Student += $"{property.Name}, ";
                     }
@@ -182,7 +186,7 @@ namespace TinderCloneV1 {
                             log.LogInformation($"Executing the following query: {queryString_Student}");
 
                             // PREVIOUSLY: await command.ExecuteReaderAsync();
-                            studentCreated =  command.ExecuteNonQuery();
+                            // studentCreated =  command.ExecuteNonQuery();
                         }
 
                         /*Insert profile into the Coach table.
@@ -197,14 +201,14 @@ namespace TinderCloneV1 {
 
                             /* Is the student query affected 0 rows (i.e.: Student did not create then
                                the coach cannot exists as well, so dont make the coach*/
-                            if (studentCreated == 1) {
-                                // PREVIOUSLY: await command.ExecuteReaderAsync();
-                                command.ExecuteNonQuery();
-                            }
-                            else {
-                                log.LogError($"Cannot create coach profile, student does not exists");
-                                return exceptionHandler.BadRequest(log);
-                            }
+                            //if (studentCreated == 1) {
+                            //    // PREVIOUSLY: await command.ExecuteReaderAsync();
+                            //    command.ExecuteNonQuery();
+                            //}
+                            //else {
+                            //    log.LogError($"Cannot create coach profile, student does not exists");
+                            //    return exceptionHandler.BadRequest(log);
+                            //}
                         }
                     } catch (SqlException e) {
                         /* The Query may fail, in which case a [400 Bad Request] is returned.
