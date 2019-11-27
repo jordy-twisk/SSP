@@ -441,6 +441,7 @@ namespace TinderCloneV1 {
         /* Updates the workload of the coach (in the coach table) */ 
         public async Task<HttpResponseMessage> UpdateCoachByID(int coachID, JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
+            DatabaseFunctions databaseFunctions = new DatabaseFunctions();
 
             //newCoach.workload will be 0 if the requestbody contains no "workload" parameter,
             //in which case [400 Bad Request] is returned.
@@ -471,7 +472,7 @@ namespace TinderCloneV1 {
                             //command.Parameters.Add("@coachID", SqlDbType.Int).Value = coachID;
                                 /* CHANGED to: due to consistency and scalability */
                             dynamic dObject = newCoach;
-                            AddSqlInjection(requestBodyData, dObject, command);
+                            databaseFunctions.AddSqlInjection(requestBodyData, dObject, command);
 
                             log.LogInformation($"Executing the following query: {queryString}");
 
