@@ -26,6 +26,7 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> GetAllCoachProfiles() {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             List<CoachProfile> listOfCoachProfiles = new List<CoachProfile>();
+           
 
             string queryString = $@"SELECT Student.*, Coach.workload
                                     FROM [dbo].[Student]
@@ -99,6 +100,7 @@ namespace TinderCloneV1 {
         public async Task<HttpResponseMessage> CreateCoachProfile(JObject requestBodyData) {
             ExceptionHandler exceptionHandler = new ExceptionHandler(log);
             DatabaseFunctions databaseFunctions = new DatabaseFunctions();
+            CoachDB coachDB = new CoachDB();
             /* Split the requestBody in a Coach and Student entity */
             JObject coachProfile = requestBodyData.SelectToken("coach").ToObject<JObject>();
             JObject studentProfile = requestBodyData.SelectToken("student").ToObject<JObject>();
@@ -122,6 +124,9 @@ namespace TinderCloneV1 {
                 log.LogError("RequestBody has mismatching studentID for student and coach objects!");
                 return exceptionHandler.BadRequest(log);
             }
+
+
+            bool created = coachDB.CreateProfile(newCoach, newStudent);
 
             /* All fields for the Coach table are required */
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
@@ -503,7 +508,5 @@ namespace TinderCloneV1 {
             //Return response code [204 NoContent].
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
-
-        
     }
 }

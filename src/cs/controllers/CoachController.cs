@@ -50,8 +50,6 @@ namespace TinderCloneV1 {
             else {
                 throw new NotImplementedException();
             }
-
-
         }
 
         /*
