@@ -125,8 +125,7 @@ namespace TinderCloneV1 {
                 return exceptionHandler.BadRequest(log);
             }
 
-
-            //bool created = coachDB.CreateProfile(newCoach, newStudent);
+            bool created = await coachDB.CreateProfile(newCoach, newStudent);
 
             /* All fields for the Coach table are required */
             string queryString_Coach = $@"INSERT INTO [dbo].[Coach] (studentID, workload)
@@ -137,16 +136,25 @@ namespace TinderCloneV1 {
                SQL injection and ensure no illegitimate columnnames are entered into the SQL query. */
 
             /* Dynamically create the INSERT INTO line of the SQL statement: */
+
+            /* 
+                        TODO: CODE UNDERNEATH (FOREACH LOOP), CHANGE EVERY SERVICE OLD CODE TO THIS NEW ONE  
+                                                FIRST THING
+                        AND PUT IT IN THE DB LAYER, EXAMPLE: CoachDB
+            */
             string queryString_Student = $@"INSERT INTO [dbo].[Student] (";
-            foreach (JProperty property in studentProfile.Properties()) {
-                foreach (PropertyInfo props in newStudent.GetType().GetProperties()) {
-                    if (props.GetValue(newStudent, null) == null) {
-                        log.LogError($"{props.GetValue(newStudent, null)} || {props.Name}");
-                    }
+            foreach (PropertyInfo props in newStudent.GetType().GetProperties()) {
+                var type = Nullable.GetUnderlyingType(props.PropertyType) ?? props.PropertyType;
+
+                if (type == typeof(string) && props.GetValue(newStudent, null) == null) {
+                    log.LogError($"{props.GetValue(newStudent, null)} || {props.Name}");
+                }
+                else if (type == typeof(int) && (int)props.GetValue(newStudent, null) == 0) {
+                    log.LogError($"{props.GetValue(newStudent, null)} || {props.Name}");
+                }
+                else {
                     log.LogInformation($"{props.GetValue(newStudent, null)}");
-                    if (props.Name == property.Name) {
-                        queryString_Student += $"{property.Name}, ";
-                    }
+                    queryString_Student += $"{props.Name}, ";
                 }
             }
 
