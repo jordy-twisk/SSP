@@ -29,23 +29,36 @@ namespace TinderCloneV1 {
             List<Student> listOfStudents = new List<Student>();
 
             string queryString = $"SELECT * FROM [dbo].[Student]";
+        
 
             /* If there are any query parameters, loop through the properties of the User 
                to check if they exist, if so, add the given property with its query value 
                to the queryString. This enables filtering between individual words in
                the interests and study columns */
-            if (parameters.Count != 0) {
+            if (parameters.Count != 0 && parameters[0] != "") {
                 queryString += $" WHERE";
 
                 for (int i = 0; i < parameters.Count; ++i) {
-                    if (parameters[i] == "interests" || parameters[i] == "study") {
+                    if (parameters[i] == "interests" || parameters[i] == "study" || parameters[i] == "vooropleiding") {
                         queryString += $" {propertyNames[i]} LIKE '%{parameters[i]}' AND";
                     } else {
                         queryString += $" {propertyNames[i]} = '{parameters[i]}' AND";
                     }
                }
+                //Remove ' AND' from the queryString to ensure this is the end of the filtering 
+                queryString = databaseFunctions.RemoveLastCharacters(queryString, 4);
+            }
+            else if(propertyNames.Count != 0 && parameters[0] == "")
+            {
+                queryString += $" ORDER BY";
+
+                for (int i = 0; i < parameters.Count; ++i)
+                {
+                        queryString += $" {propertyNames[i]} AND";
+                }
                 /* Remove ' AND' from the queryString to ensure this is the end of the filtering */
                 queryString = databaseFunctions.RemoveLastCharacters(queryString, 4);
+
             }
 
             try {
@@ -71,7 +84,8 @@ namespace TinderCloneV1 {
                                         degree = SafeReader.SafeGetString(reader, 6),
                                         study = SafeReader.SafeGetString(reader, 7),
                                         studyYear = SafeReader.SafeGetInt(reader, 8),
-                                        interests = SafeReader.SafeGetString(reader, 9)
+                                        interests = SafeReader.SafeGetString(reader, 9),
+                                        vooropleiding = SafeReader.SafeGetString(reader, 10)
                                     });
                                 }
                             }
@@ -148,7 +162,8 @@ namespace TinderCloneV1 {
                                         degree = SafeReader.SafeGetString(reader, 6),
                                         study = SafeReader.SafeGetString(reader, 7),
                                         studyYear = SafeReader.SafeGetInt(reader, 8),
-                                        interests = SafeReader.SafeGetString(reader, 9)
+                                        interests = SafeReader.SafeGetString(reader, 9),
+                                        vooropleiding = SafeReader.SafeGetString(reader, 10)
                                     };
                                 }
                             }

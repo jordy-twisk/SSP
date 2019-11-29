@@ -21,6 +21,8 @@ namespace TinderCloneV1 {
             this.log = log;
         }
 
+        /* Returns the workload of the coach (from the coach table) */
+
         /* Returns the profile of all coaches (from the student table)
            and the workload of all coaches (from the coach table) */
         public async Task<HttpResponseMessage> GetAllCoachProfiles() {

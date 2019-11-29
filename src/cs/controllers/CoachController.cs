@@ -21,7 +21,7 @@ namespace TinderCloneV1 {
         public CoachController (ICoachService coachService) {
             this.coachService = coachService;
         }
-
+        
         /*
         Route to /api/profile/coach
         GET: Gets all the coach profiles (Student and Coach table data)

@@ -1,9 +1,9 @@
-openapi: 3.0.2
+swagger: '2.0'
 # Coach == Tutor
 # Tutorant == student of the Tutor
 # CoachProfile == Data of a Coach in the Coach AND Student table
-#	This means deleting a CoachProfile deletes the Coach from the Coach table and the Student table
-#	Note the only field that may be changed from the Coach table is the workload 
+#  This means deleting a CoachProfile deletes the Coach from the Coach table and the Student table
+#  Note the only field that may be changed from the Coach table is the workload 
 
 #to be done
 #authentication
@@ -101,7 +101,7 @@ paths:
       - Studentdata
       summary: search for student profiles
       operationId: GetAllStudents
-      description: Returns a list of student profiles from the database filtered by query parameters.
+      description: Returns a list of student profiles from the database filtered by query parameters. When 2 parameters are given, the WHERE function will be used. When only 1 is given, the result will ordered by ORDER BY and the given parameter.
       # No parameters returns back every profile.
       parameters:
         - in: query
@@ -151,6 +151,12 @@ paths:
         - in: query
           name: studyYear
           description: The study year of the student.
+          required: false
+          schema:
+              type: integer
+        - in: query
+          name: vooropleiding
+          description: pre school of the student
           required: false
           schema:
               type: integer

@@ -62,5 +62,12 @@ namespace TinderCloneV1 {
             get;
             set;
         }
+
+        [JsonProperty("vooropleiding")]
+        public string vooropleiding
+        {
+            get;
+            set;
+        }
     }
 }
